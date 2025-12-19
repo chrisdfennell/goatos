@@ -1,0 +1,6 @@
+# Enforce LF (Linux) line endings for shell scripts
+# This ensures rebuild.sh works inside Docker even if edited on Windows
+*.sh text eol=lf
+
+# Default behavior for other files
+text=auto
