@@ -1,43 +1,123 @@
-Weather Dashboard Setup
+# 🐐 GoatOS - Farm Management System
 
-This application has been updated to be "cloud-native." It contains no hardcoded secrets or locations. You must provide these values via Environment Variables.
+GoatOS is a comprehensive, open-source farm management platform designed specifically for managing goat herds. It provides an all-in-one dashboard to track animal health, production, sales, and grazing management, optimized for both desktop and mobile use in the barn.
 
-1. Prerequisites
+---
 
-Python 3.8+
+## 🚀 Key Features
 
-An OpenWeatherMap API Key
+### 📊 Dashboard & Analytics
+- **At-a-Glance Stats:** Real-time herd counts, active sales, and task reminders  
+- **Weather Widget:** Integrated Open-Meteo API for real-time farm weather conditions (no API key required)  
+- **Dark Mode:** Fully responsive UI with a toggleable Dark Mode for low-light barn checks  
 
-2. Running Locally
+### 🐐 Herd Management
+- **Individual Profiles:** Track age, breed, bio, and status (Healthy, Sick, At Vet, Deceased)  
+- **Pedigree Tracking:** Visual lineage trees linking Sires and Dams  
+- **Photo Gallery:** Upload and manage photos for each animal  
+- **QR / Stall Cards:** Generate printable stall cards with identifying info  
 
-You can set the variables directly in your terminal command before running streamlit.
+### 🏥 Health & Tools
+- **Medical Records:** Log vaccinations, deworming, and illness  
+- **Dosage Calculator:** Built-in calculator to determine medication volume based on animal weight and dosage rate  
+- **Weight Tracking:** Log weights and visualize growth over time with interactive charts  
+- **Gestation Calculator:** Estimate kidding dates based on breeding logs  
 
-Mac/Linux:
+### 🥛 Production & Sales
+- **Milk Log:** Track daily yields and visualize production trends  
+- **Sales Ledger:** Record sales, deposits, and payment statuses (Pending vs. Paid)  
+- **Grazing Map:** Satellite view integration (Google Maps) to draw and manage grazing zones  
 
-export OPENWEATHER_API_KEY="your_actual_api_key_here"
-export DEFAULT_LATITUDE="40.7128"
-export DEFAULT_LONGITUDE="-74.0060"
+---
 
-streamlit run weather_dashboard.py
+## 🛠 Tech Stack
 
+- **Backend:** Python 3.11, Django 4.2  
+- **Frontend:** HTML5, CSS3 (Bootstrap-style), JavaScript  
+- **Database:** SQLite (default, easily swappable for PostgreSQL)  
+- **Charts:** Chart.js  
+- **Containerization:** Docker & Docker Compose  
 
-Windows (PowerShell):
+---
 
-$env:OPENWEATHER_API_KEY="your_actual_api_key_here"
-$env:DEFAULT_LATITUDE="40.7128"
-$env:DEFAULT_LONGITUDE="-74.0060"
+## 🐳 Docker Installation (Recommended)
 
-streamlit run weather_dashboard.py
+GoatOS is designed to run in a containerized environment.
 
+### Prerequisites
+- Docker  
+- Docker Compose  
 
-3. Running with Docker
+### 1. Clone & Build
+```bash
+git clone https://github.com/yourusername/goatos.git
+cd goatos
+docker-compose build
+```
 
-This structure is perfect for Docker. You don't need to rebuild your image to change the location or the key; you just change the docker run command.
+### 2. Run the Container
+```bash
+docker-compose up -d
+```
 
-Example Docker Command:
+The application will launch on **port 4321** with SSL enabled (via `django-sslserver`) to support secure features like camera access on mobile devices.
 
-docker run -p 8501:8501 \
-  -e OPENWEATHER_API_KEY="your_actual_api_key_here" \
-  -e DEFAULT_LATITUDE="51.5074" \
-  -e DEFAULT_LONGITUDE="-0.1278" \
-  my-weather-app
+### 3. Access
+```text
+https://localhost:4321
+# OR
+https://YOUR_SERVER_IP:4321
+```
+
+> **Note:**  
+> The Docker container includes a startup script that automatically handles database migrations.  
+> To reset the database, delete the `db.sqlite3` file on the host machine and restart the container.
+
+---
+
+## 💻 Manual Installation (Local Development)
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### Apply Migrations
+```bash
+python manage.py migrate
+```
+
+### Create Admin User
+```bash
+python manage.py createsuperuser
+```
+
+### Run Development Server (SSL)
+```bash
+python manage.py runsslserver 0.0.0.0:4321
+```
+
+---
+
+## ⚙️ Configuration
+
+Configuration can be managed via the **Admin Panel** (`/admin/`) or environment variables in `docker-compose.yml`.
+
+### Key Settings
+- **Farm Settings:** Set Farm Name, Latitude, and Longitude in the Admin panel to calibrate:
+  - Weather widget
+  - Map center
+- **Google Maps API:** Add your API key in Farm Settings to enable:
+  - Grazing Map
+  - Location picker
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!  
+Feel free to submit a Pull Request, open an issue, or suggest improvements.
+
+---
+
+🐐 **Happy Herding with GoatOS!**
