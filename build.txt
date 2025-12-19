@@ -1,0 +1,5 @@
+docker build -t goatos .
+
+docker run -d -p 4321:4321 -v $(pwd)/db.sqlite3:/app/db.sqlite3 -v $(pwd)/media:/app/media goatos
+
+./rebuild.sh

@@ -1,0 +1,24 @@
+Files to ignore when building the docker image
+
+pycache
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.env
+.git
+.gitignore
+
+CRITICAL: Exclude local database so it doesn't go to Docker Hub
+
+db.sqlite3
+
+Exclude user uploads (goat photos) so the image is generic
+
+media/
+
+Exclude collected static files (generated on deploy)
+
+staticfiles/

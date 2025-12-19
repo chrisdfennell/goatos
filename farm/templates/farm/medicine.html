@@ -1,0 +1,127 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #e91e63; }
+    .card-title { color: #e91e63; border-bottom: 2px solid #fce4ec; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+    
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; color: #666; font-size: 0.9em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    
+    .text-expired { color: #c62828; font-weight: bold; background: #ffebee; padding: 2px 5px; border-radius: 4px; }
+    .text-ok { color: #2e7d32; }
+    .dosage-badge { background: #e8eaf6; color: #3f51b5; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+    
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #e91e63; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn-submit:hover { background-color: #c2185b; }
+    
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Dark Mode */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode input, body.dark-mode select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .dosage-badge { background-color: #333; color: #7986cb; }
+    body.dark-mode .text-expired { background-color: #4a0000; color: #ff8a80; }
+    body.dark-mode .text-ok { color: #81c784; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">💊 Medicine Cabinet</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <!-- Inventory List -->
+        <div class="card">
+            <h3 class="card-title">Current Inventory</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Stock</th>
+                            <th>Dosage Rate</th>
+                            <th>Expires</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for med in meds %}
+                        <tr>
+                            <td>
+                                <strong>{{ med.name }}</strong>
+                                {% if med.batch %}<div style="font-size:0.8em; color:#888;">Batch: {{ med.batch }}</div>{% endif %}
+                            </td>
+                            <td>{{ med.quantity }} {{ med.unit }}</td>
+                            <td><span class="dosage-badge">{{ med.dosage_instruction }}</span></td>
+                            <td>
+                                {% if med.is_expired %}
+                                    <span class="text-expired">{{ med.expiration_date|date:"M Y" }} (EXP)</span>
+                                {% else %}
+                                    <span class="text-ok">{{ med.expiration_date|date:"M Y" }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:#888;">Cabinet is empty.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Form -->
+        <div class="card" style="align-self: start;">
+            <h3 class="card-title">➕ Stock New Med</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <label style="font-size:0.8em; color:#666;">Medicine Name</label>
+                <input type="text" name="name" required placeholder="e.g. Penicillin">
+                
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Quantity</label>
+                        <input type="number" step="0.01" name="quantity" required placeholder="100">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Unit</label>
+                        <select name="unit">
+                            <option value="ml">ml / cc</option>
+                            <option value="g">grams</option>
+                            <option value="pill">pills</option>
+                            <option value="oz">oz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="font-size:0.8em; color:#666;">Dosage Calculation</label>
+                <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 10px;">
+                    <input type="number" step="0.01" name="dosage_amount" placeholder="Amt (1)" value="1.00" style="margin:0;">
+                    <span style="font-size:0.8em;">per</span>
+                    <input type="number" step="0.01" name="dosage_weight_interval" placeholder="Lbs (100)" value="0.00" style="margin:0;">
+                    <span style="font-size:0.8em;">lbs</span>
+                </div>
+                <small style="display:block; color:#888; margin-top:-5px; margin-bottom:10px;">Set lbs to 0 for fixed dose.</small>
+
+                <label style="font-size:0.8em; color:#666;">Details</label>
+                <input type="text" name="batch" placeholder="Batch #">
+                <input type="date" name="expiration_date">
+                
+                <button type="submit" class="btn-submit">Add to Cabinet</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
