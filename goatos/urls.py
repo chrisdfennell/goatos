@@ -49,5 +49,8 @@ urlpatterns = [
     path('api/event/resize/', views.resize_event, name='resize_event'),
     path('api/event/update/', views.update_event_api, name='update_event_api'),
     path('api/event/delete/<int:event_id>/', views.delete_event_api, name='delete_event_api'),
+    
+    # Meat Locker
+    path('meat/', views.meat_locker, name='meat_locker'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from datetime import timedelta, datetime, date
-from django.db.models import F, Sum, Q
+from django.db.models import F, Sum, Q, Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
@@ -10,8 +10,8 @@ import requests
 import qrcode
 from io import BytesIO
 import base64
-
-from .models import Goat, GoatLog, GrazingArea, DailyTask, TaskCompletion, Vet, MedicalRecord, FarmSettings, FeedingLog, BreedingLog, FeedItem, MilkLog, Transaction, WeightLog, FarmEvent, Medicine, GoatPhoto, Customer, WaitingList, Sale
+from .forms import MeatHarvestForm # Make sure to import this at the top
+from .models import Goat, GoatLog, GrazingArea, DailyTask, TaskCompletion, Vet, MedicalRecord, FarmSettings, FeedingLog, BreedingLog, FeedItem, MilkLog, Transaction, WeightLog, FarmEvent, Medicine, GoatPhoto, Customer, WaitingList, Sale, MeatHarvest
 
 # --- HELPER FUNCTIONS ---
 def get_common_context():
@@ -616,3 +616,35 @@ def sales_list(request):
     context = get_common_context()
     context.update({'sales': sales})
     return render(request, 'farm/sales_list.html', context)
+
+def meat_locker(request):
+    harvests = MeatHarvest.objects.all().order_by('-harvest_date')
+    
+    # Handle Form Submission
+    if request.method == 'POST':
+        form = MeatHarvestForm(request.POST)
+        if form.is_valid():
+            harvest = form.save()
+            # Optional: Auto-mark goat as Deceased/Archived
+            goat = harvest.goat
+            goat.status = 'Deceased' # Or 'Harvested' if you add that option
+            goat.save()
+            return redirect('meat_locker')
+    else:
+        form = MeatHarvestForm()
+
+    # Calculate Stats
+    total_hanging = harvests.aggregate(Sum('hanging_weight'))['hanging_weight__sum'] or 0
+    
+    # Calc Average Yield manually since it's a property, not a DB field
+    yields = [h.yield_percentage for h in harvests if h.live_weight > 0]
+    avg_yield = sum(yields) / len(yields) if yields else 0
+
+    context = {
+        'harvests': harvests,
+        'form': form,
+        'total_hanging': round(total_hanging, 1),
+        'avg_yield': round(avg_yield, 1),
+        'total_count': harvests.count()
+    }
+    return render(request, 'farm/meat_locker.html', context)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Goat, GoatLog, GrazingArea, DailyTask, TaskCompletion, Vet, MedicalRecord, FeedingLog, BreedingLog, FeedItem, MilkLog, FarmSettings, Transaction, WeightLog, FarmEvent, Medicine, GoatPhoto, Customer, WaitingList, Sale
+from .models import Goat, GoatLog, GrazingArea, DailyTask, TaskCompletion, Vet, MedicalRecord, FeedingLog, BreedingLog, FeedItem, MilkLog, FarmSettings, Transaction, WeightLog, FarmEvent, Medicine, GoatPhoto, Customer, WaitingList, Sale, MeatHarvest
 
 @admin.register(Goat)
 class GoatAdmin(admin.ModelAdmin):
@@ -113,3 +113,14 @@ class SaleAdmin(admin.ModelAdmin):
     list_filter = ('is_paid_in_full', 'sale_date')
     search_fields = ('goat__name', 'customer__name')
     date_hierarchy = 'sale_date'
+
+@admin.register(MeatHarvest)
+class MeatHarvestAdmin(admin.ModelAdmin):
+    list_display = ('goat', 'harvest_date', 'live_weight', 'hanging_weight', 'calculated_yield')
+    list_filter = ('harvest_date',)
+    search_fields = ('goat__name', 'notes')
+    date_hierarchy = 'harvest_date'
+    
+    def calculated_yield(self, obj):
+        return f"{obj.yield_percentage:.1f}%"
+    calculated_yield.short_description = 'Yield %'

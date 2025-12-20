@@ -275,3 +275,19 @@ class Sale(models.Model):
 
     def __str__(self):
         return f"Sale: {self.goat.name} to {self.customer.name}"
+
+class MeatHarvest(models.Model):
+    goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='harvests')
+    harvest_date = models.DateField(default=timezone.now)
+    live_weight = models.DecimalField(max_digits=5, decimal_places=2, help_text="Weight before processing (lbs)")
+    hanging_weight = models.DecimalField(max_digits=5, decimal_places=2, help_text="Carcass weight (lbs)")
+    notes = models.TextField(blank=True, help_text="Cut details, quality notes, etc.")
+
+    def __str__(self):
+        return f"{self.goat.name} - {self.harvest_date}"
+
+    @property
+    def yield_percentage(self):
+        if self.live_weight and self.live_weight > 0:
+            return (self.hanging_weight / self.live_weight) * 100
+        return 0
