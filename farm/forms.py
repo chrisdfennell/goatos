@@ -2,7 +2,7 @@ from django import forms
 from .models import (
     MeatHarvest, MilkLog, Transaction, Medicine, FarmEvent,
     Customer, WaitingList, WeightLog, FeedingLog, BreedingLog,
-    MedicalRecord, GoatLog, GrazingArea,
+    MedicalRecord, GoatLog, GrazingArea, Goat,
 )
 
 _DATE_WIDGET = forms.DateInput(attrs={'type': 'date'})
@@ -74,7 +74,7 @@ class WeightLogForm(forms.ModelForm):
 class FeedingLogForm(forms.ModelForm):
     class Meta:
         model = FeedingLog
-        fields = ['date', 'feed_type', 'amount', 'notes']
+        fields = ['date', 'feed_type', 'amount', 'notes', 'quantity', 'unit', 'feed_item']
         widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
 
 
@@ -105,3 +105,16 @@ class GrazingAreaForm(forms.ModelForm):
     class Meta:
         model = GrazingArea
         fields = ['name', 'color', 'coordinates']
+
+
+class GoatForm(forms.ModelForm):
+    class Meta:
+        model = Goat
+        fields = [
+            'name', 'breed', 'birthdate', 'age', 'is_fainting', 'bio',
+            'image', 'dam', 'sire', 'scrapie_tag', 'microchip_id', 'grazing_area',
+        ]
+        widgets = {
+            'birthdate': forms.DateInput(attrs={'type': 'date'}),
+            'bio': forms.Textarea(attrs={'rows': 3}),
+        }

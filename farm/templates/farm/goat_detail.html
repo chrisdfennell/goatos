@@ -144,6 +144,7 @@
 
     <div class="profile-card">
         <div class="profile-header">
+            <a href="{% url 'edit_goat' goat.id %}" class="btn-print" style="right:240px;" title="Edit Profile">✏️ Edit</a>
             <a href="{% url 'stall_card' goat.id %}" target="_blank" class="btn-print" title="Print Stall Card">🖨️ Stall Card</a>
             <a href="{% url 'print_goat_health' goat.id %}" target="_blank" class="btn-print" style="right:130px;" title="Print Health Record">🖨️ Health Report</a>
             
@@ -182,6 +183,7 @@
                 <div class="stat-box"><div class="stat-label">Age</div><div class="stat-value">{{ goat.display_age }}{% if goat.birthdate %}<div style="font-size: 0.6em; font-weight: normal; color: #666; margin-top: 5px;">Born: {{ goat.birthdate|date:"M j, Y" }}</div>{% endif %}</div></div>
                 {% if goat.scrapie_tag %}<div class="stat-box"><div class="stat-label">Scrapie Tag</div><div class="stat-value">{{ goat.scrapie_tag }}</div></div>{% endif %}
                 {% if goat.microchip_id %}<div class="stat-box"><div class="stat-label">Microchip</div><div class="stat-value" style="font-size:0.9em;">{{ goat.microchip_id }}</div></div>{% endif %}
+                {% if goat.grazing_area %}<div class="stat-box"><div class="stat-label">Grazing Zone</div><div class="stat-value" style="font-size:0.9em;">{{ goat.grazing_area.name }}</div></div>{% endif %}
             </div>
 
             <h3>Bio</h3>
@@ -317,12 +319,30 @@
             {% endif %}
 
             <!-- 1. FEEDING SECTION -->
-            <div class="section-header"><h3 class="section-title">🌾 Feeding Log</h3></div>
+            <div class="section-header">
+                <h3 class="section-title">🌾 Feeding Log</h3>
+                {% if feed_efficiency %}<span style="font-size:0.85em; color:#FF9800; font-weight:600;">Feed:Milk Ratio: {{ feed_efficiency }} lbs milk/lb feed (30d)</span>{% endif %}
+            </div>
+
+            <div style="height: 250px; width: 100%; margin-bottom: 20px; position: relative;">
+                <canvas id="feedChart"></canvas>
+            </div>
+
             <form action="{% url 'add_feeding_record' goat.id %}" method="post" class="feed-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <select name="feed_type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Treats">Treats</option><option value="Other">Other</option></select>
                     <input type="text" name="amount" placeholder="Amount (e.g. 1 Flake)" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <input type="number" step="0.01" name="quantity" placeholder="Qty (numeric)">
+                    <input type="text" name="unit" placeholder="Unit (lbs, scoops)">
+                    <select name="feed_item">
+                        <option value="">-- Link to Inventory --</option>
+                        {% for item in feed_items %}
+                        <option value="{{ item.id }}">{{ item.name }} ({{ item.quantity }} {{ item.unit }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <textarea name="notes" rows="1" placeholder="Details..."></textarea>
                 <button type="submit" class="btn-submit btn-feed">Record Feed</button>
@@ -339,7 +359,7 @@
             {% endif %}
 
             <!-- 2. MILK TRACKER SECTION -->
-            <div class="section-header"><h3 class="section-title">🥛 Milk Production</h3></div>
+            <div class="section-header"><h3 class="section-title">🥛 Milk Production (30 Days)</h3></div>
             
             <div style="height: 300px; width: 100%; margin-bottom: 20px; position: relative;">
                 <canvas id="milkChart"></canvas>
@@ -457,6 +477,7 @@
 <!-- Chart Script -->
 {{ weight_chart_data|json_script:"weight-data" }}
 {{ milk_chart_data|json_script:"milk-data" }}
+{{ feed_chart_data|json_script:"feed-data" }}
 {{ medicines_json|json_script:"meds-data" }}
 
 {% endblock %}
@@ -591,8 +612,45 @@
                     }
                 });
             } else {
-                document.getElementById('milkChart').parentNode.innerHTML = 
+                document.getElementById('milkChart').parentNode.innerHTML =
                     '<div class="empty-chart-msg">No milk records found.</div>';
+            }
+        }
+
+        // FEED CHART (30-day)
+        const feedElement = document.getElementById('feed-data');
+        if (feedElement) {
+            let feedData = JSON.parse(feedElement.textContent);
+            if (typeof feedData === 'string') feedData = JSON.parse(feedData);
+
+            if (feedData.amounts && feedData.amounts.length > 0) {
+                const ctx = document.getElementById('feedChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: feedData.dates,
+                        datasets: [{
+                            label: 'Feed (qty)',
+                            data: feedData.amounts,
+                            backgroundColor: 'rgba(255, 152, 0, 0.6)',
+                            borderColor: '#FF9800',
+                            borderWidth: 1,
+                            borderRadius: 3,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Amount' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('feedChart').parentNode.innerHTML =
+                    '<div class="empty-chart-msg">No numeric feed data yet. Use the Qty field below to track.</div>';
             }
         }
     });

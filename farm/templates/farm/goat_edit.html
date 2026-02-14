@@ -1,0 +1,122 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .form-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.1); padding: 30px; max-width: 800px; margin: 0 auto; }
+    .form-title { color: #2196F3; margin-top: 0; margin-bottom: 25px; border-bottom: 2px solid #e3f2fd; padding-bottom: 10px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85em; color: #555; margin-bottom: 5px; font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+        box-sizing: border-box; font-family: inherit; font-size: 1em;
+    }
+    .form-group textarea { resize: vertical; }
+    .form-full { grid-column: 1 / -1; }
+    .btn-save { background: #2196F3; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1.1em; width: 100%; transition: background 0.2s; }
+    .btn-save:hover { background: #1976D2; }
+    .form-hint { font-size: 0.8em; color: #888; margin-top: 3px; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+    .checkbox-row input[type="checkbox"] { width: auto; }
+
+    body.dark-mode .form-card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .form-title { color: #64b5f6; border-bottom-color: #333; }
+    body.dark-mode .form-group label { color: #ccc; }
+    body.dark-mode .form-group input, body.dark-mode .form-group select, body.dark-mode .form-group textarea {
+        background-color: #2d2d2d; border-color: #444; color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold text-dark">Edit: {{ goat.name }}</h1>
+        <a href="{% url 'goat_detail' goat.id %}" class="btn btn-outline-secondary">Back to Profile</a>
+    </div>
+
+    <div class="form-card">
+        <h2 class="form-title">Edit Profile</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" name="name" value="{{ form.name.value|default:'' }}" required>
+                    {% if form.name.errors %}<div class="text-danger" style="font-size:0.85em;">{{ form.name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Breed *</label>
+                    <input type="text" name="breed" value="{{ form.breed.value|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Birthdate</label>
+                    <input type="date" name="birthdate" value="{{ form.birthdate.value|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Approx Age (years)</label>
+                    <input type="number" name="age" value="{{ form.age.value|default:'0' }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Dam (Mother)</label>
+                    <select name="dam">
+                        <option value="">-- None --</option>
+                        {% for g in goats %}
+                        {% if g.id != goat.id %}
+                        <option value="{{ g.id }}" {% if form.dam.value|stringformat:"s" == g.id|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sire (Father)</label>
+                    <select name="sire">
+                        <option value="">-- None --</option>
+                        {% for g in goats %}
+                        {% if g.id != goat.id %}
+                        <option value="{{ g.id }}" {% if form.sire.value|stringformat:"s" == g.id|stringformat:"s" %}selected{% endif %}>{{ g.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Scrapie Tag</label>
+                    <input type="text" name="scrapie_tag" value="{{ form.scrapie_tag.value|default:'' }}">
+                    {% if form.scrapie_tag.errors %}<div class="text-danger" style="font-size:0.85em;">{{ form.scrapie_tag.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Microchip ID</label>
+                    <input type="text" name="microchip_id" value="{{ form.microchip_id.value|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Grazing Zone</label>
+                    <select name="grazing_area">
+                        <option value="">-- Unassigned --</option>
+                        {% for area in form.grazing_area.field.queryset %}
+                        <option value="{{ area.id }}" {% if form.grazing_area.value|stringformat:"s" == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Photo</label>
+                    <input type="file" name="image" accept="image/*">
+                    <div class="form-hint">Leave empty to keep current photo</div>
+                </div>
+                <div class="form-group form-full">
+                    <div class="checkbox-row">
+                        <input type="checkbox" name="is_fainting" id="is_fainting" {% if form.is_fainting.value %}checked{% endif %}>
+                        <label for="is_fainting" style="margin-bottom:0;">Fainting Goat</label>
+                    </div>
+                </div>
+                <div class="form-group form-full">
+                    <label>Bio</label>
+                    <textarea name="bio" rows="3">{{ form.bio.value|default:'' }}</textarea>
+                </div>
+                <div class="form-group form-full">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

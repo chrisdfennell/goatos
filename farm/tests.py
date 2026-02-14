@@ -5,11 +5,11 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 
-from .constants import GESTATION_DAYS, HEAT_CYCLE_DAYS
+from .constants import GESTATION_DAYS, HEAT_CYCLE_DAYS, HEAT_STRESS_THRESHOLD_F, FREEZE_WARNING_THRESHOLD_F
 from .models import (
-    Goat, BreedingLog, MeatHarvest, Medicine, FeedItem,
+    Goat, BreedingLog, MeatHarvest, Medicine, FeedItem, FeedingLog,
     MilkLog, Transaction, WeightLog, MedicalRecord,
-    FarmSettings, FarmEvent,
+    FarmSettings, FarmEvent, GrazingArea,
 )
 
 
@@ -480,3 +480,197 @@ class BreedingPlannerTests(TestCase):
         response = self.client.get(reverse('api_check_inbreeding'), {'goat1': g1.id, 'goat2': g2.id})
         data = response.json()
         self.assertFalse(data['has_shared_ancestors'])
+
+
+# ===== Round 3 Feature Tests =====
+
+class GoatFormTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1)
+
+    def test_add_goat_get(self):
+        response = self.client.get(reverse('add_goat'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Register')
+
+    def test_add_goat_post(self):
+        response = self.client.post(reverse('add_goat'), {
+            'name': 'Buttercup',
+            'breed': 'Nubian',
+            'age': '2',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Goat.objects.filter(name='Buttercup').exists())
+
+    def test_edit_goat_get(self):
+        goat = _create_goat(name='Clover')
+        response = self.client.get(reverse('edit_goat', args=[goat.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Clover')
+
+    def test_edit_goat_post(self):
+        goat = _create_goat(name='Clover', breed='Alpine')
+        response = self.client.post(reverse('edit_goat', args=[goat.id]), {
+            'name': 'Clover',
+            'breed': 'Saanen',
+            'age': '3',
+        })
+        self.assertEqual(response.status_code, 302)
+        goat.refresh_from_db()
+        self.assertEqual(goat.breed, 'Saanen')
+
+
+class GrazingAreaTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1)
+        self.area = GrazingArea.objects.create(
+            name='North Pasture', color='#00FF00',
+            coordinates='[{"lat": 38.0, "lng": -95.0}]',
+        )
+
+    def test_zone_update_via_put(self):
+        import json
+        response = self.client.put(
+            reverse('api_update_grazing_area', args=[self.area.id]),
+            data=json.dumps({'name': 'South Pasture', 'color': '#FF0000'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.area.refresh_from_db()
+        self.assertEqual(self.area.name, 'South Pasture')
+
+    def test_zone_delete(self):
+        goat = _create_goat(name='Zoner', grazing_area=self.area)
+        response = self.client.delete(
+            reverse('api_delete_grazing_area', args=[self.area.id]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(GrazingArea.objects.filter(pk=self.area.id).exists())
+        goat.refresh_from_db()
+        self.assertIsNone(goat.grazing_area)
+
+    def test_zone_delete_unassigns_goats(self):
+        goat = _create_goat(name='PastureGoat', grazing_area=self.area)
+        self.client.delete(reverse('api_delete_grazing_area', args=[self.area.id]))
+        goat.refresh_from_db()
+        self.assertIsNone(goat.grazing_area)
+
+
+class MapPageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1)
+
+    def test_map_page_renders(self):
+        response = self.client.get(reverse('map_page'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Farm Map')
+
+    def test_map_page_shows_zones(self):
+        GrazingArea.objects.create(
+            name='East Field', color='#0000FF',
+            coordinates='[{"lat": 38.0, "lng": -95.0}]',
+        )
+        response = self.client.get(reverse('map_page'))
+        self.assertContains(response, 'East Field')
+
+
+class GoatZoneAssignmentTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1)
+        self.area = GrazingArea.objects.create(
+            name='West Field', color='#FF00FF',
+            coordinates='[{"lat": 38.0, "lng": -95.0}]',
+        )
+        self.goat = _create_goat(name='Wanderer')
+
+    def test_assign_goat_to_zone(self):
+        import json
+        response = self.client.post(
+            reverse('api_assign_goat_zone', args=[self.goat.id]),
+            data=json.dumps({'zone_id': self.area.id}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.goat.refresh_from_db()
+        self.assertEqual(self.goat.grazing_area, self.area)
+
+    def test_goat_detail_shows_zone(self):
+        self.goat.grazing_area = self.area
+        self.goat.save()
+        response = self.client.get(reverse('goat_detail', args=[self.goat.id]))
+        self.assertContains(response, 'West Field')
+
+
+class FeedConsumptionTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1)
+        self.goat = _create_goat(name='Muncher')
+        self.feed_item = FeedItem.objects.create(name='Alfalfa', quantity=100, unit='lbs')
+
+    def test_feeding_with_quantity_deducts_inventory(self):
+        response = self.client.post(reverse('add_feeding_record', args=[self.goat.id]), {
+            'date': timezone.now().date().isoformat(),
+            'feed_type': 'Hay',
+            'amount': '2 flakes',
+            'quantity': '5.00',
+            'unit': 'lbs',
+            'feed_item': self.feed_item.id,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.feed_item.refresh_from_db()
+        self.assertEqual(float(self.feed_item.quantity), 95.0)
+
+    def test_feeding_without_quantity_no_deduction(self):
+        response = self.client.post(reverse('add_feeding_record', args=[self.goat.id]), {
+            'date': timezone.now().date().isoformat(),
+            'feed_type': 'Grain',
+            'amount': '1 scoop',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.feed_item.refresh_from_db()
+        self.assertEqual(float(self.feed_item.quantity), 100.0)
+
+    def test_feed_efficiency_in_context(self):
+        # Create milk + feed data
+        MilkLog.objects.create(goat=self.goat, date=timezone.now().date(), time='AM', amount=5.0)
+        FeedingLog.objects.create(
+            goat=self.goat, date=timezone.now().date(), feed_type='Hay',
+            amount='2 flakes', quantity=10,
+        )
+        response = self.client.get(reverse('goat_detail', args=[self.goat.id]))
+        self.assertEqual(response.status_code, 200)
+        # feed_efficiency should be in context (5.0 / 10.0 = 0.5)
+        self.assertEqual(response.context['feed_efficiency'], 0.5)
+
+
+class WeatherForecastTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='farmer', password='testpass123')
+        self.client.login(username='farmer', password='testpass123')
+        FarmSettings.objects.get_or_create(pk=1, defaults={
+            'name': 'Test Farm', 'latitude': 38.0, 'longitude': -95.0,
+        })
+
+    def test_index_has_weather_forecast_key(self):
+        response = self.client.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('weather_forecast', response.context)
+        self.assertIn('weather_alerts', response.context)
+
+    def test_heat_alert_threshold(self):
+        """Verify the heat stress constant is reasonable."""
+        self.assertEqual(HEAT_STRESS_THRESHOLD_F, 95)
+
+    def test_freeze_alert_threshold(self):
+        """Verify the freeze warning constant is reasonable."""
+        self.assertEqual(FREEZE_WARNING_THRESHOLD_F, 32)

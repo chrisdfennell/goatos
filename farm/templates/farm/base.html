@@ -47,6 +47,7 @@
                         <a href="{% url 'breeding_dashboard' %}" class="dropdown-item-custom">🧬 Breeding</a>
                         <a href="{% url 'silo_dashboard' %}" class="dropdown-item-custom">🚜 Silo & Feed</a>
                         <a href="{% url 'meat_locker' %}" class="dropdown-item-custom">🥩 Meat Locker</a>
+                        <a href="{% url 'map_page' %}" class="dropdown-item-custom">🗺️ Farm Map</a>
                         <div class="dropdown-divider"></div>
                         <a href="{% url 'sales_list' %}" class="dropdown-item-custom">💰 Sales Ledger</a>
                         <a href="{% url 'finance_dashboard' %}" class="dropdown-item-custom">💸 Finances</a>
@@ -54,7 +55,7 @@
                 </div>
 
                 <button onclick="openSettings()" class="nav-link">⚙️ Settings</button>
-                <a href="/admin/farm/goat/add/" class="nav-link btn-new-goat" target="_blank">+ New Goat</a>
+                <a href="{% url 'add_goat' %}" class="nav-link btn-new-goat">+ New Goat</a>
                 <a href="{% url 'logout' %}" class="nav-link" title="Sign Out">🚪 Logout</a>
             </div>
 
@@ -102,9 +103,9 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Google Maps API Key</label>
+                    <label class="form-label">Google Maps API Key <small>(Legacy)</small></label>
                     <input type="text" class="form-control" name="google_maps_api_key" value="{{ farm_settings.google_maps_api_key }}" placeholder="AIza..." style="font-family: monospace;">
-                    <small class="text-muted" style="font-size: 0.8em;">Leave empty to use system default.</small>
+                    <small class="text-muted" style="font-size: 0.8em;">Map now uses Leaflet.js (no key needed). Kept for reference.</small>
                 </div>
 
                 <button type="button" class="pick-map-btn" onclick="enableMapPick()">📍 Click on Map to Set Location</button>

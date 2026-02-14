@@ -27,6 +27,10 @@ urlpatterns = [
     path('update_settings/', views.update_settings, name='update_settings'),
     path('silo/update/<int:item_id>/', views.update_inventory, name='update_inventory'),
 
+    # Goat Add / Edit
+    path('goat/add/', views.add_goat, name='add_goat'),
+    path('goat/<int:goat_id>/edit/', views.edit_goat, name='edit_goat'),
+
     # Goat Detail & Actions
     path('goat/<int:goat_id>/', views.goat_detail, name='goat_detail'),
     path('goat/<int:goat_id>/status/', views.update_goat_status, name='update_goat_status'),
@@ -62,6 +66,12 @@ urlpatterns = [
     path('finance/export/csv/', views.export_transactions_csv, name='export_transactions_csv'),
     path('medical/export/csv/', views.export_medical_csv, name='export_medical_csv'),
     path('goat/<int:goat_id>/medical/export/csv/', views.export_medical_csv, name='export_goat_medical_csv'),
+
+    # Map Page & Zone CRUD
+    path('map/', views.map_page, name='map_page'),
+    path('api/grazing-area/<int:area_id>/', views.api_update_grazing_area, name='api_update_grazing_area'),
+    path('api/grazing-area/<int:area_id>/delete/', views.api_delete_grazing_area, name='api_delete_grazing_area'),
+    path('api/goat/<int:goat_id>/zone/', views.api_assign_goat_zone, name='api_assign_goat_zone'),
 
     # Admin Tools
     path('admin-tools/backup/', views.backup_database, name='backup_database'),

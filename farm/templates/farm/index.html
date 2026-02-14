@@ -1,6 +1,8 @@
 {% extends 'farm/base.html' %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 <style>
     /* Dashboard-specific CSS only */
     .search-container { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); margin-bottom: 30px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; transition: background-color .3s; }
@@ -300,19 +302,46 @@
                 style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
                 <div class="card-header-row" onclick="toggleCard('card-weather')">
                     <h2 style="margin: 0; color: white; display: flex; align-items: center; justify-content: space-between; width:100%;">
-                        <span>Current Weather</span>
+                        <span>Farm Weather</span>
                         <span id="weather-icon" style="font-size: 1.5em; cursor: pointer;" title="Click to Refresh" onclick="event.stopPropagation(); fetchWeather();">🌤️</span>
                     </h2>
                     <span class="toggle-icon" style="color: white;">▼</span>
                 </div>
                 <div class="card-content">
                     <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 10px;">
-                        <span id="weather-temp" style="font-size: 2.5em; font-weight: bold;">--°F</span>
-                        <span id="weather-desc" style="font-size: 1.1em; opacity: 0.9;">Loading...</span>
+                        <span id="weather-temp" style="font-size: 2.5em; font-weight: bold;">{% if weather %}{{ weather.temp }}°F{% else %}--°F{% endif %}</span>
+                        <span id="weather-desc" style="font-size: 1.1em; opacity: 0.9;">{% if weather %}{{ weather.humidity }}% Humidity{% else %}Loading...{% endif %}</span>
                     </div>
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
                         Wind: <span id="weather-wind">--</span> mph
                     </div>
+
+                    {% if weather_forecast %}
+                    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 12px;">
+                        <div style="font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">3-Day Forecast</div>
+                        <div style="display: grid; grid-template-columns: repeat({{ weather_forecast|length }}, 1fr); gap: 8px; text-align: center;">
+                            {% for day in weather_forecast %}
+                            <div style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 5px;">
+                                <div style="font-size: 0.8em; opacity: 0.8;">{{ day.date }}</div>
+                                <div style="font-size: 1.3em; margin: 5px 0;" id="wmo-icon-{{ forloop.counter }}">--</div>
+                                <div style="font-weight: 700;">{{ day.high }}° / {{ day.low }}°</div>
+                                <div style="font-size: 0.8em; opacity: 0.8;">💧 {{ day.rain_pct }}%</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if weather_alerts %}
+                    <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 10px;">
+                        {% for alert in weather_alerts %}
+                        <div style="background: rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 4px; margin-bottom: 5px; font-size: 0.85em;">
+                            {% if alert.type == 'heat' %}🔥{% elif alert.type == 'freeze' %}🥶{% else %}🌧️{% endif %}
+                            {{ alert.msg }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -423,46 +452,64 @@
             
             // Initialize Weather
             fetchWeather();
+            updateForecastIcons();
         });
 
-        // --- WEATHER FUNCTION ---
+        // --- WMO WEATHER CODE MAPPING ---
+        function wmoDescription(code) {
+            const map = {
+                0: ['Clear sky', '☀️'], 1: ['Mainly clear', '🌤️'], 2: ['Partly cloudy', '⛅'],
+                3: ['Overcast', '☁️'], 45: ['Foggy', '🌫️'], 48: ['Rime fog', '🌫️'],
+                51: ['Light drizzle', '🌦️'], 53: ['Drizzle', '🌦️'], 55: ['Dense drizzle', '🌧️'],
+                61: ['Light rain', '🌧️'], 63: ['Rain', '🌧️'], 65: ['Heavy rain', '🌧️'],
+                71: ['Light snow', '🌨️'], 73: ['Snow', '🌨️'], 75: ['Heavy snow', '❄️'],
+                77: ['Snow grains', '🌨️'], 80: ['Rain showers', '🌦️'], 81: ['Moderate showers', '🌧️'],
+                82: ['Violent showers', '⛈️'], 85: ['Snow showers', '🌨️'], 86: ['Heavy snow showers', '❄️'],
+                95: ['Thunderstorm', '⛈️'], 96: ['Thunderstorm + hail', '⛈️'], 99: ['Severe thunderstorm', '⛈️'],
+            };
+            return map[code] || ['Unknown', '🌡️'];
+        }
+
+        // --- WEATHER FUNCTION (client-side refresh) ---
         async function fetchWeather() {
             const tempEl = document.getElementById('weather-temp');
             const descEl = document.getElementById('weather-desc');
             const windEl = document.getElementById('weather-wind');
-            
+
             if (!tempEl) return;
-            
-            // Loading state
-            descEl.innerText = "Loading...";
-            
+
             try {
-                // Use farm location or default to Kansas City center if 0,0
                 let lat = farmLocation.lat;
                 let lng = farmLocation.lng;
-                
-                // Default to approx center of US if lat/lng are 0 (unconfigured)
                 if (!lat && !lng) { lat = 39.8; lng = -98.5; }
 
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph`;
-                
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Weather data fetch failed');
-                
                 const data = await response.json();
                 const weather = data.current_weather;
-                
+
                 tempEl.innerText = `${Math.round(weather.temperature)}°F`;
                 if (windEl) windEl.innerText = Math.round(weather.windspeed);
-                
-                // Simple condition text
-                descEl.innerText = "Current Temp";
-
+                const [desc, emoji] = wmoDescription(weather.weathercode);
+                descEl.innerText = desc;
+                const iconEl = document.getElementById('weather-icon');
+                if (iconEl) iconEl.innerText = emoji;
             } catch (error) {
                 console.error("Weather Error:", error);
-                tempEl.innerText = "--";
-                descEl.innerText = "Unavailable";
             }
+        }
+
+        // Update forecast icons from WMO codes
+        function updateForecastIcons() {
+            {% for day in weather_forecast %}
+            const el{{ forloop.counter }} = document.getElementById('wmo-icon-{{ forloop.counter }}');
+            if (el{{ forloop.counter }}) {
+                const [desc, emoji] = wmoDescription({{ day.code }});
+                el{{ forloop.counter }}.innerText = emoji;
+                el{{ forloop.counter }}.title = desc;
+            }
+            {% endfor %}
         }
 
         // --- KEYBOARD SHORTCUTS (Overriding Base if needed or adding specific) ---
@@ -556,62 +603,61 @@
             }
         }
 
-        // --- MAP FUNCTIONS ---
-        // Bridge function called by base.html's "enableMapPick"
+        // --- MAP FUNCTIONS (Leaflet.js) ---
         window.activateMapPicker = function() {
             mapPickMode = true;
+            showToast("Click on the map to set location", "info");
         }
 
         function initMap() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 18,
-                center: farmLocation,
-                mapTypeId: 'satellite'
-            });
+            // Create Leaflet map
+            map = L.map('map').setView([farmLocation.lat, farmLocation.lng], 18);
 
-            // HOME MARKER
-            homeMarker = new google.maps.Marker({
-                position: farmLocation,
-                map: map,
-                title: "Farm Home",
-                draggable: true,
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#FFEB3B", fillOpacity: 1, strokeWeight: 2, strokeColor: "black" }
+            // Tile layers: satellite (default) + street
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 19
             });
+            const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 19
+            });
+            satellite.addTo(map);
+            L.control.layers({ 'Satellite': satellite, 'Street': street }).addTo(map);
 
-            // Allow clicking marker to update position in pick mode
-            homeMarker.addListener('click', function(e) {
-                 if (mapPickMode) {
-                    const lat = e.latLng.lat();
-                    const lng = e.latLng.lng();
-                    document.getElementById('lat-input').value = lat;
-                    document.getElementById('lng-input').value = lng;
-                    homeMarker.setPosition({ lat: lat, lng: lng });
-                    openSettings();
-                 } else {
+            // HOME MARKER (yellow circle, draggable)
+            const homeIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:20px;height:20px;background:#FFEB3B;border:2px solid black;border-radius:50%;"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            homeMarker = L.marker([farmLocation.lat, farmLocation.lng], { icon: homeIcon, draggable: true }).addTo(map);
+            homeMarker.bindPopup('<strong>Farm Home</strong>');
+
+            homeMarker.on('click', function() {
+                if (!mapPickMode) {
                     openSettings();
                     showToast("Edit Farm Location in Settings", "info");
-                 }
+                }
             });
 
-            // Drag listener
-            homeMarker.addListener('dragend', function(e) {
-                const lat = e.latLng.lat();
-                const lng = e.latLng.lng();
-                document.getElementById('lat-input').value = lat;
-                document.getElementById('lng-input').value = lng;
+            homeMarker.on('dragend', function(e) {
+                const pos = e.target.getLatLng();
+                document.getElementById('lat-input').value = pos.lat;
+                document.getElementById('lng-input').value = pos.lng;
                 openSettings();
                 showToast("Location updated! Click Save to confirm.", "info");
             });
 
             // Map Click (Pick Mode)
-            map.addListener('click', function (e) {
+            map.on('click', function(e) {
                 if (mapPickMode) {
-                    const lat = e.latLng.lat();
-                    const lng = e.latLng.lng();
-                    document.getElementById('lat-input').value = lat;
-                    document.getElementById('lng-input').value = lng;
-                    homeMarker.setPosition({ lat: lat, lng: lng });
+                    document.getElementById('lat-input').value = e.latlng.lat;
+                    document.getElementById('lng-input').value = e.latlng.lng;
+                    homeMarker.setLatLng(e.latlng);
                     openSettings();
+                    mapPickMode = false;
                 }
             });
 
@@ -619,79 +665,56 @@
             let existingAreas = [];
             const dataElement = document.getElementById('grazing-data');
             if (dataElement) {
-                try { existingAreas = JSON.parse(dataElement.textContent); } 
+                try { existingAreas = JSON.parse(dataElement.textContent); }
                 catch (e) { console.error("Failed to parse grazing areas:", e); }
             }
             if (Array.isArray(existingAreas)) {
                 existingAreas.forEach(area => {
-                    const polygon = new google.maps.Polygon({
-                        paths: area.coords,
-                        strokeColor: area.color,
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
+                    if (!area.coords || area.coords.length === 0) return;
+                    // Convert {lat, lng} objects to [lat, lng] arrays for Leaflet
+                    const latlngs = area.coords.map(c => [c.lat, c.lng]);
+                    const polygon = L.polygon(latlngs, {
+                        color: area.color,
+                        weight: 2,
+                        opacity: 0.8,
                         fillColor: area.color,
                         fillOpacity: 0.35
-                    });
-                    polygon.setMap(map);
-                    polygon.addListener("click", () => {
-                        if (!area.coords || area.coords.length === 0) return;
-                        new google.maps.InfoWindow({
-                            content: `<strong>${area.name}</strong>`,
-                            position: area.coords[0]
-                        }).open(map);
-                    });
+                    }).addTo(map);
+                    polygon.bindPopup(`<strong>${area.name}</strong>`);
                 });
             }
 
-            // --- DRAWING MANAGER ---
-            const drawingManager = new google.maps.drawing.DrawingManager({
-                drawingMode: null,
-                drawingControl: true,
-                drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_LEFT,
-                    drawingModes: ['polygon', 'rectangle'],
-                },
-                polygonOptions: {
-                    fillColor: '#ffff00',
-                    fillOpacity: 0.5,
-                    strokeWeight: 2,
-                    clickable: false,
-                    editable: true,
-                    zIndex: 1
-                }
-            });
-            drawingManager.setMap(map);
+            // --- DRAWING TOOLS (Leaflet.Draw) ---
+            const drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
 
-            google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
-                drawingManager.setDrawingMode(null);
-                const newShape = event.overlay;
+            const drawControl = new L.Control.Draw({
+                draw: {
+                    polygon: { shapeOptions: { color: '#ffff00', fillOpacity: 0.5 } },
+                    rectangle: { shapeOptions: { color: '#ffff00', fillOpacity: 0.5 } },
+                    polyline: false, circle: false, circlemarker: false, marker: false
+                },
+                edit: { featureGroup: drawnItems }
+            });
+            map.addControl(drawControl);
+
+            map.on(L.Draw.Event.CREATED, function(event) {
+                const layer = event.layer;
+                drawnItems.addLayer(layer);
+                // Extract coordinates as {lat, lng} objects (DB format)
                 let pathData = [];
-                if (event.type === 'polygon') {
-                    const path = newShape.getPath();
-                    for (let i = 0; i < path.getLength(); i++) {
-                        const point = path.getAt(i);
-                        pathData.push({ lat: point.lat(), lng: point.lng() });
-                    }
-                } else if (event.type === 'rectangle') {
-                    const bounds = newShape.getBounds();
-                    const ne = bounds.getNorthEast();
-                    const sw = bounds.getSouthWest();
-                    pathData = [
-                        { lat: ne.lat(), lng: ne.lng() },
-                        { lat: ne.lat(), lng: sw.lng() },
-                        { lat: sw.lat(), lng: sw.lng() },
-                        { lat: sw.lat(), lng: ne.lng() }
-                    ];
-                }
+                const latlngs = layer.getLatLngs()[0];
+                latlngs.forEach(ll => {
+                    pathData.push({ lat: ll.lat, lng: ll.lng });
+                });
                 document.getElementById('new-area-form').style.display = 'block';
                 document.getElementById('area_coords').value = JSON.stringify(pathData);
-                document.querySelector('input[name="area_name"]').focus();
             });
         }
-        
-        // Call InitMap explicitly for now via the script tag callback
+
+        // Initialize map on DOM ready
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
-    
-    <!-- We initialize map script here only for index since it uses specific drawing lib -->
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ farm_settings.google_maps_api_key|default:'' }}&libraries=drawing&callback=initMap" async defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 {% endblock %}

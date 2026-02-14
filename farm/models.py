@@ -40,6 +40,9 @@ class Goat(models.Model):
     scrapie_tag = models.CharField(max_length=20, unique=True, null=True, blank=True, help_text="Official USDA Scrapie Tag ID")
     microchip_id = models.CharField(max_length=30, blank=True, default="", help_text="Microchip/EID number")
 
+    # Grazing Zone Assignment
+    grazing_area = models.ForeignKey('GrazingArea', null=True, blank=True, on_delete=models.SET_NULL, related_name='goats')
+
     def __str__(self):
         return f"{self.name} ({self.status})"
 
@@ -116,6 +119,11 @@ class FeedingLog(models.Model):
     feed_type = models.CharField(max_length=20, choices=FEED_TYPES)
     amount = models.CharField(max_length=100, help_text="e.g. 1 Scoop, 2 Flakes")
     notes = models.TextField(blank=True)
+
+    # Numeric tracking + inventory link
+    quantity = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True, help_text="Numeric feed amount")
+    unit = models.CharField(max_length=20, blank=True, default="", help_text="Unit for numeric amount")
+    feed_item = models.ForeignKey('FeedItem', null=True, blank=True, on_delete=models.SET_NULL, related_name='feeding_logs')
 
 class BreedingLog(models.Model):
     goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='breeding_logs')

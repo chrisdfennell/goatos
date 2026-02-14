@@ -20,7 +20,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_http_methods
 from datetime import timedelta, datetime
 
 from .constants import (
@@ -28,12 +28,13 @@ from .constants import (
     MAX_IMAGE_UPLOAD_BYTES, WEATHER_CACHE_TTL_SECONDS, DEFAULT_PAGE_SIZE,
     CHART_DAYS_LOOKBACK, CHART_MONTHS_LOOKBACK,
     HEAT_CYCLE_DAYS, BREEDING_WINDOW_DAYS,
+    HEAT_STRESS_THRESHOLD_F, FREEZE_WARNING_THRESHOLD_F, HEAVY_RAIN_PROB_THRESHOLD,
 )
 from .forms import (
     MeatHarvestForm, MilkLogForm, TransactionForm, MedicineForm,
     FarmEventForm, CustomerForm, WaitingListForm, WeightLogForm,
     FeedingLogForm, BreedingLogForm, MedicalRecordForm, GoatLogForm,
-    GrazingAreaForm,
+    GrazingAreaForm, GoatForm,
 )
 from .models import (
     Goat, GoatLog, GrazingArea, DailyTask, TaskCompletion, Vet,
@@ -67,7 +68,10 @@ def get_weather_data(lat, lon):
         "latitude": lat,
         "longitude": lon,
         "current": "temperature_2m,relative_humidity_2m,weather_code",
-        "wind_speed_unit": "ms"
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code",
+        "temperature_unit": "fahrenheit",
+        "wind_speed_unit": "mph",
+        "forecast_days": 3,
     }
     try:
         r = requests.get(url, params=params, timeout=5)
@@ -78,6 +82,19 @@ def get_weather_data(lat, lon):
     except requests.RequestException as e:
         logger.warning("Weather API error: %s", e)
         return None
+
+
+# WMO weather code descriptions
+WMO_DESCRIPTIONS = {
+    0: ('Clear sky', '☀️'), 1: ('Mainly clear', '🌤️'), 2: ('Partly cloudy', '⛅'),
+    3: ('Overcast', '☁️'), 45: ('Fog', '🌫️'), 48: ('Rime fog', '🌫️'),
+    51: ('Light drizzle', '🌦️'), 53: ('Drizzle', '🌦️'), 55: ('Dense drizzle', '🌧️'),
+    61: ('Slight rain', '🌦️'), 63: ('Rain', '🌧️'), 65: ('Heavy rain', '🌧️'),
+    71: ('Slight snow', '🌨️'), 73: ('Snow', '❄️'), 75: ('Heavy snow', '❄️'),
+    80: ('Rain showers', '🌦️'), 81: ('Moderate showers', '🌧️'), 82: ('Violent showers', '⛈️'),
+    85: ('Snow showers', '🌨️'), 86: ('Heavy snow showers', '❄️'),
+    95: ('Thunderstorm', '⛈️'), 96: ('Thunderstorm w/ hail', '⛈️'), 99: ('Severe thunderstorm', '⛈️'),
+}
 
 
 def validate_image_upload(uploaded_file):
@@ -98,6 +115,8 @@ def index(request):
 
     # Weather
     weather_info = None
+    weather_forecast = []
+    weather_alerts = []
     if farm_settings.latitude and farm_settings.longitude:
         w_data = get_weather_data(farm_settings.latitude, farm_settings.longitude)
         if w_data and 'current' in w_data:
@@ -106,6 +125,36 @@ def index(request):
                 'humidity': w_data['current']['relative_humidity_2m'],
                 'code': w_data['current']['weather_code']
             }
+        if w_data and 'daily' in w_data:
+            daily = w_data['daily']
+            for i in range(len(daily.get('time', []))):
+                high = daily['temperature_2m_max'][i]
+                low = daily['temperature_2m_min'][i]
+                rain = daily['precipitation_probability_max'][i]
+                code = daily['weather_code'][i]
+                weather_forecast.append({
+                    'date': daily['time'][i],
+                    'high': round(high),
+                    'low': round(low),
+                    'rain_pct': rain,
+                    'code': code,
+                })
+                # Generate alerts
+                if high >= HEAT_STRESS_THRESHOLD_F:
+                    weather_alerts.append({
+                        'type': 'heat',
+                        'msg': f"Heat stress warning on {daily['time'][i]}: High of {round(high)}°F",
+                    })
+                if low <= FREEZE_WARNING_THRESHOLD_F:
+                    weather_alerts.append({
+                        'type': 'freeze',
+                        'msg': f"Freeze warning on {daily['time'][i]}: Low of {round(low)}°F",
+                    })
+                if rain >= HEAVY_RAIN_PROB_THRESHOLD:
+                    weather_alerts.append({
+                        'type': 'rain',
+                        'msg': f"Heavy rain likely on {daily['time'][i]}: {rain}% chance",
+                    })
 
     goats = Goat.objects.all()
     grazing_areas = GrazingArea.objects.all()
@@ -152,6 +201,8 @@ def index(request):
 
     context.update({
         'weather': weather_info,
+        'weather_forecast': weather_forecast,
+        'weather_alerts': weather_alerts,
         'goats': goats,
         'grazing_areas': areas_list,
         'am_tasks': all_tasks.filter(time_of_day='AM'),
@@ -663,15 +714,35 @@ def goat_detail(request, goat_id):
         'dates': [log.date.strftime("%Y-%m-%d") for log in weight_logs],
         'weights': [float(log.weight) for log in weight_logs]
     }
-    daily_milk = goat.milk_logs.values('date').annotate(total=Sum('amount')).order_by('date')
+
+    # 30-day milk trend
+    thirty_ago = timezone.now().date() - timedelta(days=CHART_DAYS_LOOKBACK)
+    daily_milk = (
+        goat.milk_logs.filter(date__gte=thirty_ago)
+        .values('date').annotate(total=Sum('amount')).order_by('date')
+    )
     milk_chart_data = {
         'dates': [x['date'].strftime("%Y-%m-%d") for x in daily_milk],
         'amounts': [float(x['total']) for x in daily_milk]
     }
 
+    # 30-day feed consumption
+    daily_feed = (
+        goat.feeding_logs.filter(date__gte=thirty_ago, quantity__isnull=False)
+        .values('date').annotate(total=Sum('quantity')).order_by('date')
+    )
+    feed_chart_data = {
+        'dates': [x['date'].strftime("%Y-%m-%d") for x in daily_feed],
+        'amounts': [float(x['total']) for x in daily_feed]
+    }
+    total_feed_30 = sum(float(x['total']) for x in daily_feed)
+    total_milk_30 = sum(float(x['total']) for x in daily_milk)
+    feed_efficiency = round(total_milk_30 / total_feed_30, 2) if total_feed_30 > 0 else None
+
     # Metadata
     latest_weight = weight_logs.last().weight if weight_logs.exists() else 0
     medicines = Medicine.objects.all().values('id', 'name', 'dosage_amount', 'dosage_weight_interval', 'unit')
+    feed_items = FeedItem.objects.all().order_by('name')
 
     # Gallery Photos — grouped by month for timeline view
     gallery_photos = goat.photos.order_by('-date_added')
@@ -688,10 +759,13 @@ def goat_detail(request, goat_id):
         'milk_logs': milk_logs, 'weight_logs': weight_logs.order_by('-date'),
         'weight_chart_data': json.dumps(weight_chart_data),
         'milk_chart_data': json.dumps(milk_chart_data),
+        'feed_chart_data': json.dumps(feed_chart_data),
+        'feed_efficiency': feed_efficiency,
         'latest_weight': latest_weight,
         'medicines_json': json.dumps(list(medicines)),
         'gallery_photos': gallery_photos,
         'photos_by_month': photos_by_month,
+        'feed_items': feed_items,
     })
     return render(request, 'farm/goat_detail.html', context)
 
@@ -726,9 +800,15 @@ def add_feeding_record(request, goat_id):
     if request.method == 'POST':
         form = FeedingLogForm(request.POST)
         if form.is_valid():
-            record = form.save(commit=False)
-            record.goat = goat
-            record.save()
+            with transaction.atomic():
+                record = form.save(commit=False)
+                record.goat = goat
+                record.save()
+                # Auto-deduct from feed inventory if linked
+                if record.feed_item and record.quantity:
+                    FeedItem.objects.filter(pk=record.feed_item_id).update(
+                        quantity=F('quantity') - record.quantity
+                    )
     return redirect('goat_detail', goat_id=goat.id)
 
 
@@ -760,6 +840,39 @@ def delete_goat(request, goat_id):
         goat.delete()
         return redirect('index')
     return redirect('goat_detail', goat_id=goat.id)
+
+
+@login_required
+def add_goat(request):
+    if request.method == 'POST':
+        form = GoatForm(request.POST, request.FILES)
+        if form.is_valid():
+            goat = form.save()
+            messages.success(request, f"{goat.name} has been registered!")
+            return redirect('goat_detail', goat_id=goat.id)
+    else:
+        form = GoatForm()
+    goats = Goat.objects.all().order_by('name')
+    context = get_common_context()
+    context.update({'form': form, 'goats': goats})
+    return render(request, 'farm/goat_add.html', context)
+
+
+@login_required
+def edit_goat(request, goat_id):
+    goat = get_object_or_404(Goat, pk=goat_id)
+    if request.method == 'POST':
+        form = GoatForm(request.POST, request.FILES, instance=goat)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"{goat.name}'s profile has been updated!")
+            return redirect('goat_detail', goat_id=goat.id)
+    else:
+        form = GoatForm(instance=goat)
+    goats = Goat.objects.all().order_by('name')
+    context = get_common_context()
+    context.update({'form': form, 'goat': goat, 'goats': goats})
+    return render(request, 'farm/goat_edit.html', context)
 
 
 @login_required
@@ -1181,6 +1294,91 @@ def api_lookup_barcode(request):
         })
 
     return JsonResponse({'error': 'Item not found'}, status=404)
+
+
+# --- MAP PAGE & ZONE CRUD ---
+
+@login_required
+def map_page(request):
+    farm_settings = FarmSettings.objects.get_or_create(pk=1)[0]
+    grazing_areas = GrazingArea.objects.all()
+    goats = Goat.objects.select_related('grazing_area').exclude(status='Deceased').order_by('name')
+
+    areas_list = []
+    for area in grazing_areas:
+        try:
+            coords = json.loads(area.coordinates)
+        except (json.JSONDecodeError, TypeError):
+            coords = []
+        area_goats = goats.filter(grazing_area=area)
+        areas_list.append({
+            'id': area.id,
+            'name': area.name,
+            'color': area.color,
+            'coords': coords,
+            'goat_count': area_goats.count(),
+            'goat_names': list(area_goats.values_list('name', flat=True)),
+        })
+
+    unassigned = goats.filter(grazing_area__isnull=True)
+
+    context = get_common_context()
+    context.update({
+        'areas_json': json.dumps(areas_list),
+        'areas': grazing_areas,
+        'unassigned_goats': unassigned,
+        'all_goats': goats,
+        'farm_lat': farm_settings.latitude,
+        'farm_lng': farm_settings.longitude,
+    })
+    return render(request, 'farm/map.html', context)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def api_delete_grazing_area(request, area_id):
+    area = get_object_or_404(GrazingArea, pk=area_id)
+    # Unassign goats first
+    Goat.objects.filter(grazing_area=area).update(grazing_area=None)
+    area.delete()
+    return JsonResponse({'status': 'success'})
+
+
+@login_required
+@require_http_methods(["PUT"])
+def api_update_grazing_area(request, area_id):
+    area = get_object_or_404(GrazingArea, pk=area_id)
+    try:
+        data = json.loads(request.body)
+        if 'name' in data:
+            area.name = data['name']
+        if 'color' in data:
+            area.color = data['color']
+        if 'coordinates' in data:
+            area.coordinates = json.dumps(data['coordinates'])
+        area.save()
+        return JsonResponse({'status': 'success'})
+    except (json.JSONDecodeError, Exception) as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_assign_goat_zone(request, goat_id):
+    if request.method == 'POST':
+        goat = get_object_or_404(Goat, pk=goat_id)
+        try:
+            data = json.loads(request.body)
+            zone_id = data.get('zone_id')
+            if zone_id:
+                area = get_object_or_404(GrazingArea, pk=zone_id)
+                goat.grazing_area = area
+            else:
+                goat.grazing_area = None
+            goat.save()
+            return JsonResponse({'status': 'success'})
+        except (json.JSONDecodeError, Exception) as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error'}, status=405)
 
 
 # --- BREEDING PLANNER ---
