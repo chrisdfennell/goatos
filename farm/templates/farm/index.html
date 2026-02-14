@@ -106,6 +106,10 @@
 {% endblock %}
 
 {% block content %}
+    <div class="d-flex justify-content-end mb-2">
+        <a href="{% url 'print_herd_summary' %}" target="_blank" style="font-size:0.9em; color:#555; text-decoration:none;">🖨️ Print Herd Summary</a>
+    </div>
+
     <!-- SEARCH AND FILTER BAR -->
     <div class="search-container">
         <input type="text" id="goatSearch" class="search-input" placeholder="🔍 Search herd... (Press '/')" onkeyup="filterHerd()">
@@ -132,7 +136,7 @@
     <div class="goat-grid" id="herdGrid">
         {% for goat in goats %}
         <div class="goat-card" 
-             data-search="{{ goat.name|lower }} {{ goat.breed|lower }}"
+             data-search="{{ goat.name|lower }} {{ goat.breed|lower }} {{ goat.scrapie_tag|default:''|lower }} {{ goat.microchip_id|default:''|lower }}"
              data-status="{{ goat.status }}"
              data-name="{{ goat.name|lower }}"
              data-age="{{ goat.age }}">
@@ -190,12 +194,12 @@
             <div id="new-area-form">
                 <form action="{% url 'save_grazing_area' %}" method="POST">
                     {% csrf_token %}
-                    <input type="hidden" id="area_coords" name="area_coords">
+                    <input type="hidden" id="area_coords" name="coordinates">
                     <div class="form-row">
-                        <div class="form-group"><label>Area Name</label><input type="text" name="area_name"
+                        <div class="form-group"><label>Area Name</label><input type="text" name="name"
                                 placeholder="e.g. North Pasture" required></div>
                         <div class="form-group" style="flex: 0 0 100px;"><label>Color</label><input type="color"
-                                name="area_color" value="#FF0000" style="height: 35px; padding: 2px;"></div>
+                                name="color" value="#FF0000" style="height: 35px; padding: 2px;"></div>
                         <button type="submit" class="save-btn">Save Area</button>
                     </div>
                 </form>
@@ -204,6 +208,30 @@
 
         <!-- RIGHT: SIDEBAR (Checklist + Vets) -->
         <div class="sidebar-stack">
+            <!-- 📊 30-DAY SUMMARY -->
+            <div class="checklist-card" id="card-summary">
+                <div class="card-header-row" onclick="toggleCard('card-summary')">
+                    <h2 style="margin: 0; color: #2c3e50;">📊 30-Day Summary</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-content" style="margin-top:15px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+                        <div>
+                            <div style="font-size:1.8em; font-weight:bold; color:#2196F3;">{{ summary_milk_30|floatformat:0 }}</div>
+                            <div style="font-size:0.8em; color:#666; text-transform:uppercase;">lbs Milk</div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.8em; font-weight:bold; color:#2e7d32;">${{ summary_income_30|floatformat:0 }}</div>
+                            <div style="font-size:0.8em; color:#666; text-transform:uppercase;">Income</div>
+                        </div>
+                        <div>
+                            <div style="font-size:1.8em; font-weight:bold; color:#c62828;">${{ summary_expense_30|floatformat:0 }}</div>
+                            <div style="font-size:0.8em; color:#666; text-transform:uppercase;">Expenses</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 🔔 ACTION CENTER (SMART ALERTS) -->
             {% if has_alerts %}
             <div class="checklist-card" id="card-alerts" style="border-left: 5px solid #ff9800;">

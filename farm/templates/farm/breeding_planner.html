@@ -1,0 +1,227 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #9C27B0; }
+    .card-title { margin-top: 0; color: #9C27B0; border-bottom: 2px solid #f3e5f5; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #9C27B0; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn-submit:hover { background-color: #7B1FA2; }
+
+    .heat-list { list-style: none; padding: 0; margin: 0; }
+    .heat-list li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .heat-list li:last-child { border-bottom: none; }
+    .heat-badge { background: #f3e5f5; color: #9C27B0; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+
+    .inbreeding-result { padding: 15px; border-radius: 8px; margin-top: 10px; }
+    .inbreeding-safe { background: #e8f5e9; color: #2e7d32; }
+    .inbreeding-warn { background: #fff3e0; color: #e65100; }
+
+    #plannerCalendar { min-height: 500px; }
+    .fc-event { cursor: pointer !important; border: none !important; padding: 2px 5px !important; font-size: 0.9em !important; border-radius: 4px; }
+    .fc-daygrid-day.fc-day-today { background-color: #f3e5f5 !important; }
+    .fc-button-primary { background-color: #9C27B0 !important; border-color: #9C27B0 !important; }
+    .fc-button-active { background-color: #6A1B9A !important; border-color: #6A1B9A !important; }
+
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Dark Mode */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode input, body.dark-mode select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .heat-list li { border-bottom-color: #333; }
+    body.dark-mode .heat-badge { background-color: #4a148c; color: #ce93d8; }
+    body.dark-mode .fc-daygrid-day.fc-day-today { background-color: #4a148c !important; }
+    body.dark-mode .fc-theme-standard .fc-scrollgrid { border-color: #333; }
+    body.dark-mode .fc-theme-standard td, body.dark-mode .fc-theme-standard th { border-color: #333; }
+    body.dark-mode .fc-col-header-cell-cushion, body.dark-mode .fc-daygrid-day-number { color: #e0e0e0; text-decoration: none; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">📋 Breeding Planner</h1>
+        </div>
+        <div>
+            <a href="{% url 'breeding_dashboard' %}" class="btn btn-secondary">Back to Breeding</a>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Calendar -->
+        <div class="card">
+            <h3 class="card-title">Heat Cycle Calendar</h3>
+            <p style="font-size:0.85em; color:#888; margin-bottom:15px;">Select a goat to see predicted heat windows on the calendar.</p>
+            <div>
+                <select id="calendarGoatSelect" onchange="loadHeatCycles()">
+                    <option value="">-- Select a Goat --</option>
+                    {% for goat in goats %}
+                    <option value="{{ goat.id }}">{{ goat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="plannerCalendar"></div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div>
+            <!-- Plan Breeding Form -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 class="card-title">🗓️ Plan a Breeding</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <label style="font-size:0.8em; color:#666;">Doe</label>
+                    <select name="goat_id" required>
+                        <option value="">-- Select Doe --</option>
+                        {% for goat in goats %}
+                        <option value="{{ goat.id }}">{{ goat.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label style="font-size:0.8em; color:#666;">Buck / Mate Name</label>
+                    <input type="text" name="mate_name" required placeholder="e.g. Thunder">
+
+                    <label style="font-size:0.8em; color:#666;">Planned Date</label>
+                    <input type="date" name="plan_date" required value="{% now 'Y-m-d' %}">
+
+                    <button type="submit" class="btn-submit">Add to Calendar</button>
+                </form>
+            </div>
+
+            <!-- Predicted Heat Windows -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 class="card-title">🔥 Predicted Heat Windows</h3>
+                <div id="heatWindowsList">
+                    <p style="color:#888; font-size:0.9em; text-align:center;">Select a goat above to see predictions.</p>
+                </div>
+            </div>
+
+            <!-- Inbreeding Checker -->
+            <div class="card">
+                <h3 class="card-title">🧬 Inbreeding Check</h3>
+                <p style="font-size:0.85em; color:#888; margin-bottom:10px;">Compare ancestry of two goats (3 generations).</p>
+                <label style="font-size:0.8em; color:#666;">Goat 1</label>
+                <select id="inbreedGoat1">
+                    <option value="">-- Select --</option>
+                    {% for goat in goats %}
+                    <option value="{{ goat.id }}">{{ goat.name }}</option>
+                    {% endfor %}
+                </select>
+                <label style="font-size:0.8em; color:#666;">Goat 2</label>
+                <select id="inbreedGoat2">
+                    <option value="">-- Select --</option>
+                    {% for goat in goats %}
+                    <option value="{{ goat.id }}">{{ goat.name }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="checkInbreeding()" class="btn-submit" style="background-color:#607D8B;">Check Lineage</button>
+                <div id="inbreedingResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let plannerCalendar;
+let heatEvents = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('plannerCalendar');
+    plannerCalendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth'
+        },
+        events: [],
+        height: 'auto',
+    });
+    plannerCalendar.render();
+});
+
+async function loadHeatCycles() {
+    const goatId = document.getElementById('calendarGoatSelect').value;
+    const listDiv = document.getElementById('heatWindowsList');
+
+    // Remove old heat events
+    heatEvents.forEach(e => e.remove());
+    heatEvents = [];
+
+    if (!goatId) {
+        listDiv.innerHTML = '<p style="color:#888; font-size:0.9em; text-align:center;">Select a goat above to see predictions.</p>';
+        return;
+    }
+
+    listDiv.innerHTML = '<p style="color:#888; text-align:center;">Loading...</p>';
+
+    try {
+        const resp = await fetch(`/api/heat-cycles/${goatId}/`);
+        const data = await resp.json();
+
+        // Build list
+        let html = `<p style="font-size:0.8em; color:#888; margin-bottom:8px;">Based on: ${data.reference_date}</p>`;
+        html += '<ul class="heat-list">';
+        data.cycles.forEach(c => {
+            html += `<li><span class="heat-badge">Window #${c.cycle}</span> <span>${c.start} — ${c.end}</span></li>`;
+            // Add calendar events
+            const evt = plannerCalendar.addEvent({
+                title: c.title,
+                start: c.start,
+                end: c.end,
+                color: '#E91E63',
+                allDay: true,
+            });
+            heatEvents.push(evt);
+        });
+        html += '</ul>';
+        listDiv.innerHTML = html;
+    } catch(e) {
+        listDiv.innerHTML = '<p style="color:#c62828;">Error loading heat cycles.</p>';
+    }
+}
+
+async function checkInbreeding() {
+    const g1 = document.getElementById('inbreedGoat1').value;
+    const g2 = document.getElementById('inbreedGoat2').value;
+    const resultDiv = document.getElementById('inbreedingResult');
+
+    if (!g1 || !g2) {
+        resultDiv.innerHTML = '<div class="inbreeding-result inbreeding-warn">Please select two goats.</div>';
+        return;
+    }
+    if (g1 === g2) {
+        resultDiv.innerHTML = '<div class="inbreeding-result inbreeding-warn">Cannot compare a goat with itself.</div>';
+        return;
+    }
+
+    resultDiv.innerHTML = '<p style="color:#888; text-align:center;">Checking...</p>';
+
+    try {
+        const resp = await fetch(`/api/check-inbreeding/?goat1=${g1}&goat2=${g2}`);
+        const data = await resp.json();
+
+        if (data.has_shared_ancestors) {
+            resultDiv.innerHTML = `<div class="inbreeding-result inbreeding-warn">
+                <strong>⚠️ Warning:</strong> ${data.goat1} and ${data.goat2} share common ancestors:<br>
+                <strong>${data.shared_ancestors.join(', ')}</strong>
+            </div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="inbreeding-result inbreeding-safe">
+                <strong>✅ Clear:</strong> No shared ancestors found between ${data.goat1} and ${data.goat2} (3 generations).
+            </div>`;
+        }
+    } catch(e) {
+        resultDiv.innerHTML = '<div class="inbreeding-result inbreeding-warn">Error checking lineage.</div>';
+    }
+}
+</script>
+{% endblock %}

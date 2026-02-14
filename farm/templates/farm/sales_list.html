@@ -68,9 +68,9 @@
     <!-- Sales Table -->
     <div class="card">
         <div class="card-body p-0"> <!-- Removed padding for flush table -->
-            {% if sales %}
+            {% if page_obj %}
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0"> <!-- Added mb-0 -->
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Date</th>
@@ -83,8 +83,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for sale in sales %}
-                        <tr class="sale-row" 
+                        {% for sale in page_obj %}
+                        <tr class="sale-row"
                             data-search="{{ sale.goat.name|lower }} {{ sale.customer.name|lower }} {{ sale.notes|lower }}"
                             data-status="{% if sale.is_paid_in_full %}Paid{% else %}Pending{% endif %}">
                             <td>{{ sale.sale_date|date:"M d, Y" }}</td>
@@ -118,6 +118,7 @@
                     </tbody>
                 </table>
             </div>
+            {% include 'farm/_pagination.html' %}
             <div id="no-results" class="text-center py-4" style="display: none;">
                 <p class="text-muted">No sales found matching your filters.</p>
             </div>

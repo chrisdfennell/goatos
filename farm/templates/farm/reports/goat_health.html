@@ -1,0 +1,82 @@
+{% extends 'farm/reports/report_base.html' %}
+
+{% block report_content %}
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-val">{{ goat.name }}</div>
+        <div class="stat-label">{{ goat.breed }} &mdash; {{ goat.display_age }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val"><span class="status-dot {{ goat.status }}"></span>{{ goat.status }}</div>
+        <div class="stat-label">Current Status</div>
+    </div>
+    {% if latest_weight %}
+    <div class="stat-box">
+        <div class="stat-val">{{ latest_weight }} lbs</div>
+        <div class="stat-label">Latest Weight</div>
+    </div>
+    {% endif %}
+</div>
+
+<h2 class="section-title">Medical History</h2>
+{% if medical_records %}
+<table>
+    <thead>
+        <tr><th>Date</th><th>Type</th><th>Notes</th><th>Next Due</th></tr>
+    </thead>
+    <tbody>
+        {% for r in medical_records %}
+        <tr>
+            <td>{{ r.date|date:"M j, Y" }}</td>
+            <td>{{ r.get_record_type_display }}</td>
+            <td>{{ r.notes|default:"-" }}</td>
+            <td>{{ r.next_due_date|date:"M j, Y"|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#999;">No medical records.</p>
+{% endif %}
+
+<h2 class="section-title">Weight History</h2>
+{% if weight_logs %}
+<table>
+    <thead>
+        <tr><th>Date</th><th>Weight</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+        {% for w in weight_logs %}
+        <tr>
+            <td>{{ w.date|date:"M j, Y" }}</td>
+            <td><strong>{{ w.weight }} lbs</strong></td>
+            <td>{{ w.notes|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#999;">No weight records.</p>
+{% endif %}
+
+<h2 class="section-title">Breeding History</h2>
+{% if breeding_logs %}
+<table>
+    <thead>
+        <tr><th>Breeding Date</th><th>Mate</th><th>Due Date</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+        {% for b in breeding_logs %}
+        <tr>
+            <td>{{ b.breeding_date|date:"M j, Y" }}</td>
+            <td>{{ b.mate_name }}</td>
+            <td>{{ b.due_date|date:"M j, Y"|default:"-" }}</td>
+            <td>{{ b.notes|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#999;">No breeding records.</p>
+{% endif %}
+{% endblock %}

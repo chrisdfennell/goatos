@@ -1,0 +1,142 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .pedigree-container { max-width: 100%; overflow-x: auto; padding: 20px 0; }
+    .ped-tree { display: flex; justify-content: center; }
+    .ped-tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; list-style: none; margin: 0; padding-left: 0; }
+    .ped-tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
+    .ped-tree li::before, .ped-tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
+    .ped-tree li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
+    .ped-tree li:only-child::after, .ped-tree li:only-child::before { display: none; }
+    .ped-tree li:only-child { padding-top: 0; }
+    .ped-tree li:first-child::before, .ped-tree li:last-child::after { border: 0 none; }
+    .ped-tree li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
+    .ped-tree li:first-child::after { border-radius: 5px 0 0 0; }
+    .ped-tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
+
+    .ped-node { border: 2px solid #ccc; padding: 10px 15px; text-decoration: none; color: #333; font-size: 0.85em; display: inline-block; border-radius: 8px; background: white; min-width: 90px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .ped-node:hover { background: #e3f2fd; border-color: #2196F3; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+    .ped-node.main { background: #4CAF50; color: white; font-weight: bold; font-size: 1em; border-color: #388E3C; }
+    .ped-node.empty { border: 2px dashed #ccc; color: #aaa; background: #f9f9f9; }
+    .ped-node .node-role { display: block; font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; margin-top: 3px; }
+
+    /* Status indicators */
+    .ped-node.status-Healthy { border-left: 4px solid #4CAF50; }
+    .ped-node.status-Sick { border-left: 4px solid #e53935; }
+    .ped-node.status-Vet { border-left: 4px solid #FF9800; }
+    .ped-node.status-Deceased { border-left: 4px solid #616161; }
+
+    .descendants-section { margin-top: 40px; }
+    .desc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .desc-card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e1e4e8; text-align: center; transition: all 0.2s; }
+    .desc-card:hover { box-shadow: 0 3px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .desc-card a { text-decoration: none; color: #2c3e50; font-weight: bold; }
+    .desc-role { font-size: 0.8em; color: #666; margin-top: 5px; }
+
+    body.dark-mode .ped-node { background: #2d2d2d; color: #e0e0e0; border-color: #444; }
+    body.dark-mode .ped-node.main { background: #388E3C; }
+    body.dark-mode .ped-node.empty { background: #1e1e1e; border-color: #444; }
+    body.dark-mode .ped-node:hover { background: #1565c0; }
+    body.dark-mode .desc-card { background: #1e1e1e; border-color: #333; }
+    body.dark-mode .desc-card a { color: #e0e0e0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="dashboard-title" style="font-size:1.5em;">🌳 {{ goat.name }} — Full Pedigree</h1>
+        <a href="{% url 'goat_detail' goat.id %}" class="btn btn-secondary">Back to Profile</a>
+    </div>
+
+    <div class="pedigree-container">
+        <div class="ped-tree">
+            <ul>
+                <li>
+                    <span class="ped-node main">{{ goat.name }}</span>
+                    <ul>
+                        <!-- SIRE -->
+                        <li>
+                            {% if goat.sire %}
+                            <a href="{% url 'goat_pedigree' goat.sire.id %}" class="ped-node status-{{ goat.sire.status }}">{{ goat.sire.name }}<span class="node-role">Sire</span></a>
+                            <ul>
+                                <li>
+                                    {% if goat.sire.sire %}
+                                    <a href="{% url 'goat_pedigree' goat.sire.sire.id %}" class="ped-node status-{{ goat.sire.sire.status }}">{{ goat.sire.sire.name }}<span class="node-role">Grandsire</span></a>
+                                    <ul>
+                                        <li>{% if goat.sire.sire.sire %}<a href="{% url 'goat_pedigree' goat.sire.sire.sire.id %}" class="ped-node status-{{ goat.sire.sire.sire.status }}">{{ goat.sire.sire.sire.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                        <li>{% if goat.sire.sire.dam %}<a href="{% url 'goat_pedigree' goat.sire.sire.dam.id %}" class="ped-node status-{{ goat.sire.sire.dam.status }}">{{ goat.sire.sire.dam.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                    </ul>
+                                    {% else %}<span class="ped-node empty">Unknown<span class="node-role">Grandsire</span></span>{% endif %}
+                                </li>
+                                <li>
+                                    {% if goat.sire.dam %}
+                                    <a href="{% url 'goat_pedigree' goat.sire.dam.id %}" class="ped-node status-{{ goat.sire.dam.status }}">{{ goat.sire.dam.name }}<span class="node-role">Granddam</span></a>
+                                    <ul>
+                                        <li>{% if goat.sire.dam.sire %}<a href="{% url 'goat_pedigree' goat.sire.dam.sire.id %}" class="ped-node status-{{ goat.sire.dam.sire.status }}">{{ goat.sire.dam.sire.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                        <li>{% if goat.sire.dam.dam %}<a href="{% url 'goat_pedigree' goat.sire.dam.dam.id %}" class="ped-node status-{{ goat.sire.dam.dam.status }}">{{ goat.sire.dam.dam.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                    </ul>
+                                    {% else %}<span class="ped-node empty">Unknown<span class="node-role">Granddam</span></span>{% endif %}
+                                </li>
+                            </ul>
+                            {% else %}
+                            <span class="ped-node empty">Unknown<span class="node-role">Sire</span></span>
+                            {% endif %}
+                        </li>
+                        <!-- DAM -->
+                        <li>
+                            {% if goat.dam %}
+                            <a href="{% url 'goat_pedigree' goat.dam.id %}" class="ped-node status-{{ goat.dam.status }}">{{ goat.dam.name }}<span class="node-role">Dam</span></a>
+                            <ul>
+                                <li>
+                                    {% if goat.dam.sire %}
+                                    <a href="{% url 'goat_pedigree' goat.dam.sire.id %}" class="ped-node status-{{ goat.dam.sire.status }}">{{ goat.dam.sire.name }}<span class="node-role">Grandsire</span></a>
+                                    <ul>
+                                        <li>{% if goat.dam.sire.sire %}<a href="{% url 'goat_pedigree' goat.dam.sire.sire.id %}" class="ped-node status-{{ goat.dam.sire.sire.status }}">{{ goat.dam.sire.sire.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                        <li>{% if goat.dam.sire.dam %}<a href="{% url 'goat_pedigree' goat.dam.sire.dam.id %}" class="ped-node status-{{ goat.dam.sire.dam.status }}">{{ goat.dam.sire.dam.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                    </ul>
+                                    {% else %}<span class="ped-node empty">Unknown<span class="node-role">Grandsire</span></span>{% endif %}
+                                </li>
+                                <li>
+                                    {% if goat.dam.dam %}
+                                    <a href="{% url 'goat_pedigree' goat.dam.dam.id %}" class="ped-node status-{{ goat.dam.dam.status }}">{{ goat.dam.dam.name }}<span class="node-role">Granddam</span></a>
+                                    <ul>
+                                        <li>{% if goat.dam.dam.sire %}<a href="{% url 'goat_pedigree' goat.dam.dam.sire.id %}" class="ped-node status-{{ goat.dam.dam.sire.status }}">{{ goat.dam.dam.sire.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                        <li>{% if goat.dam.dam.dam %}<a href="{% url 'goat_pedigree' goat.dam.dam.dam.id %}" class="ped-node status-{{ goat.dam.dam.dam.status }}">{{ goat.dam.dam.dam.name }}</a>{% else %}<span class="ped-node empty">?</span>{% endif %}</li>
+                                    </ul>
+                                    {% else %}<span class="ped-node empty">Unknown<span class="node-role">Granddam</span></span>{% endif %}
+                                </li>
+                            </ul>
+                            {% else %}
+                            <span class="ped-node empty">Unknown<span class="node-role">Dam</span></span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Descendants -->
+    {% if kids_as_dam or kids_as_sire %}
+    <div class="descendants-section">
+        <h2 style="color:#2c3e50; border-bottom: 2px solid #e1e4e8; padding-bottom:10px;">Offspring</h2>
+        <div class="desc-grid">
+            {% for kid in kids_as_dam %}
+            <div class="desc-card">
+                <a href="{% url 'goat_detail' kid.id %}">{{ kid.name }}</a>
+                <div class="desc-role">{{ kid.breed }} &mdash; as Dam</div>
+            </div>
+            {% endfor %}
+            {% for kid in kids_as_sire %}
+            <div class="desc-card">
+                <a href="{% url 'goat_detail' kid.id %}">{{ kid.name }}</a>
+                <div class="desc-role">{{ kid.breed }} &mdash; as Sire</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

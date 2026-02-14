@@ -1,0 +1,54 @@
+{% extends 'farm/reports/report_base.html' %}
+
+{% block report_content %}
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-val" style="color:#2e7d32;">${{ total_income|floatformat:2 }}</div>
+        <div class="stat-label">Total Income ({{ year }})</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color:#c62828;">${{ total_expense|floatformat:2 }}</div>
+        <div class="stat-label">Total Expenses ({{ year }})</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color:{% if net_profit >= 0 %}#2e7d32{% else %}#c62828{% endif %};">
+            {% if net_profit > 0 %}+{% endif %}${{ net_profit|floatformat:2 }}
+        </div>
+        <div class="stat-label">Net Profit/Loss</div>
+    </div>
+</div>
+
+<h2 class="section-title">Monthly Breakdown ({{ year }})</h2>
+<table>
+    <thead>
+        <tr><th>Month</th><th style="text-align:right;">Income</th><th style="text-align:right;">Expenses</th><th style="text-align:right;">Net</th></tr>
+    </thead>
+    <tbody>
+        {% for row in monthly_data %}
+        <tr>
+            <td>{{ row.month }}</td>
+            <td style="text-align:right; color:#2e7d32;">${{ row.income|floatformat:2 }}</td>
+            <td style="text-align:right; color:#c62828;">${{ row.expense|floatformat:2 }}</td>
+            <td style="text-align:right; font-weight:bold; color:{% if row.net >= 0 %}#2e7d32{% else %}#c62828{% endif %};">
+                {% if row.net > 0 %}+{% endif %}${{ row.net|floatformat:2 }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="section-title">Expense Breakdown by Category</h2>
+<table>
+    <thead>
+        <tr><th>Category</th><th style="text-align:right;">Amount</th></tr>
+    </thead>
+    <tbody>
+        {% for cat in category_breakdown %}
+        <tr>
+            <td>{{ cat.category }}</td>
+            <td style="text-align:right;">${{ cat.total|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -70,14 +70,33 @@
                     </select>
                 </div>
                 <input type="number" step="0.01" name="amount" placeholder="Amount (lbs)" required>
+                <details style="margin-bottom:10px;">
+                    <summary style="cursor:pointer; color:#2196F3; font-size:0.9em; font-weight:600;">Quality Testing (optional)</summary>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
+                        <input type="number" step="0.01" name="butterfat" placeholder="Butterfat %">
+                        <input type="number" step="0.01" name="protein" placeholder="Protein %">
+                        <input type="number" name="somatic_cell_count" placeholder="SCC (x1000)">
+                    </div>
+                </details>
                 <button type="submit" class="btn-submit">Record Yield</button>
             </form>
         </div>
 
+        <!-- 30-Day Trend Chart -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title">30-Day Production Trend</h3>
+            <div style="height:250px; position:relative;">
+                <canvas id="milkTrendChart"></canvas>
+            </div>
+        </div>
+
         <!-- Recent History -->
         <div class="card" style="grid-column: 1 / -1;">
-            <h3 class="card-title">Recent Production Logs</h3>
-            {% if logs %}
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-title" style="margin-bottom:0;">Recent Production Logs</h3>
+                <a href="{% url 'export_milk_csv' %}" style="font-size:0.9em; color:#2196F3; text-decoration:none; font-weight:600;">📥 Export CSV</a>
+            </div>
+            {% if page_obj %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
@@ -86,24 +105,64 @@
                             <th>Time</th>
                             <th>Goat</th>
                             <th>Amount</th>
+                            <th>BF%</th>
+                            <th>Protein%</th>
+                            <th>SCC</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for log in logs|slice:":10" %}
+                        {% for log in page_obj %}
                         <tr>
                             <td>{{ log.date|date:"M j, Y" }}</td>
                             <td>{{ log.time }}</td>
                             <td><strong>{{ log.goat.name }}</strong></td>
                             <td style="font-weight: bold;">{{ log.amount }} lbs</td>
+                            <td>{{ log.butterfat|default:"-" }}</td>
+                            <td>{{ log.protein|default:"-" }}</td>
+                            <td>{{ log.somatic_cell_count|default:"-" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            {% include 'farm/_pagination.html' %}
             {% else %}
                 <p style="color: #888; text-align: center; padding: 20px;">No milk records found.</p>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ milk_chart_json|json_script:"milk-trend-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const raw = JSON.parse(document.getElementById('milk-trend-data').textContent);
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (data.labels && data.labels.length > 0) {
+        new Chart(document.getElementById('milkTrendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Daily Yield (lbs)',
+                    data: data.data,
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33,150,243,0.1)',
+                    borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, title: {display:true, text:'lbs'} }, x: { grid: {display:false} } }
+            }
+        });
+    } else {
+        document.getElementById('milkTrendChart').parentNode.innerHTML = '<div style="text-align:center;padding:50px;color:#aaa;">No milk data in the last 30 days.</div>';
+    }
+});
+</script>
 {% endblock %}

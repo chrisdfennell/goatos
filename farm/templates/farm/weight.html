@@ -31,12 +31,26 @@
         <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 
+    <!-- Herd Average Weight Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="card-title">Herd Average Weight (Monthly)</h3>
+                    <div style="height:250px; position:relative;">
+                        <canvas id="weightTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h3 class="card-title">Recent Weigh-Ins</h3>
-                    {% if recent_weights %}
+                    {% if page_obj %}
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
@@ -49,7 +63,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for log in recent_weights %}
+                                {% for log in page_obj %}
                                 <tr>
                                     <td>{{ log.date|date:"M d, Y" }}</td>
                                     <td><strong>{{ log.goat.name }}</strong></td>
@@ -63,6 +77,7 @@
                             </tbody>
                         </table>
                     </div>
+                    {% include 'farm/_pagination.html' %}
                     {% else %}
                         <p class="text-center text-muted py-5">No weight records found. Go to a goat's profile to log their weight.</p>
                     {% endif %}
@@ -71,4 +86,37 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ weight_chart_json|json_script:"weight-trend-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const raw = JSON.parse(document.getElementById('weight-trend-data').textContent);
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (data.labels && data.labels.length > 0) {
+        new Chart(document.getElementById('weightTrendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Avg Weight (lbs)',
+                    data: data.data,
+                    borderColor: '#009688',
+                    backgroundColor: 'rgba(0,150,136,0.1)',
+                    borderWidth: 2, pointRadius: 4, fill: true, tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: false, title: {display:true, text:'lbs'} }, x: { grid: {display:false} } }
+            }
+        });
+    } else {
+        document.getElementById('weightTrendChart').parentNode.innerHTML = '<div style="text-align:center;padding:50px;color:#aaa;">No weight data yet.</div>';
+    }
+});
+</script>
 {% endblock %}

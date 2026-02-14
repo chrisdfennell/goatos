@@ -107,6 +107,26 @@
             <button class="btn btn-sm btn-link text-danger mt-2" onclick="clearNotes()">Clear</button>
         </div>
 
+        {% if request.user.is_superuser %}
+        <!-- DB BACKUP / RESTORE -->
+        <div class="tool-card" style="border-left: 4px solid #d32f2f;">
+            <span class="tool-icon">💾</span>
+            <h3 class="tool-title">Database Backup & Restore</h3>
+            <p class="tool-desc">Download or restore your farm database. Superuser only.</p>
+
+            <a href="{% url 'backup_database' %}" class="calc-btn" style="display:block; text-align:center; text-decoration:none; margin-bottom:15px;">Download Backup</a>
+
+            <form method="POST" action="{% url 'restore_database' %}" enctype="multipart/form-data" onsubmit="return confirm('This will REPLACE the current database. Are you sure?');">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label>Restore from .sqlite3 file</label>
+                    <input type="file" name="db_file" accept=".sqlite3" required>
+                </div>
+                <button type="submit" class="calc-btn" style="background:#d32f2f;">Restore Database</button>
+            </form>
+        </div>
+        {% endif %}
+
     </div>
 </div>
 

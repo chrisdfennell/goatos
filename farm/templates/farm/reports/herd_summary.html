@@ -1,0 +1,50 @@
+{% extends 'farm/reports/report_base.html' %}
+
+{% block report_content %}
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-val">{{ total_count }}</div>
+        <div class="stat-label">Total Goats</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color:#4CAF50;">{{ healthy_count }}</div>
+        <div class="stat-label">Healthy</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color:#e53935;">{{ sick_count }}</div>
+        <div class="stat-label">Sick</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color:#FF9800;">{{ vet_count }}</div>
+        <div class="stat-label">At Vet</div>
+    </div>
+</div>
+
+<h2 class="section-title">Herd Roster</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Breed</th>
+            <th>Age</th>
+            <th>Status</th>
+            <th>Scrapie Tag</th>
+            <th>Dam</th>
+            <th>Sire</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for goat in goats %}
+        <tr>
+            <td><strong>{{ goat.name }}</strong></td>
+            <td>{{ goat.breed }}</td>
+            <td>{{ goat.display_age }}</td>
+            <td><span class="status-dot {{ goat.status }}"></span>{{ goat.status }}</td>
+            <td>{{ goat.scrapie_tag|default:"-" }}</td>
+            <td>{{ goat.dam.name|default:"-" }}</td>
+            <td>{{ goat.sire.name|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

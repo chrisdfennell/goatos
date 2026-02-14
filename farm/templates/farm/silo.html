@@ -36,8 +36,25 @@
             <h1 class="dashboard-title">🚜 The Silo</h1>
         </div>
         <div>
+            <button onclick="openScanModal()" class="btn btn-info me-2">📷 Scan Barcode</button>
             <a href="{% url 'index' %}" class="btn btn-secondary me-2">Back to Dashboard</a>
             <a href="/admin/farm/feeditem/add/" target="_blank" class="btn btn-dark">+ New Item</a>
+        </div>
+    </div>
+
+    <!-- Barcode Scanner Modal -->
+    <div id="scanModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:12px; width:400px; max-width:90%;">
+            <h3 style="margin-top:0;">Barcode Scanner</h3>
+            <div id="scanReader" style="width:100%; margin-bottom:15px;"></div>
+            <div style="margin-bottom:10px;">
+                <input type="text" id="manualBarcode" placeholder="Or type barcode..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+            </div>
+            <div id="scanResult" style="display:none; padding:15px; background:#e8f5e9; border-radius:8px; margin-bottom:15px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="lookupBarcode()" class="btn btn-primary" style="flex:1;">Lookup</button>
+                <button onclick="closeScanModal()" class="btn btn-secondary" style="flex:1;">Close</button>
+            </div>
         </div>
     </div>
 
@@ -73,4 +90,55 @@
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let html5QrCode;
+
+function openScanModal() {
+    document.getElementById('scanModal').style.display = 'flex';
+    document.getElementById('scanResult').style.display = 'none';
+    try {
+        html5QrCode = new Html5Qrcode("scanReader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 100 } },
+            (text) => {
+                document.getElementById('manualBarcode').value = text;
+                lookupBarcode();
+                html5QrCode.stop();
+            }
+        ).catch(() => {});
+    } catch(e) { /* camera not available, use manual */ }
+}
+
+function closeScanModal() {
+    document.getElementById('scanModal').style.display = 'none';
+    if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
+}
+
+async function lookupBarcode() {
+    const barcode = document.getElementById('manualBarcode').value.trim();
+    if (!barcode) return;
+    const resultDiv = document.getElementById('scanResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = 'Searching...';
+    try {
+        const resp = await fetch(`/api/barcode/?barcode=${encodeURIComponent(barcode)}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            resultDiv.innerHTML = `<strong>${data.name}</strong><br>Stock: ${data.quantity} ${data.unit}<br><small>Type: ${data.type}</small>`;
+            resultDiv.style.background = '#e8f5e9';
+        } else {
+            resultDiv.innerHTML = 'No item found with that barcode.';
+            resultDiv.style.background = '#ffebee';
+        }
+    } catch(e) {
+        resultDiv.innerHTML = 'Error looking up barcode.';
+        resultDiv.style.background = '#ffebee';
+    }
+}
+</script>
 {% endblock %}

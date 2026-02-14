@@ -81,7 +81,8 @@
             <h4 style="margin-top:0; color:#607D8B;">Add Request</h4>
             <form method="POST">
                 {% csrf_token %}
-                <select name="waitlist_customer" required>
+                <input type="hidden" name="form_type" value="waitlist">
+                <select name="customer" required>
                     <option value="" disabled selected>Select Customer...</option>
                     {% for c in customers %}
                     <option value="{{ c.id }}">{{ c.name }}</option>
@@ -101,7 +102,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <input type="text" name="waitlist_notes" placeholder="Notes (e.g. Blue eyes preferred)">
+                <input type="text" name="notes" placeholder="Notes (e.g. Blue eyes preferred)">
                 <button type="submit" class="btn-submit">Add to List</button>
             </form>
         </div>
@@ -113,12 +114,13 @@
             <!-- Add Customer Form -->
             <form method="POST" style="background:#f5f7f8; padding:15px; border-radius:8px; margin-bottom:20px;" class="customer-form">
                 {% csrf_token %}
-                <input type="text" name="customer_name" placeholder="Name" required>
+                <input type="hidden" name="form_type" value="customer">
+                <input type="text" name="name" placeholder="Name" required>
                 <div style="display:flex; gap:10px;">
-                    <input type="email" name="customer_email" placeholder="Email">
-                    <input type="text" name="customer_phone" placeholder="Phone">
+                    <input type="email" name="email" placeholder="Email">
+                    <input type="text" name="phone" placeholder="Phone">
                 </div>
-                <textarea name="customer_notes" rows="1" placeholder="Notes..."></textarea>
+                <textarea name="notes" rows="1" placeholder="Notes..."></textarea>
                 <button type="submit" class="btn-submit">Save New Customer</button>
             </form>
             

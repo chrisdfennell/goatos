@@ -67,6 +67,18 @@
                 <span class="label">Status</span>
                 <div class="value">{{ goat.status }}</div>
             </div>
+            {% if goat.scrapie_tag %}
+            <div>
+                <span class="label">USDA Scrapie Tag</span>
+                <div class="value">{{ goat.scrapie_tag }}</div>
+            </div>
+            {% endif %}
+            {% if goat.microchip_id %}
+            <div>
+                <span class="label">Microchip ID</span>
+                <div class="value" style="font-family: monospace;">{{ goat.microchip_id }}</div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="pedigree">

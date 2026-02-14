@@ -44,7 +44,10 @@
         <div>
             <h1 class="dashboard-title">💰 Farm Finances</h1>
         </div>
-        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <div>
+            <a href="{% url 'print_financial_summary' %}" target="_blank" class="btn btn-outline-secondary btn-sm me-2">🖨️ Print P&L</a>
+            <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="grid">
@@ -67,6 +70,14 @@
                     </div>
                     <div class="stat-label">Net Profit</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Monthly Income vs Expense Chart -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title">Monthly Income vs Expense</h3>
+            <div style="height:250px; position:relative;">
+                <canvas id="financeChart"></canvas>
             </div>
         </div>
 
@@ -103,8 +114,11 @@
 
         <!-- Ledger -->
         <div class="card" style="grid-column: 1 / -1;">
-            <h3 class="card-title">📋 Recent Ledger</h3>
-            {% if transactions %}
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-title" style="margin-bottom:0;">📋 Recent Ledger</h3>
+                <a href="{% url 'export_transactions_csv' %}" style="font-size:0.9em; color:#2e7d32; text-decoration:none; font-weight:600;">📥 Export CSV</a>
+            </div>
+            {% if page_obj %}
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -116,7 +130,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for t in transactions %}
+                        {% for t in page_obj %}
                         <tr>
                             <td>{{ t.date|date:"M d, Y" }}</td>
                             <td><span class="badge">{{ t.category }}</span></td>
@@ -129,6 +143,7 @@
                     </tbody>
                 </table>
             </div>
+            {% include 'farm/_pagination.html' %}
             {% else %}
                 <p style="color: #888; text-align: center; padding: 20px;">No transactions recorded yet.</p>
             {% endif %}
@@ -151,5 +166,32 @@
     }
     // Run once on load to set initial state correctly
     document.addEventListener('DOMContentLoaded', updateFormColor);
+</script>
+
+{{ finance_chart_json|json_script:"finance-chart-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const raw = JSON.parse(document.getElementById('finance-chart-data').textContent);
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (data.labels && data.labels.length > 0) {
+        new Chart(document.getElementById('financeChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    { label: 'Income', data: data.income, backgroundColor: 'rgba(46,125,50,0.7)', borderRadius: 4 },
+                    { label: 'Expense', data: data.expense, backgroundColor: 'rgba(198,40,40,0.7)', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: {display:true, text:'$'} }, x: { grid: {display:false} } }
+            }
+        });
+    } else {
+        document.getElementById('financeChart').parentNode.innerHTML = '<div style="text-align:center;padding:50px;color:#aaa;">No financial data yet.</div>';
+    }
+});
 </script>
 {% endblock %}

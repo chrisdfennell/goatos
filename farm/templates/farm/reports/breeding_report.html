@@ -1,0 +1,55 @@
+{% extends 'farm/reports/report_base.html' %}
+
+{% block report_content %}
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-val">{{ active_count }}</div>
+        <div class="stat-label">Active Pregnancies</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val">{{ total_count }}</div>
+        <div class="stat-label">Total Breeding Records</div>
+    </div>
+</div>
+
+{% if active_pregnancies %}
+<h2 class="section-title">Active Pregnancies / Upcoming Due Dates</h2>
+<table>
+    <thead>
+        <tr><th>Goat</th><th>Mate</th><th>Breeding Date</th><th>Due Date</th><th>Days Until Due</th></tr>
+    </thead>
+    <tbody>
+        {% for log in active_pregnancies %}
+        <tr>
+            <td><strong>{{ log.goat.name }}</strong></td>
+            <td>{{ log.mate_name }}</td>
+            <td>{{ log.breeding_date|date:"M j, Y" }}</td>
+            <td style="font-weight:bold; color:#9C27B0;">{{ log.due_date|date:"M j, Y" }}</td>
+            <td>{{ log.days_until_due }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:#999; margin-top:20px;">No active pregnancies.</p>
+{% endif %}
+
+{% if past_breedings %}
+<h2 class="section-title">Past Breeding Records</h2>
+<table>
+    <thead>
+        <tr><th>Goat</th><th>Mate</th><th>Breeding Date</th><th>Due Date</th></tr>
+    </thead>
+    <tbody>
+        {% for log in past_breedings %}
+        <tr>
+            <td>{{ log.goat.name }}</td>
+            <td>{{ log.mate_name }}</td>
+            <td>{{ log.breeding_date|date:"M j, Y" }}</td>
+            <td>{{ log.due_date|date:"M j, Y"|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

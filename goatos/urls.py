@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -6,6 +7,8 @@ from farm import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('', views.index, name='index'),
     
     # Feature Dashboards
@@ -33,6 +36,7 @@ urlpatterns = [
     path('goat/<int:goat_id>/add_breeding/', views.add_breeding_record, name='add_breeding_record'),
     path('goat/<int:goat_id>/add_weight/', views.add_weight_record, name='add_weight_record'),
     path('goat/<int:goat_id>/card/', views.stall_card, name='stall_card'),
+    path('goat/<int:goat_id>/pedigree/', views.goat_pedigree, name='goat_pedigree'),
 
     # Quick Actions
     path('quick/milk/<int:goat_id>/', views.quick_milk, name='quick_milk'),
@@ -52,5 +56,35 @@ urlpatterns = [
     
     # Meat Locker
     path('meat/', views.meat_locker, name='meat_locker'),
+
+    # CSV Exports
+    path('milk/export/csv/', views.export_milk_csv, name='export_milk_csv'),
+    path('finance/export/csv/', views.export_transactions_csv, name='export_transactions_csv'),
+    path('medical/export/csv/', views.export_medical_csv, name='export_medical_csv'),
+    path('goat/<int:goat_id>/medical/export/csv/', views.export_medical_csv, name='export_goat_medical_csv'),
+
+    # Admin Tools
+    path('admin-tools/backup/', views.backup_database, name='backup_database'),
+    path('admin-tools/restore/', views.restore_database, name='restore_database'),
+
+    # Barcode API
+    path('api/barcode/', views.api_lookup_barcode, name='api_lookup_barcode'),
+
+    # Breeding Planner
+    path('breeding/planner/', views.breeding_planner, name='breeding_planner'),
+    path('api/heat-cycles/<int:goat_id>/', views.api_heat_cycles, name='api_heat_cycles'),
+    path('api/check-inbreeding/', views.api_check_inbreeding, name='api_check_inbreeding'),
+
+    # Print Reports
+    path('reports/herd/', views.print_herd_summary, name='print_herd_summary'),
+    path('reports/goat/<int:goat_id>/health/', views.print_goat_health, name='print_goat_health'),
+    path('reports/breeding/', views.print_breeding_report, name='print_breeding_report'),
+    path('reports/finance/', views.print_financial_summary, name='print_financial_summary'),
+
+    # REST API
+    path('api/goats/', views.api_goats_list, name='api_goats_list'),
+    path('api/goats/<int:goat_id>/', views.api_goat_detail, name='api_goat_detail'),
+    path('api/milk/', views.api_milk_list, name='api_milk_list'),
+    path('api/finance/', views.api_finance_list, name='api_finance_list'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

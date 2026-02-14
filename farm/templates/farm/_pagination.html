@@ -1,0 +1,19 @@
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" style="margin-top: 20px;">
+    <ul class="pagination justify-content-center" style="list-style:none; display:flex; gap:5px; padding:0; margin:0; justify-content:center;">
+        {% if page_obj.has_previous %}
+        <li><a href="?page={{ page_obj.previous_page_number }}" style="padding:8px 14px; border:1px solid #ddd; border-radius:6px; text-decoration:none; color:#333; background:#fff;">&laquo; Prev</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li><span style="padding:8px 14px; border:1px solid #2196f3; border-radius:6px; background:#2196f3; color:#fff; font-weight:bold;">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <li><a href="?page={{ num }}" style="padding:8px 14px; border:1px solid #ddd; border-radius:6px; text-decoration:none; color:#333; background:#fff;">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}" style="padding:8px 14px; border:1px solid #ddd; border-radius:6px; text-decoration:none; color:#333; background:#fff;">Next &raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
