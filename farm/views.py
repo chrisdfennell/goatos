@@ -803,7 +803,8 @@ def save_grazing_area(request):
             coordinates=request.POST.get('area_coords')
         )
         messages.success(request, 'Grazing area saved.')
-    return redirect('index')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'index'
+    return redirect(next_url)
 
 @require_POST
 def toggle_task(request, task_id):
@@ -1223,7 +1224,8 @@ def add_map_marker(request):
             notes=request.POST.get('notes', ''),
         )
         messages.success(request, 'Map marker added.')
-    return redirect('index')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'index'
+    return redirect(next_url)
 
 
 @require_POST
@@ -1231,7 +1233,8 @@ def delete_map_marker(request, marker_id):
     marker = get_object_or_404(MapMarker, pk=marker_id)
     marker.delete()
     messages.success(request, 'Map marker removed.')
-    return redirect('index')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'index'
+    return redirect(next_url)
 
 
 # Feature 4: Pasture Condition

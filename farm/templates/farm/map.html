@@ -176,6 +176,7 @@
         <div id="new-area-form">
             <form action="{% url 'save_grazing_area' %}" method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'map_dashboard' %}">
                 <input type="hidden" id="area_coords" name="area_coords">
                 <div class="form-row">
                     <div class="form-group"><label>Area Name</label><input type="text" name="area_name" placeholder="e.g. North Pasture" required title="Area name"></div>
@@ -189,6 +190,7 @@
         <div id="marker-form" class="marker-form">
             <form action="{% url 'add_map_marker' %}" method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'map_dashboard' %}">
                 <input type="hidden" id="marker_lat" name="latitude">
                 <input type="hidden" id="marker_lng" name="longitude">
                 <div class="form-row">
@@ -342,7 +344,7 @@
     let pathPolyline = null;
     let pathMarkers = [];
     const farmLocation = { lat: parseFloat("{{ farm_settings.latitude|default:'0.0' }}") || 0.0, lng: parseFloat("{{ farm_settings.longitude|default:'0.0' }}") || 0.0 };
-    const MARKER_ICONS = { 'Barn': '🏠', 'Shelter': '⛺', 'Water': '💧', 'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍' };
+    const MARKER_ICONS = { 'Barn': '🛖', 'Shelter': '⛺', 'Water': '💧', 'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍' };
 
     // ===== ON LOAD =====
     document.addEventListener('DOMContentLoaded', function() {
