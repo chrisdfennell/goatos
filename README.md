@@ -1,6 +1,18 @@
 # GoatOS - Farm Management System
 
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-Charts-FF6384?logo=chartdotjs&logoColor=white)
+![Google Maps](https://img.shields.io/badge/Google%20Maps-API-4285F4?logo=googlemaps&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Docker Hub](https://img.shields.io/docker/pulls/fennch/goatos?label=Docker%20Pulls&logo=docker)
+
 GoatOS is an open-source farm management platform designed for goat herds. Optimized for barn use with a mobile-friendly **Dark Mode**, it tracks animal health, pedigrees, weight, milk production, breeding, and finances. Features include medical records with dosage calculators, a sales ledger, satellite grazing maps with advanced tools, real-time weather, and a full-featured CRM. Built on **Python/Django** and **Docker**, GoatOS provides a secure, all-in-one dashboard for modern herd management.
+
+![GoatOS Screenshot](assets/images/screenshot.png)
 
 ---
 
