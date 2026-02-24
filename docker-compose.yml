@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  goatos:
+    image: fennch/goatos:latest
+    build: .
+    container_name: goatos_app
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./media:/app/media
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-change-me-to-a-random-secret-key}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - FARM_PIN=${FARM_PIN:-}
+    restart: unless-stopped

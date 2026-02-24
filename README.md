@@ -93,29 +93,38 @@ GoatOS is an open-source farm management platform designed for goat herds. Optim
 
 ---
 
-## Docker Installation (Recommended)
+## Quick Start (Docker Hub)
 
-GoatOS is designed to run in a containerized environment.
+Pull and run directly from Docker Hub — no build required:
+
+```bash
+docker pull fennch/goatos:latest
+docker run -d --name goatos_app -p 4321:4321 \
+  -v goatos_db:/app/db.sqlite3 \
+  -v goatos_media:/app/media \
+  fennch/goatos:latest
+```
+
+Access at: `https://localhost:4321`
+
+---
+
+## Docker Installation (From Source)
 
 ### Prerequisites
 - Docker
 - Docker Compose
 
-### 1) Clone & Build
+### 1) Clone & Run
 ```bash
 git clone https://github.com/chrisdfennell/goatos.git
 cd goatos
-docker-compose build
-```
-
-### 2) Run the Container
-
-#### Option A: Docker Compose (Cross-Platform)
-```bash
 docker-compose up -d
 ```
 
-#### Option B: Helper Scripts (Quick Reset)
+This builds from source and starts the container.
+
+### 2) Helper Scripts (Quick Rebuild)
 - **Linux/Mac:** `./rebuild.sh`
 - **Windows:** `rebuild.bat`
 
@@ -128,7 +137,7 @@ https://localhost:4321
 https://YOUR_SERVER_IP:4321
 ```
 
-> **Note:** The Docker container includes a startup script that automatically handles database migrations.
+> **Note:** The Docker container automatically handles database migrations on startup.
 > To reset the database, delete the `db.sqlite3` file on your host machine and restart the container.
 
 ---
