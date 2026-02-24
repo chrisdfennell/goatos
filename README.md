@@ -153,6 +153,19 @@ Configure via the Admin Panel (`/admin/`) or environment variables.
 - **Google Maps API:** Add your API key in Farm Settings to enable the Grazing Map and Location Picker
 - **PIN Access:** Set a farm PIN in the Admin panel to enable PIN gate protection
 
+### Google Maps API Setup
+
+The satellite map and grazing tools require a Google Maps API key. Follow these steps:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select an existing one)
+3. Go to **APIs & Services > Library** and enable these APIs:
+   - **Maps JavaScript API** (required)
+4. Go to **APIs & Services > Credentials** and create an API key
+5. (Optional) Under **API key restrictions**, add your server's domain/IP as an HTTP referrer
+6. **Enable Billing** on the project — Google provides $200/month free credit, which is more than enough for personal use. Without billing enabled, the map will show a "For development purposes only" watermark
+7. Paste the API key into **Farm Settings > Google Maps API Key** within GoatOS
+
 ---
 
 ## Troubleshooting
