@@ -616,6 +616,7 @@
         var initType = ['osm','topo','light','dark'].indexOf(savedType) >= 0 ? savedType : savedType;
         map = new google.maps.Map(document.getElementById("fullMap"), {
             zoom: 18, center: farmLocation, mapTypeId: initType,
+            mapTypeControl: false,
             mapTypeControlOptions: { mapTypeIds: ['satellite','terrain','roadmap','hybrid','osm','topo','light','dark'] }
         });
 
