@@ -54,7 +54,7 @@
         padding: 8px 4px; cursor: pointer; font-size: .85em; transition: right .3s;
         box-shadow: -2px 0 5px rgba(0,0,0,.05);
     }
-    .side-panel.collapsed ~ .panel-toggle { right: 0; }
+    .panel-toggle.panel-closed { right: 0; }
     .panel-section { margin-bottom: 20px; }
     .panel-section h3 { margin: 0 0 10px; font-size: 1.05em; color: #2c3e50; }
     .panel-section h4 { margin: 10px 0 6px; font-size: .9em; color: #4caf50; }
@@ -351,7 +351,9 @@
         var sidePanel = document.getElementById('sidePanel');
         if (panelToggle) panelToggle.addEventListener('click', function() {
             sidePanel.classList.toggle('collapsed');
-            panelToggle.textContent = sidePanel.classList.contains('collapsed') ? '▶' : '◀';
+            var isCollapsed = sidePanel.classList.contains('collapsed');
+            panelToggle.textContent = isCollapsed ? '▶' : '◀';
+            panelToggle.classList.toggle('panel-closed', isCollapsed);
         });
 
         // Toolbar buttons
