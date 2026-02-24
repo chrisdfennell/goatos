@@ -69,7 +69,7 @@ GoatOS is an open-source farm management platform designed for goat herds. Optim
 - **Walking Path Tool:** Click-to-measure distances on the map
 - **Condition History Sparklines:** Mini charts showing pasture condition trends in InfoWindows
 - **Area Name/Color Editing:** Edit pasture names and colors directly from map InfoWindows
-- **Map Type Toggle:** Switch between Satellite, Terrain, Road, and Hybrid views
+- **Map Type Toggle:** Switch between Satellite, Terrain, Road, Hybrid, OpenStreetMap, OpenTopoMap, CartoDB Light, and CartoDB Dark views
 - **Pasture Rotation Manager:** Assign goats to pastures, track rotation history
 - **Rotation Timeline:** Visual 90-day timeline of grazing assignments
 - **Pasture Condition Scoring:** Rate pasture quality (1-5) with historical tracking
@@ -100,7 +100,7 @@ GoatOS is an open-source farm management platform designed for goat herds. Optim
 - **Frontend:** HTML5, CSS3 (Bootstrap 5), Vanilla JavaScript
 - **Database:** SQLite (default, swappable for Postgres)
 - **Charts:** Chart.js
-- **Maps:** Google Maps JavaScript API (Drawing + Geometry libraries)
+- **Maps:** Google Maps JavaScript API (Drawing + Geometry libraries), OpenStreetMap, OpenTopoMap, CartoDB tile overlays
 - **Containerization:** Docker
 
 ---
