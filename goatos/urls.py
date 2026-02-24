@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
+import re
 from farm import views
 
 urlpatterns = [
@@ -172,4 +174,9 @@ urlpatterns = [
     path('barn/', views.barn_dashboard, name='barn_dashboard'),
     path('pen/<int:pen_id>/delete/', views.delete_pen, name='delete_pen'),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Always serve media files (runsslserver doesn't have a separate web server)
+urlpatterns += [
+    path(re.sub(r'^/', '', settings.MEDIA_URL) + '<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+]
