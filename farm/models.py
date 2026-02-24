@@ -33,7 +33,7 @@ class Goat(models.Model):
     breed = models.CharField(max_length=100)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='Doe', blank=True)
     age = models.IntegerField(default=0, verbose_name="Approx Age (if birthdate unknown)")
-    birthdate = models.DateField(null=True, blank=True, help_text="YYYY-MM-DD")
+    birthdate = models.DateField(null=True, blank=True)
     is_fainting = models.BooleanField(default=False, help_text="Does this goat faint when scared?")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Healthy')
     bio = models.TextField(blank=True)
