@@ -1,0 +1,167 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #9C27B0; } /* Purple for Breeding */
+    .card-title { margin-top: 0; color: #9C27B0; border-bottom: 2px solid #f3e5f5; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); padding: 20px; transition: background-color 0.3s; }
+    
+    .stat-big { font-size: 3em; font-weight: bold; color: #333; margin: 10px 0; }
+    .stat-label { color: #666; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; color: #666; font-size: 0.9em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+
+    .status-due { color: #d32f2f; font-weight: bold; }
+    .status-soon { color: #F57C00; font-weight: bold; }
+    .status-ok { color: #388E3C; }
+    
+    .goat-link { text-decoration: none; color: #2196F3; font-weight: bold; }
+    .goat-link:hover { text-decoration: underline; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .stat-big { color: #fff; }
+    body.dark-mode .stat-label { color: #aaa; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode .status-due { color: #ff8a80; }
+    body.dark-mode .status-soon { color: #ffcc80; }
+    body.dark-mode .status-ok { color: #81c784; }
+    body.dark-mode .goat-link { color: #64b5f6; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">🧬 Breeding Manager</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <!-- Summary Stats -->
+        <div class="card">
+            <h3 class="card-title">Overview</h3>
+            <div style="display: flex; gap: 30px;">
+                <div>
+                    <div class="stat-big">{{ active_pregnancies|length }}</div>
+                    <div class="stat-label">Active Pregnancies</div>
+                </div>
+                <!-- You can calculate recent kiddings in the view if needed, placeholder for now -->
+                <div>
+                    <div class="stat-big">{{ all_breeding_logs|length }}</div> 
+                    <div class="stat-label">Total Records</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Due Soon List -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title">🗓️ Upcoming Due Dates</h3>
+            {% if active_pregnancies %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Doe</th>
+                            <th>Bred With</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in active_pregnancies %}
+                        <tr>
+                            <td><a href="{% url 'goat_detail' record.goat.id %}" class="goat-link">{{ record.goat.name }}</a></td>
+                            <td>{{ record.mate_name }}</td>
+                            <td>{{ record.due_date|date:"M j, Y" }}</td>
+                            <td>
+                                <!-- Simple logic for display, view can pass days_left for better precision -->
+                                <span class="status-ok">Active</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: #888; font-style: italic; text-align: center; padding: 20px;">No active pregnancies recorded.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title">Recent Breeding Activity</h3>
+            {% if all_breeding_logs %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in all_breeding_logs|slice:":10" %}
+                        <tr>
+                            <td style="white-space: nowrap; color: #666;">{{ log.breeding_date|date:"M j, Y" }}</td>
+                            <td>
+                                <strong>{{ log.goat.name }}</strong> bred with {{ log.mate_name }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: #888; text-align: center; padding: 20px;">No history found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Kidding Records -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                🐣 Kidding Records
+                <a href="{% url 'kidding_season_dashboard' %}" class="goat-link" style="font-size:0.75em;">View Kidding Season →</a>
+            </h3>
+            {% if kidding_records %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Dam</th>
+                            <th>Type</th>
+                            <th>Kids Born</th>
+                            <th>Alive</th>
+                            <th>Assisted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kr in kidding_records|slice:":10" %}
+                        <tr>
+                            <td>{{ kr.kidding_date|date:"M j, Y" }}</td>
+                            <td><a href="{% url 'goat_detail' kr.dam.id %}" class="goat-link">{{ kr.dam.name }}</a></td>
+                            <td>{{ kr.birth_type }}</td>
+                            <td>{{ kr.num_kids_born }}</td>
+                            <td>{{ kr.num_alive }}</td>
+                            <td>{% if kr.assisted %}✅{% else %}—{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: #888; text-align: center; padding: 20px;">No kidding records yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

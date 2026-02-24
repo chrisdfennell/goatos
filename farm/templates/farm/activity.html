@@ -1,0 +1,75 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .activity-container { max-width: 800px; margin: 0 auto; }
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); }
+    .filter-chip { padding: 5px 14px; border-radius: 20px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.85em; transition: all 0.2s; text-decoration: none; color: #555; }
+    .filter-chip:hover, .filter-chip.active { background: #4caf50; color: #fff; border-color: #4caf50; }
+
+    .activity-timeline { position: relative; padding-left: 30px; }
+    .activity-timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+
+    .activity-item { position: relative; margin-bottom: 15px; }
+    .activity-item::before { content: ''; position: absolute; left: -23px; top: 12px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 2px #ccc; }
+    .activity-card { background: #fff; padding: 15px 20px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06); border-left: 4px solid #ccc; }
+    .activity-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .activity-type { font-size: 0.8em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .activity-date { font-size: 0.8em; color: #999; }
+    .activity-label { font-weight: 700; margin-bottom: 3px; }
+    .activity-detail { font-size: 0.9em; color: #666; }
+    .activity-goat { font-size: 0.85em; margin-top: 5px; }
+    .activity-goat a { color: #4caf50; text-decoration: none; font-weight: 600; }
+
+    body.dark-mode .filter-bar { background: #1e1e1e; }
+    body.dark-mode .filter-chip { background: #2d2d2d; border-color: #444; color: #ccc; }
+    body.dark-mode .filter-chip:hover, body.dark-mode .filter-chip.active { background: #4caf50; color: #fff; border-color: #4caf50; }
+    body.dark-mode .activity-card { background: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .activity-timeline::before { background: #444; }
+    body.dark-mode .activity-detail { color: #aaa; }
+    body.dark-mode .activity-date { color: #777; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold text-dark">📜 Activity Feed</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="activity-container">
+        <div class="filter-bar">
+            <a href="{% url 'activity_feed' %}" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">All</a>
+            <a href="{% url 'activity_feed' %}?type=medical" class="filter-chip {% if filter_type == 'medical' %}active{% endif %}">🏥 Medical</a>
+            <a href="{% url 'activity_feed' %}?type=milk" class="filter-chip {% if filter_type == 'milk' %}active{% endif %}">🥛 Milk</a>
+            <a href="{% url 'activity_feed' %}?type=breeding" class="filter-chip {% if filter_type == 'breeding' %}active{% endif %}">🧬 Breeding</a>
+            <a href="{% url 'activity_feed' %}?type=kidding" class="filter-chip {% if filter_type == 'kidding' %}active{% endif %}">🐣 Kidding</a>
+            <a href="{% url 'activity_feed' %}?type=weight" class="filter-chip {% if filter_type == 'weight' %}active{% endif %}">⚖️ Weight</a>
+            <a href="{% url 'activity_feed' %}?type=feeding" class="filter-chip {% if filter_type == 'feeding' %}active{% endif %}">🌾 Feeding</a>
+            <a href="{% url 'activity_feed' %}?type=health" class="filter-chip {% if filter_type == 'health' %}active{% endif %}">🩺 Health</a>
+            <a href="{% url 'activity_feed' %}?type=heat" class="filter-chip {% if filter_type == 'heat' %}active{% endif %}">🔥 Heat</a>
+            <a href="{% url 'activity_feed' %}?type=finance" class="filter-chip {% if filter_type == 'finance' %}active{% endif %}">💰 Finance</a>
+        </div>
+
+        <div class="activity-timeline">
+            {% for a in activities %}
+            <div class="activity-item" style="--color: {{ a.color }};">
+                <style>.activity-item:nth-child({{ forloop.counter }})::before { background: {{ a.color }}; box-shadow: 0 0 0 2px {{ a.color }}; }</style>
+                <div class="activity-card" style="border-left-color: {{ a.color }};">
+                    <div class="activity-meta">
+                        <span class="activity-type" style="color: {{ a.color }};">{{ a.icon }} {{ a.type }}</span>
+                        <span class="activity-date">{{ a.date|date:"M j, Y" }}</span>
+                    </div>
+                    <div class="activity-label">{{ a.label }}</div>
+                    {% if a.detail %}<div class="activity-detail">{{ a.detail }}</div>{% endif %}
+                    {% if a.goat %}<div class="activity-goat"><a href="{% url 'goat_detail' a.goat.id %}">🐐 {{ a.goat.name }}</a></div>{% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center; padding:50px; color:#999;">No activity recorded yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

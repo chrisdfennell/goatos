@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- {% load static %} -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4caf50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/svg+xml" href="{% static 'farm/icons/favicon.svg' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'farm/icons/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'farm/icons/favicon-16x16.png' %}">
+    <link rel="icon" href="{% static 'farm/icons/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'farm/icons/apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'farm/manifest.json' %}">
+    <title>{{ farm_settings.name|default:"Goat OS" }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    
+    <style>
+        /* --- GLOBAL STYLES (Minified) --- */
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;margin:0;padding:0;color:#333;transition:background-color .3s,color .3s}.container-custom{max-width:1200px;margin:0 auto;padding:20px}a{text-decoration:none}
+        /* HEADER */
+        .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:sticky;top:10px;z-index:900;background:#fff;padding:15px 20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.08);transition:box-shadow .3s,background-color .3s}.system-status{color:#666;font-size:.9em;margin-top:5px;display:block}.dashboard-title{font-size:1.8em;margin:0;color:#2c3e50;display:flex;align-items:center;gap:10px}.header-actions{display:flex;gap:15px;align-items:center}.nav-item{position:relative;padding-bottom:5px;margin-bottom:-5px}.nav-link{text-decoration:none;color:#555;font-weight:600;font-size:1rem;padding:8px 12px;border-radius:6px;transition:background .2s,color .2s;display:flex;align-items:center;gap:6px;background:0 0;border:none;cursor:pointer}.nav-link:hover{background-color:#f0f2f5;color:#2c3e50}.dropdown-menu-custom{display:none;position:absolute;top:100%;right:0;background:#fff;min-width:250px;box-shadow:0 10px 25px rgba(0,0,0,.1);border-radius:8px;border:1px solid #eee;z-index:1000;padding:8px 0;margin-top:0}.nav-item:hover .dropdown-menu-custom{display:block}.dropdown-item-custom{display:flex;align-items:center;padding:12px 20px;color:#333;text-decoration:none;gap:10px;transition:background .1s;white-space:nowrap}.dropdown-item-custom:hover{background-color:#f8f9fa}.btn-new-goat{background-color:#2c3e50;color:#fff!important;padding:8px 16px;border-radius:6px}.btn-new-goat:hover{background-color:#1a252f}.theme-toggle-btn{background:0 0;border:none;cursor:pointer;font-size:1.2rem;padding:8px;border-radius:50%;transition:background .2s;margin-right:5px}.theme-toggle-btn:hover{background-color:rgba(0,0,0,.05)}.hamburger{display:none;font-size:24px;background:0 0;border:none;cursor:pointer}@media(max-width:768px){.header-actions{display:none}.hamburger{display:block}}
+        /* MODALS & UTILS */
+        #settings-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}.modal-content-custom{background:#fff;padding:30px;border-radius:12px;width:400px;max-width:90%;box-shadow:0 5px 15px rgba(0,0,0,.3)}.modal-title{margin-top:0;color:#2c3e50}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.btn-cancel{background:#ccc;color:#333;border:none;padding:10px 15px;border-radius:4px;cursor:pointer}.btn-save{background:#4caf50;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;font-weight:700}.pick-map-btn{display:block;width:100%;padding:10px;margin-top:10px;background:#2196f3;color:#fff;border:none;border-radius:4px;cursor:pointer}#scrollTopBtn{display:none;position:fixed;bottom:30px;right:30px;z-index:999;font-size:20px;border:none;outline:none;background-color:#2c3e50;color:#fff;cursor:pointer;padding:15px;border-radius:50%;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:background-color .3s,transform .3s}#scrollTopBtn:hover{background-color:#1a252f;transform:translateY(-3px)}#toast-container{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:10px}.toast-custom{background-color:#323232;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;animation:fadeIn .3s,fadeOut .3s 2.7s forwards;min-width:200px;justify-content:center}.toast-custom.success{background-color:#2e7d32}.toast-custom.error{background-color:#c62828}.toast-custom.info{background-color:#0288d1}@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+        /* MOBILE MENU */
+        .mobile-menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1100}.mobile-menu{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:1200;transition:right .3s ease;padding:20px;overflow-y:auto;box-shadow:-5px 0 15px rgba(0,0,0,.1)}.mobile-menu.open{right:0}.mobile-menu-overlay.open{display:block}.mobile-menu a{display:block;padding:12px 15px;color:#333;text-decoration:none;font-size:1.05em;border-bottom:1px solid #eee}.mobile-menu a:hover{background-color:#f0f2f5}
+        /* DARK MODE */
+        body.dark-mode{background-color:#121212;color:#e0e0e0}body.dark-mode .header,body.dark-mode .card,body.dark-mode .goat-card,body.dark-mode .search-container,body.dark-mode .checklist-card,body.dark-mode .dropdown-menu-custom,body.dark-mode .modal-content-custom,body.dark-mode #map-container,body.dark-mode #new-area-form{background-color:#1e1e1e;color:#e0e0e0;box-shadow:0 4px 15px rgba(0,0,0,.4);border-color:#333}body.dark-mode .dashboard-title,body.dark-mode .card-name,body.dark-mode .modal-title,body.dark-mode .checklist-section-title{color:#ecf0f1}body.dark-mode .nav-link,body.dark-mode .dropdown-item-custom{color:#b0b0b0}body.dark-mode .nav-link:hover,body.dark-mode .dropdown-item-custom:hover,body.dark-mode .view-toggle-btn:hover{background-color:#333;color:#fff}body.dark-mode .search-input,body.dark-mode .filter-select,body.dark-mode .form-group input, body.dark-mode .form-control, body.dark-mode .form-select{background-color:#2d2d2d;border-color:#444;color:#fff}body.dark-mode .card-details, body.dark-mode .text-muted{color:#aaa !important}body.dark-mode .view-toggle-btn{background-color:#2d2d2d;border-color:#444;color:#aaa}body.dark-mode .view-toggle-btn.active{background-color:#1565c0;color:#fff;border-color:#1565c0}body.dark-mode .checklist-item{border-bottom-color:#333}body.dark-mode .checklist-section-title{border-bottom-color:#333}body.dark-mode .checklist-card#card-alerts{background-color:#1e1e1e}body.dark-mode .vet-item{border-bottom-color:#333}body.dark-mode .vet-btn{background-color:#333;color:#e0e0e0}body.dark-mode .vet-btn:hover{background-color:#444}body.dark-mode .vet-name{color:#e0e0e0}body.dark-mode .theme-toggle-btn:hover{background-color:rgba(255,255,255,.1)}body.dark-mode .mobile-menu{background:#1e1e1e}body.dark-mode .mobile-menu a{color:#e0e0e0;border-bottom-color:#333}body.dark-mode .mobile-menu a:hover{background-color:#333}
+        
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <div class="container-custom">
+        <!-- GLOBAL STICKY HEADER -->
+        <div class="header">
+            <div>
+                <h1 class="dashboard-title">🐐 {{ farm_settings.name|default:"Goat OS" }}</h1>
+                <!-- Optional: Use a block to allow pages to override sub-title, or keep it generic -->
+                {% block header_subtitle %}
+                <span class="system-status">System Online</span>
+                {% endblock %}
+            </div>
+
+            <div class="header-actions">
+                <!-- Theme Toggle -->
+                <button class="theme-toggle-btn" id="themeBtn" title="Toggle Dark Mode">🌙</button>
+
+                <a href="{% url 'index' %}" class="nav-link">🏠 Dashboard</a>
+
+                <!-- DROPDOWN MENU -->
+                <div class="nav-item">
+                    <button class="nav-link" title="Applications menu">📱 Apps ▾</button>
+                    <div class="dropdown-menu-custom">
+                        <a href="{% url 'crm_dashboard' %}" class="dropdown-item-custom">🤝 Customer CRM</a>
+                        <a href="{% url 'calendar_dashboard' %}" class="dropdown-item-custom">📅 Farm Calendar</a>
+                        <a href="{% url 'tools_dashboard' %}" class="dropdown-item-custom">🧮 Tools & Calculators</a>
+                        <a href="{% url 'weight_dashboard' %}" class="dropdown-item-custom">⚖️ Weight & Growth</a>
+                        <a href="{% url 'medicine_dashboard' %}" class="dropdown-item-custom">💊 Medicine Cabinet</a>
+                        <a href="{% url 'milk_dashboard' %}" class="dropdown-item-custom">🥛 Milk Tracker</a>
+                        <a href="{% url 'breeding_dashboard' %}" class="dropdown-item-custom">🧬 Breeding</a>
+                        <a href="{% url 'silo_dashboard' %}" class="dropdown-item-custom">🚜 Silo & Feed</a>
+                        <a href="{% url 'meat_locker' %}" class="dropdown-item-custom">🥩 Meat Locker</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'sales_list' %}" class="dropdown-item-custom">💰 Sales Ledger</a>
+                        <a href="{% url 'finance_dashboard' %}" class="dropdown-item-custom">💸 Finances</a>
+                        <a href="{% url 'analytics_dashboard' %}" class="dropdown-item-custom">📊 Herd Analytics</a>
+                        <a href="{% url 'cost_analysis' %}" class="dropdown-item-custom">📉 Cost Analysis</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'kidding_season_dashboard' %}" class="dropdown-item-custom">🤰 Kidding Season</a>
+                        <a href="{% url 'health_scores_dashboard' %}" class="dropdown-item-custom">🩺 Health Scores</a>
+                        <a href="{% url 'barn_dashboard' %}" class="dropdown-item-custom">🏠 Barn & Pens</a>
+                        <a href="{% url 'suppliers_dashboard' %}" class="dropdown-item-custom">🏪 Suppliers</a>
+                        <a href="{% url 'activity_feed' %}" class="dropdown-item-custom">📜 Activity Feed</a>
+                        <a href="{% url 'map_dashboard' %}" class="dropdown-item-custom">🗺️ Full Map</a>
+                    </div>
+                </div>
+
+                <button class="nav-link" id="settingsBtn" title="Open settings">⚙️ Settings</button>
+                <a href="{% url 'add_goat' %}" class="nav-link btn-new-goat">+ New Goat</a>
+            </div>
+
+            <button class="hamburger" id="hamburgerBtn" title="Open menu">☰</button>
+        </div>
+
+        <!-- MAIN CONTENT BLOCK -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" title="Close"><span class="visually-hidden">Close</span></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- GLOBAL TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- GLOBAL SCROLL TOP BUTTON -->
+    <button id="scrollTopBtn" title="Go to top">⬆️</button>
+
+    <!-- GLOBAL SETTINGS MODAL -->
+    <div id="settings-modal">
+        <div class="modal-content-custom">
+            <h2 class="modal-title">⚙️ Farm Settings</h2>
+            <form action="{% url 'update_settings' %}" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Farm Name</label>
+                    <input type="text" class="form-control" name="name" value="{{ farm_settings.name }}" required title="Farm name">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col">
+                        <label class="form-label">Latitude</label>
+                        <input type="text" class="form-control" name="latitude" id="lat-input" value="{{ farm_settings.latitude }}" required title="Latitude">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Longitude</label>
+                        <input type="text" class="form-control" name="longitude" id="lng-input" value="{{ farm_settings.longitude }}" required title="Longitude">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Google Maps API Key</label>
+                    <input type="text" class="form-control" name="google_maps_api_key" value="{{ farm_settings.google_maps_api_key }}" placeholder="AIza..." style="font-family: monospace;" title="Google Maps API key">
+                    <small class="text-muted" style="font-size: 0.8em;">Leave empty to use system default.</small>
+                </div>
+
+                <button type="button" class="pick-map-btn" id="pickMapBtn" title="Pick location on map">📍 Click on Map to Set Location</button>
+                <button type="button" class="pick-map-btn" id="gpsBtn" style="background:#607D8B; margin-top:5px;" title="Use GPS location">📡 Use My GPS</button>
+
+                <div class="mt-3 text-center border-top pt-2">
+                    <a href="/admin/" target="_blank" rel="noopener" style="color: #2c3e50; text-decoration: none; font-size: 0.9em;">🔧 Open Database Admin</a>
+                </div>
+                <div class="mt-2 text-center">
+                    <a href="{% url 'pin_logout' %}" style="color: #c62828; text-decoration: none; font-size: 0.9em;">🔒 Lock / Logout</a>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancelSettingsBtn" title="Cancel">Cancel</button>
+                    <button type="submit" class="btn-save" title="Save changes">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MOBILE SLIDE-OUT MENU -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <h3 style="margin-top:0;">Menu</h3>
+        <a href="{% url 'index' %}">🏠 Dashboard</a>
+        <a href="{% url 'add_goat' %}">➕ New Goat</a>
+        <a href="{% url 'crm_dashboard' %}">🤝 Customer CRM</a>
+        <a href="{% url 'calendar_dashboard' %}">📅 Farm Calendar</a>
+        <a href="{% url 'tools_dashboard' %}">🧮 Tools</a>
+        <a href="{% url 'weight_dashboard' %}">⚖️ Weight</a>
+        <a href="{% url 'medicine_dashboard' %}">💊 Medicine</a>
+        <a href="{% url 'milk_dashboard' %}">🥛 Milk Tracker</a>
+        <a href="{% url 'breeding_dashboard' %}">🧬 Breeding</a>
+        <a href="{% url 'silo_dashboard' %}">🚜 Silo & Feed</a>
+        <a href="{% url 'meat_locker' %}">🥩 Meat Locker</a>
+        <a href="{% url 'sales_list' %}">💰 Sales Ledger</a>
+        <a href="{% url 'finance_dashboard' %}">💸 Finances</a>
+        <a href="{% url 'analytics_dashboard' %}">📊 Analytics</a>
+        <a href="{% url 'cost_analysis' %}">📉 Cost Analysis</a>
+        <a href="{% url 'kidding_season_dashboard' %}">🤰 Kidding Season</a>
+        <a href="{% url 'health_scores_dashboard' %}">🩺 Health Scores</a>
+        <a href="{% url 'barn_dashboard' %}">🏠 Barn & Pens</a>
+        <a href="{% url 'suppliers_dashboard' %}">🏪 Suppliers</a>
+        <a href="{% url 'activity_feed' %}">📜 Activity Feed</a>
+        <a href="{% url 'map_dashboard' %}">🗺️ Full Map</a>
+        <hr>
+        <a href="#" role="button" data-action="open-settings">⚙️ Settings</a>
+        <a href="{% url 'pin_logout' %}">🔒 Lock</a>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+
+    <!-- GLOBAL SCRIPTS (Dark Mode, Toasts, Settings) -->
+    <script>
+        // --- DARK MODE ---
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('goatOS_darkMode', isDark);
+            updateThemeIcon(isDark);
+        }
+        function updateThemeIcon(isDark) {
+            const btn = document.getElementById('themeBtn');
+            if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var savedTheme = localStorage.getItem('goatOS_darkMode') === 'true';
+            if (savedTheme) document.body.classList.add('dark-mode');
+            updateThemeIcon(savedTheme);
+
+            // --- BIND ALL BUTTONS (replaces inline onclick handlers) ---
+            var themeBtn = document.getElementById('themeBtn');
+            if (themeBtn) themeBtn.addEventListener('click', toggleDarkMode);
+
+            var settingsBtn = document.getElementById('settingsBtn');
+            if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+
+            var cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+            if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', closeSettings);
+
+            var hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (hamburgerBtn) hamburgerBtn.addEventListener('click', toggleMenu);
+
+            var overlay = document.getElementById('mobileMenuOverlay');
+            if (overlay) overlay.addEventListener('click', toggleMenu);
+
+            var scrollTopBtn = document.getElementById('scrollTopBtn');
+            if (scrollTopBtn) scrollTopBtn.addEventListener('click', scrollToTop);
+
+            var pickMapBtn = document.getElementById('pickMapBtn');
+            if (pickMapBtn) pickMapBtn.addEventListener('click', enableMapPick);
+
+            var gpsBtn = document.getElementById('gpsBtn');
+            if (gpsBtn) gpsBtn.addEventListener('click', getCurrentLoc);
+
+            // Mobile settings link
+            var settingsLink = document.querySelector('[data-action="open-settings"]');
+            if (settingsLink) {
+                settingsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openSettings();
+                    toggleMenu();
+                });
+            }
+
+            // Confirm-before-submit forms
+            document.querySelectorAll('form[data-confirm]').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm(this.dataset.confirm)) e.preventDefault();
+                });
+            });
+        });
+
+        // --- CSRF HELPER ---
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // --- TOASTS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-custom ${type}`;
+            let icon = type === 'success' ? '✅' : '⚠️';
+            if (type === 'info') icon = 'ℹ️';
+            toast.textContent = `${icon} ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        // --- SETTINGS MODAL ---
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        
+        // --- GLOBAL KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSettings();
+        });
+
+        // --- GPS HELPER ---
+        function getCurrentLoc() {
+            if (navigator.geolocation) {
+                showToast("Requesting location...", "info");
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('lat-input').value = pos.coords.latitude;
+                    document.getElementById('lng-input').value = pos.coords.longitude;
+                    showToast("Location acquired!");
+                }, (err) => {
+                    showToast("Error getting location.", "error");
+                }, { enableHighAccuracy: false, timeout: 10000 });
+            } else {
+                showToast("Browser does not support Geolocation", "error");
+            }
+        }
+        
+        // --- MAP PICKER BRIDGE ---
+        // This function attempts to call a map-specific function if it exists on the page
+        function enableMapPick() {
+            closeSettings();
+            if (typeof window.activateMapPicker === 'function') {
+                window.activateMapPicker();
+                showToast("Click anywhere on the map to move the farm pin.", "info");
+            } else {
+                showToast("Go to the Dashboard to use the map picker.", "error");
+            }
+        }
+
+        // --- MOBILE MENU ---
+        function toggleMenu() {
+            document.getElementById('mobileMenu').classList.toggle('open');
+            document.getElementById('mobileMenuOverlay').classList.toggle('open');
+        }
+
+        // --- SCROLL TOP ---
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTopBtn");
+            if(btn) btn.style.display = (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) ? "block" : "none";
+        };
+        function scrollToTop() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.log('SW registration failed:', err);
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

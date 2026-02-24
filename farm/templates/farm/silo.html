@@ -1,0 +1,102 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #FF9800; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .feed-card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); padding: 20px; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+    .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .feed-card.low-stock { border: 2px solid #f44336; }
+    .feed-card.low-stock::after { content: "LOW STOCK"; position: absolute; top: 10px; right: 10px; background: #f44336; color: white; padding: 2px 8px; font-size: 0.7em; border-radius: 4px; font-weight: bold; }
+    .feed-name { margin: 0; font-size: 1.4em; color: #333; }
+    .feed-quantity { font-size: 2.5em; font-weight: bold; color: #2c3e50; margin: 10px 0; }
+    .feed-unit { font-size: 0.4em; color: #666; vertical-align: middle; }
+    .action-row { display: flex; gap: 10px; margin-top: 15px; }
+    .action-form { display: flex; gap: 5px; flex: 1; }
+    .qty-input { width: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn-add { background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; transition: background 0.2s; }
+    .btn-add:hover { background: #388E3C; }
+    .btn-sub { background: #FF9800; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; transition: background 0.2s; }
+    .btn-sub:hover { background: #F57C00; }
+    .empty-state { grid-column: 1 / -1; text-align: center; color: #888; margin-top: 50px; }
+    
+    /* Dark Mode Overrides */
+    body.dark-mode .feed-card { background-color: #1e1e1e; border-color: #333; color: #e0e0e0; }
+    body.dark-mode .feed-card.low-stock { border-color: #d32f2f; }
+    body.dark-mode .feed-name { color: #fff; }
+    body.dark-mode .feed-quantity { color: #FF9800; }
+    body.dark-mode .feed-unit { color: #aaa; }
+    body.dark-mode .qty-input { background-color: #2d2d2d; border-color: #444; color: #fff; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">🚜 The Silo</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <!-- Add New Feed Item Form -->
+    <div style="background:white; padding:20px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,.05); margin-bottom:20px;">
+        <h4 style="margin-top:0; color:#FF9800;">+ Add New Feed Item</h4>
+        <form method="POST" action="{% url 'add_feed_item' %}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+            {% csrf_token %}
+            <div style="flex:2; min-width:150px;">
+                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Item Name</label>
+                <input type="text" name="name" placeholder="e.g. Alfalfa Hay" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            </div>
+            <div style="flex:1; min-width:80px;">
+                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Starting Qty</label>
+                <input type="number" step="0.01" name="quantity" value="0" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            </div>
+            <div style="flex:1; min-width:80px;">
+                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Unit</label>
+                <input type="text" name="unit" value="lbs" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            </div>
+            <div style="flex:1; min-width:80px;">
+                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Low Stock At</label>
+                <input type="number" step="0.01" name="low_stock_threshold" value="5" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            </div>
+            <button type="submit" class="btn-add" style="padding:8px 20px; height:38px;">Add Item</button>
+        </form>
+    </div>
+
+    <div class="grid">
+        {% for item in feed_items %}
+        <div class="feed-card {% if item.is_low %}low-stock{% endif %}">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 class="feed-name">{{ item.name }}</h3>
+                <form method="POST" action="{% url 'delete_feed_item' item.id %}" onsubmit="return confirm('Delete {{ item.name }}?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1.2em;" title="Delete item">✕</button></form>
+            </div>
+            <div class="feed-quantity">
+                {{ item.quantity|floatformat:0 }} <span class="feed-unit">{{ item.unit }}</span>
+            </div>
+            <div style="font-size:0.8em; color:#999; margin-bottom:5px;">Low stock alert at {{ item.low_stock_threshold|floatformat:0 }} {{ item.unit }}</div>
+
+            <div class="action-row">
+                <!-- Subtract Form -->
+                <form action="{% url 'update_inventory' item.id %}" method="POST" class="action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="amount" value="-1">
+                    <button type="submit" class="btn-sub">- 1 Used</button>
+                </form>
+
+                <!-- Add Form -->
+                <form action="{% url 'update_inventory' item.id %}" method="POST" class="action-form">
+                    {% csrf_token %}
+                    <input type="number" name="amount" class="qty-input" placeholder="Qty">
+                    <button type="submit" class="btn-add">Add Stock</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <h2>The Silo is empty!</h2>
+            <p>Use the form above to add your Hay, Grain, and Supplements.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

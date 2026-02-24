@@ -1,0 +1,185 @@
+{% extends 'farm/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 20px; }
+    .chart-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; transition: background-color .3s; }
+    .chart-title { color: #2c3e50; margin-top: 0; margin-bottom: 15px; font-size: 1.15em; font-weight: 700; }
+    .stat-row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
+    .stat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 20px; flex: 1; min-width: 150px; text-align: center; transition: background-color .3s; }
+    .stat-number { font-size: 2.5em; font-weight: 700; color: #4caf50; }
+    .stat-label { color: #666; font-size: 0.9em; margin-top: 5px; }
+    body.dark-mode .chart-card, body.dark-mode .stat-card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .chart-title { color: #e0e0e0; }
+    body.dark-mode .stat-label { color: #aaa; }
+    @media (max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold text-dark">📊 Herd Analytics</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_goats }}</div>
+            <div class="stat-label">Total Herd Size</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #9c27b0;">{{ total_breedings }}</div>
+            <div class="stat-label">Total Breedings</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #2196f3;">{{ successful_dams }}</div>
+            <div class="stat-label">Dams with Kids</div>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <div class="chart-card">
+            <h3 class="chart-title">Breed Distribution</h3>
+            <canvas id="breedChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3 class="chart-title">Gender Distribution</h3>
+            <canvas id="genderChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3 class="chart-title">Status Breakdown</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3 class="chart-title">Age Distribution</h3>
+            <canvas id="ageChart"></canvas>
+        </div>
+        <div class="chart-card" style="grid-column: 1 / -1;">
+            <h3 class="chart-title">Monthly Milk Production (Last 12 Months)</h3>
+            <div style="height: 300px;"><canvas id="milkChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+{{ breed_data|json_script:"breed-data" }}
+{{ gender_data|json_script:"gender-data" }}
+{{ status_data|json_script:"status-data" }}
+{{ age_buckets|json_script:"age-data" }}
+{{ milk_monthly|json_script:"milk-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const COLORS = ['#4caf50','#2196f3','#ff9800','#9c27b0','#e91e63','#00bcd4','#ff5722','#607d8b','#795548','#cddc39'];
+const isDark = document.body.classList.contains('dark-mode');
+const textColor = isDark ? '#e0e0e0' : '#333';
+
+function parseJSON(id) {
+    const el = document.getElementById(id);
+    if (!el) return [];
+    let d = JSON.parse(el.textContent);
+    if (typeof d === 'string') d = JSON.parse(d);
+    return d;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Breed
+    const breedData = parseJSON('breed-data');
+    if (breedData.length) {
+        new Chart(document.getElementById('breedChart'), {
+            type: 'doughnut',
+            data: {
+                labels: breedData.map(b => b.breed || 'Unknown'),
+                datasets: [{ data: breedData.map(b => b.count), backgroundColor: COLORS }]
+            },
+            options: { plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+        });
+    }
+
+    // Gender
+    const genderData = parseJSON('gender-data');
+    if (genderData.length) {
+        new Chart(document.getElementById('genderChart'), {
+            type: 'pie',
+            data: {
+                labels: genderData.map(g => g.gender || 'Unknown'),
+                datasets: [{ data: genderData.map(g => g.count), backgroundColor: COLORS.slice(2) }]
+            },
+            options: { plugins: { legend: { position: 'right', labels: { color: textColor } } } }
+        });
+    }
+
+    // Status
+    const statusData = parseJSON('status-data');
+    if (statusData.length) {
+        const statusColors = { 'Healthy': '#4caf50', 'Sick': '#e53935', 'Vet': '#ff9800', 'Deceased': '#616161' };
+        new Chart(document.getElementById('statusChart'), {
+            type: 'bar',
+            data: {
+                labels: statusData.map(s => s.status),
+                datasets: [{
+                    label: 'Count',
+                    data: statusData.map(s => s.count),
+                    backgroundColor: statusData.map(s => statusColors[s.status] || '#999')
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { color: textColor } }, y: { ticks: { color: textColor } } }
+            }
+        });
+    }
+
+    // Age
+    const ageData = parseJSON('age-data');
+    if (ageData) {
+        new Chart(document.getElementById('ageChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(ageData).map(k => k + ' yrs'),
+                datasets: [{
+                    label: 'Goats',
+                    data: Object.values(ageData),
+                    backgroundColor: '#00bcd4'
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 } }, x: { ticks: { color: textColor } } }
+            }
+        });
+    }
+
+    // Milk Monthly
+    const milkData = parseJSON('milk-data');
+    if (milkData.length) {
+        new Chart(document.getElementById('milkChart'), {
+            type: 'line',
+            data: {
+                labels: milkData.map(m => m.month),
+                datasets: [{
+                    label: 'Total lbs',
+                    data: milkData.map(m => parseFloat(m.total)),
+                    borderColor: '#2196f3',
+                    backgroundColor: 'rgba(33,150,243,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    borderWidth: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { color: textColor } }, x: { ticks: { color: textColor } } }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

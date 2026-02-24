@@ -1,0 +1,74 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Specific overrides for Weight page */
+    .dashboard-title { color: #009688; } /* Teal override */
+    
+    .card-title { color: #009688; border-bottom: 2px solid #e0f2f1; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; color: #666; font-size: 0.9em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    
+    .text-weight { color: #009688; font-weight: bold; }
+    
+    .btn-view-chart { display: inline-block; background-color: #f0f2f5; color: #333; padding: 5px 15px; border-radius: 20px; text-decoration: none; font-size: 0.9em; }
+    .btn-view-chart:hover { background-color: #e0f2f1; color: #009688; }
+
+    /* Dark Mode Support for Tables */
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .btn-view-chart { background-color: #333; color: #e0e0e0; }
+    body.dark-mode .btn-view-chart:hover { background-color: #444; color: #009688; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="dashboard-title">⚖️ Weight & Growth</h1>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="card-title">Recent Weigh-Ins</h3>
+                    {% if recent_weights %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Goat</th>
+                                    <th>Weight</th>
+                                    <th>Notes</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_weights %}
+                                <tr>
+                                    <td>{{ log.date|date:"M d, Y" }}</td>
+                                    <td><strong>{{ log.goat.name }}</strong></td>
+                                    <td class="text-weight">{{ log.weight }} lbs</td>
+                                    <td class="text-muted small">{{ log.notes|default:"-" }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'goat_detail' log.goat.id %}" class="btn-view-chart">View Chart</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <p class="text-center text-muted py-5">No weight records found. Go to a goat's profile to log their weight.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

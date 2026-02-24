@@ -1,0 +1,227 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Meat Locker Specific Styles */
+    .locker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 30px; }
+    .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; border-left: 5px solid #ccc; transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .stat-icon { font-size: 2.5em; opacity: 0.8; flex-shrink: 0; }
+    .stat-info h3 { margin: 0; font-size: 2em; font-weight: bold; color: #333; line-height: 1.2; }
+    .stat-info p { margin: 0; color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Card Colors */
+    .card-red { border-left-color: #d32f2f; }
+    .card-red .stat-icon { color: #d32f2f; }
+    .card-orange { border-left-color: #f57c00; }
+    .card-orange .stat-icon { color: #f57c00; }
+    .card-blue { border-left-color: #1976d2; }
+    .card-blue .stat-icon { color: #1976d2; }
+
+    /* Form Section */
+    .action-panel { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid #e0e0e0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
+    /* Quick Estimator Styles */
+    .quick-estimator { background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%); border: none; }
+    .estimator-title { color: #455a64; margin: 0; font-weight: bold; }
+    .estimator-subtitle { font-size: 0.8em; color: #546e7a; margin: 0; }
+    .result-display { padding: 1rem; background-color: #fff; border-radius: 0.25rem; text-align: center; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
+    .result-text { font-weight: bold; color: #37474f; font-size: 1.1em; }
+
+    /* Table */
+    .harvest-table-container { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; background: white; }
+    .harvest-table { width: 100%; border-collapse: collapse; min-width: 600px; } /* Ensure min-width for scroll */
+    .harvest-table th { background: #f8f9fa; padding: 15px; text-align: left; color: #555; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
+    .harvest-table td { padding: 15px; border-bottom: 1px solid #eee; color: #333; vertical-align: middle; }
+    .harvest-table tr:last-child td { border-bottom: none; }
+    .harvest-table tr:hover { background-color: #f9f9f9; }
+    
+    .yield-badge { padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85em; display: inline-block; }
+    .yield-good { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; } /* > 45% */
+    .yield-avg { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }  /* < 45% */
+
+    /* Dark Mode */
+    body.dark-mode .stat-card, body.dark-mode .action-panel, body.dark-mode .harvest-table-container, body.dark-mode .harvest-table { background-color: #1e1e1e; color: #e0e0e0; border-color: #333; }
+    body.dark-mode .stat-info h3 { color: #e0e0e0; }
+    body.dark-mode .stat-info p { color: #aaa; }
+    body.dark-mode .harvest-table th { background-color: #2d2d2d; border-bottom-color: #444; color: #ccc; }
+    body.dark-mode .harvest-table td { border-bottom-color: #333; color: #e0e0e0; }
+    body.dark-mode .harvest-table tr:hover { background-color: #2d2d2d; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .text-dark { color: #e0e0e0 !important; }
+    
+    /* Dark Mode - Quick Estimator Overrides */
+    body.dark-mode .quick-estimator { background: linear-gradient(135deg, #263238 0%, #37474f 100%); border: 1px solid #455a64; }
+    body.dark-mode .estimator-title { color: #b0bec5; }
+    body.dark-mode .estimator-subtitle { color: #90a4ae; }
+    body.dark-mode .result-display { background-color: #2d2d2d; border: 1px solid #444; }
+    body.dark-mode .result-text { color: #cfd8dc; }
+    body.dark-mode input#calcLive { border-color: #546e7a; background-color: #2d2d2d; color: #fff; }
+
+    /* Dark Mode - Badge Overrides */
+    body.dark-mode .yield-good { background: #1b5e20; color: #a5d6a7; border-color: #2e7d32; }
+    body.dark-mode .yield-avg { background: #e65100; color: #ffcc80; border-color: #ef6c00; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold text-dark mb-0">🥩 Meat Locker</h1>
+            <p class="text-muted mb-0">Track harvest data and meat yields.</p>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="locker-grid">
+        <div class="stat-card card-red">
+            <div class="stat-icon">⚖️</div>
+            <div class="stat-info">
+                <h3>{{ total_hanging }} <small style="font-size:0.6em; opacity:0.7;">lbs</small></h3>
+                <p>Total Processed</p>
+            </div>
+        </div>
+        <div class="stat-card card-orange">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>{{ avg_yield }}%</h3>
+                <p>Average Yield</p>
+            </div>
+        </div>
+        <div class="stat-card card-blue">
+            <div class="stat-icon">🐐</div>
+            <div class="stat-info">
+                <h3>{{ total_count }}</h3>
+                <p>Goats Harvested</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LOG HARVEST FORM (Left Column on Desktop) -->
+        <div class="col-lg-4">
+            <div class="action-panel">
+                <h4 class="mb-3 text-dark border-bottom pb-2">🔪 Log Harvest</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Select Goat</label>
+                        {{ form.goat }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Harvest Date</label>
+                        {{ form.harvest_date }}
+                    </div>
+                    <div class="form-grid mb-3">
+                        <div>
+                            <label class="form-label text-muted small fw-bold">Live Wt (lbs)</label>
+                            {{ form.live_weight }}
+                        </div>
+                        <div>
+                            <label class="form-label text-muted small fw-bold">Hanging Wt (lbs)</label>
+                            {{ form.hanging_weight }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Cut Notes</label>
+                        {{ form.notes }}
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">
+                        <i class="fas fa-save me-2"></i> Record Harvest
+                    </button>
+                    <small class="d-block text-center mt-3 text-muted fst-italic" style="font-size:0.85em;">
+                        Note: This will automatically mark the selected goat as 'Deceased'.
+                    </small>
+                </form>
+            </div>
+
+            <!-- Simple Yield Calc -->
+            <div class="action-panel quick-estimator">
+                <div class="d-flex align-items-center mb-2">
+                    <span style="font-size: 1.5em; margin-right: 10px;">🧮</span>
+                    <div>
+                        <h5 class="estimator-title">Quick Estimator</h5>
+                        <p class="estimator-subtitle">Target: 50% Yield</p>
+                    </div>
+                </div>
+                <input type="number" id="calcLive" placeholder="Enter Live Weight (lbs)" class="form-control mb-3" oninput="calcYield()" title="Live weight in pounds">
+                <div class="result-display">
+                    <div id="calcResult" class="result-text">Est. Hanging: -- lbs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HARVEST TABLE (Right Column on Desktop) -->
+        <div class="col-lg-8">
+            <div class="harvest-table-container">
+                <div class="table-responsive">
+                    <table class="harvest-table table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Goat</th>
+                                <th>Live Wt</th>
+                                <th>Hanging Wt</th>
+                                <th>Yield %</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in harvests %}
+                            <tr>
+                                <td>{{ h.harvest_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'goat_detail' h.goat.id %}" class="text-decoration-none fw-bold text-dark">
+                                        {{ h.goat.name }}
+                                    </a>
+                                </td>
+                                <td>{{ h.live_weight }}</td>
+                                <td>{{ h.hanging_weight }}</td>
+                                <td>
+                                    <span class="yield-badge {% if h.yield_percentage >= 45 %}yield-good{% else %}yield-avg{% endif %}">
+                                        {{ h.yield_percentage|floatformat:1 }}%
+                                    </span>
+                                </td>
+                                <td><small class="text-muted d-block" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ h.notes|default:"-" }}</small></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted" style="font-size: 1.2em; opacity: 0.6;">
+                                        <i class="fas fa-clipboard-list fa-2x mb-3 d-block"></i>
+                                        No harvest records found.
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calcYield() {
+        const live = parseFloat(document.getElementById('calcLive').value);
+        const res = document.getElementById('calcResult');
+        if(live) {
+            // 50% is a standard target for well-conditioned goats
+            const meat = (live * 0.50).toFixed(1);
+            res.innerText = `Est. Hanging: ~${meat} lbs`;
+        } else {
+            res.innerText = "Est. Hanging: -- lbs";
+        }
+    }
+    
+    // Add Bootstrap classes to Django form widgets automatically
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.action-panel input, .action-panel select, .action-panel textarea');
+        inputs.forEach(input => input.classList.add('form-control'));
+    });
+</script>
+{% endblock %}

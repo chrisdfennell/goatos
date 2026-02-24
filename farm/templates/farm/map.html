@@ -1,0 +1,896 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    /* ===== MAP PAGE LAYOUT ===== */
+    .map-page-wrapper { display: flex; flex-direction: column; gap: 0; }
+    .map-toolbar {
+        display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+        padding: 10px 15px; background: #fff; border-radius: 12px 12px 0 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,.05); transition: background-color .3s;
+    }
+    .toolbar-btn {
+        padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd;
+        background: #fff; cursor: pointer; font-size: .85em; transition: all .2s;
+        white-space: nowrap;
+    }
+    .toolbar-btn:hover { background: #f0f0f0; }
+    .toolbar-btn.active-heat { background: #ff5722; color: #fff; border-color: #ff5722; }
+    .toolbar-btn.active-water { background: #2196f3; color: #fff; border-color: #2196f3; }
+    .toolbar-btn.active-path { background: #9c27b0; color: #fff; border-color: #9c27b0; }
+    .toolbar-btn.active-edit { background: #2196f3; color: #fff; border-color: #2196f3; }
+    .toolbar-btn.active-marker { background: #4caf50; color: #fff; border-color: #4caf50; }
+    .toolbar-divider { width: 1px; height: 28px; background: #ddd; margin: 0 4px; }
+    .map-type-group { display: flex; gap: 2px; }
+    .map-type-btn {
+        padding: 6px 10px; border: 1px solid #ddd; background: #fff;
+        cursor: pointer; font-size: .8em; transition: all .2s;
+    }
+    .map-type-btn:first-child { border-radius: 4px 0 0 4px; }
+    .map-type-btn:last-child { border-radius: 0 4px 4px 0; }
+    .map-type-btn.active-type { background: #e3f2fd; border-color: #2196f3; color: #2196f3; }
+    .toolbar-stat { font-size: .85em; color: #666; padding: 6px 10px; white-space: nowrap; }
+    .toolbar-stat strong { color: #333; }
+
+    /* ===== MAIN CONTENT AREA ===== */
+    .map-content { display: flex; position: relative; }
+    #fullMap {
+        flex: 1; height: calc(100vh - 190px); min-height: 400px;
+        border-radius: 0 0 0 12px; background: #eee;
+    }
+
+    /* ===== SIDE PANEL ===== */
+    .side-panel {
+        width: 380px; max-height: calc(100vh - 190px); overflow-y: auto;
+        background: #fff; border-left: 1px solid #eee; padding: 20px;
+        transition: width .3s, padding .3s, opacity .3s; box-shadow: -2px 0 5px rgba(0,0,0,.05);
+        border-radius: 0 0 12px 0;
+    }
+    .side-panel.collapsed { width: 0; padding: 0; overflow: hidden; opacity: 0; }
+    .panel-toggle {
+        position: absolute; right: 380px; top: 10px; z-index: 10;
+        background: #fff; border: 1px solid #ddd; border-radius: 4px 0 0 4px;
+        padding: 8px 4px; cursor: pointer; font-size: .85em; transition: right .3s;
+        box-shadow: -2px 0 5px rgba(0,0,0,.05);
+    }
+    .side-panel.collapsed ~ .panel-toggle { right: 0; }
+    .panel-section { margin-bottom: 20px; }
+    .panel-section h3 { margin: 0 0 10px; font-size: 1.05em; color: #2c3e50; }
+    .panel-section h4 { margin: 10px 0 6px; font-size: .9em; color: #4caf50; }
+
+    /* ===== FORMS IN PANEL ===== */
+    .panel-form-group { margin-bottom: 8px; }
+    .panel-form-group label { display: block; font-size: .8em; color: #666; margin-bottom: 3px; }
+    .panel-form-group input, .panel-form-group select { width: 100%; padding: 7px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: .9em; }
+    .panel-form-group select[multiple] { min-height: 60px; }
+    .panel-btn {
+        padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;
+        font-weight: 700; font-size: .85em; color: #fff; width: 100%;
+    }
+    .panel-btn-green { background: #4caf50; }
+    .panel-btn-green:hover { background: #43a047; }
+    .panel-btn-blue { background: #2196f3; }
+    .panel-btn-blue:hover { background: #1e88e5; }
+
+    /* ===== ASSIGNMENT TABLE ===== */
+    .assignment-table { width: 100%; border-collapse: collapse; }
+    .assignment-table th { text-align: left; color: #666; font-size: .8em; padding: 6px; border-bottom: 2px solid #eee; }
+    .assignment-table td { padding: 6px; border-bottom: 1px solid #eee; font-size: .85em; }
+    .btn-end-rotation { background: #ff5722; color: #fff; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: .75em; }
+
+    /* ===== ROTATION TIMELINE ===== */
+    .timeline-container { position: relative; min-height: 80px; margin-top: 10px; overflow-x: auto; }
+    .timeline-track { position: relative; height: 30px; margin-bottom: 4px; }
+    .timeline-bar {
+        position: absolute; height: 24px; border-radius: 3px; top: 3px;
+        font-size: .7em; color: #fff; padding: 0 6px; line-height: 24px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        cursor: default; min-width: 20px;
+    }
+    .timeline-header { display: flex; justify-content: space-between; font-size: .7em; color: #999; margin-bottom: 6px; }
+
+    /* ===== HIDDEN FORMS ===== */
+    #new-area-form, .marker-form { display: none; position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 5; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+    .marker-form { background: #e3f2fd; }
+    .form-row { display: flex; gap: 8px; align-items: flex-end; }
+    .form-group { flex: 1; }
+    .form-group label { display: block; font-size: .8em; color: #666; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .save-btn { background: #2196f3; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; }
+
+    /* ===== PATH DISTANCE DISPLAY ===== */
+    .path-distance-display {
+        position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,.75); color: #fff; padding: 8px 16px; border-radius: 20px;
+        font-size: .9em; z-index: 5; display: none;
+    }
+
+    /* ===== CONDITION BADGE ===== */
+    .condition-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75em; font-weight: 700; color: #fff; }
+
+    /* ===== DARK MODE ===== */
+    body.dark-mode .map-toolbar { background: #1e1e1e; }
+    body.dark-mode .toolbar-btn { background: #2a2a2a; border-color: #444; color: #ddd; }
+    body.dark-mode .toolbar-btn:hover { background: #333; }
+    body.dark-mode .toolbar-stat { color: #aaa; }
+    body.dark-mode .toolbar-stat strong { color: #ddd; }
+    body.dark-mode .toolbar-divider { background: #444; }
+    body.dark-mode .map-type-btn { background: #2a2a2a; border-color: #444; color: #ddd; }
+    body.dark-mode .map-type-btn.active-type { background: #1a237e; color: #90caf9; }
+    body.dark-mode .side-panel { background: #1e1e1e; border-color: #333; color: #e0e0e0; }
+    body.dark-mode .panel-section h3 { color: #e0e0e0; }
+    body.dark-mode .panel-form-group label { color: #aaa; }
+    body.dark-mode .panel-form-group input, body.dark-mode .panel-form-group select { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+    body.dark-mode .assignment-table th { color: #aaa; border-color: #333; }
+    body.dark-mode .assignment-table td { border-color: #333; }
+    body.dark-mode #new-area-form { background: #2a2a2a; }
+    body.dark-mode .marker-form { background: #1a237e; }
+    body.dark-mode .panel-toggle { background: #2a2a2a; border-color: #444; color: #ddd; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .side-panel { width: 100%; max-height: 50vh; border-left: none; border-top: 1px solid #eee; border-radius: 0; }
+        .map-content { flex-direction: column; }
+        #fullMap { height: 50vh; border-radius: 0; }
+        .panel-toggle { display: none; }
+        .map-toolbar { gap: 4px; padding: 8px 10px; }
+        .toolbar-btn { padding: 5px 8px; font-size: .75em; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-page-wrapper">
+    <!-- ===== TOOLBAR ===== -->
+    <div class="map-toolbar">
+        <button type="button" class="toolbar-btn" id="addMarkerBtn" title="Click map to place a marker">📍 Add Marker</button>
+        <button type="button" class="toolbar-btn" id="editAreaBtn" title="Enable editing of pasture boundaries">✏️ Edit Areas</button>
+        <span class="toolbar-divider"></span>
+        <button type="button" class="toolbar-btn" id="heatMapBtn" title="Color areas by condition score">🔥 Heat Map</button>
+        <button type="button" class="toolbar-btn" id="waterZoneBtn" title="Show water source coverage zones">💧 Water Zones</button>
+        <button type="button" class="toolbar-btn" id="pathBtn" title="Measure walking distances on map">📏 Path</button>
+        <span class="toolbar-divider"></span>
+        <div class="map-type-group">
+            <button type="button" class="map-type-btn active-type" id="mapTypeSatellite" title="Satellite view">Satellite</button>
+            <button type="button" class="map-type-btn" id="mapTypeTerrain" title="Terrain view">Terrain</button>
+            <button type="button" class="map-type-btn" id="mapTypeRoad" title="Roadmap view">Road</button>
+            <button type="button" class="map-type-btn" id="mapTypeHybrid" title="Hybrid view">Hybrid</button>
+        </div>
+        <span class="toolbar-divider"></span>
+        <a href="{% url 'export_grazing_areas_kml' %}" class="toolbar-btn" style="text-decoration:none;" title="Download KML for Google Earth">📥 Export KML</a>
+        <span class="toolbar-stat" id="totalFencingStat"><strong>Total Fencing:</strong> --</span>
+    </div>
+
+    <!-- ===== MAP + SIDE PANEL ===== -->
+    <div class="map-content">
+        <div id="fullMap"></div>
+
+        <!-- Area Save Form (floating over map) -->
+        <div id="new-area-form">
+            <form action="{% url 'save_grazing_area' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="area_coords" name="area_coords">
+                <div class="form-row">
+                    <div class="form-group"><label>Area Name</label><input type="text" name="area_name" placeholder="e.g. North Pasture" required title="Area name"></div>
+                    <div class="form-group" style="flex:0 0 100px;"><label>Color</label><input type="color" name="area_color" value="#FF0000" style="height:35px; padding:2px;" title="Area color"></div>
+                    <button type="submit" class="save-btn">Save Area</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Marker Form (floating over map) -->
+        <div id="marker-form" class="marker-form">
+            <form action="{% url 'add_map_marker' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="marker_lat" name="latitude">
+                <input type="hidden" id="marker_lng" name="longitude">
+                <div class="form-row">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" placeholder="e.g. Main Barn" required title="Marker name"></div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="marker_type" title="Marker type">
+                            <option value="Barn">Barn</option>
+                            <option value="Shelter">Shelter</option>
+                            <option value="Water">Water Trough</option>
+                            <option value="Feeder">Feeder</option>
+                            <option value="Gate">Gate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="save-btn" style="background:#4caf50;">Save Marker</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Path Distance Display -->
+        <div class="path-distance-display" id="pathDistance">Distance: 0 ft</div>
+
+        <!-- Panel Toggle -->
+        <button type="button" class="panel-toggle" id="panelToggle" title="Toggle side panel">◀</button>
+
+        <!-- ===== SIDE PANEL ===== -->
+        <div class="side-panel" id="sidePanel">
+            <!-- Rotation Manager -->
+            <div class="panel-section">
+                <h3>🔄 Pasture Rotation</h3>
+                <form action="{% url 'assign_pasture' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="panel-form-group">
+                        <label>Pasture</label>
+                        <select name="grazing_area" required title="Select pasture">
+                            {% for area in all_grazing_areas %}
+                            <option value="{{ area.id }}">{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Goats</label>
+                        <select name="goats" multiple required title="Select goats to assign">
+                            {% for goat in goats %}
+                            <option value="{{ goat.id }}">{{ goat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Start Date</label>
+                        <input type="date" name="start_date" value="{% now 'Y-m-d' %}" title="Start date">
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Notes</label>
+                        <input type="text" name="notes" placeholder="Optional notes" title="Rotation notes">
+                    </div>
+                    <button type="submit" class="panel-btn panel-btn-green">Assign to Pasture</button>
+                </form>
+            </div>
+
+            <!-- Active Assignments -->
+            {% if active_assignments %}
+            <div class="panel-section">
+                <h4>Active Assignments</h4>
+                <table class="assignment-table">
+                    <thead><tr><th>Pasture</th><th>Goats</th><th>Since</th><th></th></tr></thead>
+                    <tbody>
+                    {% for a in active_assignments %}
+                    <tr>
+                        <td><strong>{{ a.grazing_area.name }}</strong></td>
+                        <td>{% for g in a.goats.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                        <td>{{ a.start_date|date:"M j" }}</td>
+                        <td><form method="POST" action="{% url 'end_pasture_assignment' a.id %}" style="display:inline;" data-confirm="End this rotation?">{% csrf_token %}<button type="submit" class="btn-end-rotation">End</button></form></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Add Condition Score -->
+            <div class="panel-section">
+                <h3>📊 Condition Score</h3>
+                <form method="POST" id="conditionForm">
+                    {% csrf_token %}
+                    <div class="panel-form-group">
+                        <label>Pasture</label>
+                        <select id="condAreaSelect" required title="Select pasture for condition scoring">
+                            {% for area in all_grazing_areas %}
+                            <option value="{{ area.id }}">{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Score (1-5)</label>
+                        <select id="condScore" required title="Condition score">
+                            <option value="1">1 - Very Poor</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="3">3 - Fair</option>
+                            <option value="4">4 - Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Date</label>
+                        <input type="date" id="condDate" value="{% now 'Y-m-d' %}" title="Condition date">
+                    </div>
+                    <div class="panel-form-group">
+                        <label>Notes</label>
+                        <input type="text" id="condNotes" placeholder="Optional notes" title="Condition notes">
+                    </div>
+                    <button type="submit" class="panel-btn panel-btn-blue">Save Condition</button>
+                </form>
+            </div>
+
+            <!-- Rotation Timeline -->
+            <div class="panel-section">
+                <h3>📅 Rotation Timeline (90 days)</h3>
+                <div class="timeline-header">
+                    <span id="timelineStart"></span>
+                    <span>Today</span>
+                </div>
+                <div id="rotationTimeline" class="timeline-container">
+                    <em style="color:#999; font-size:.85em;">Loading timeline...</em>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ grazing_areas|json_script:"grazing-data" }}
+{{ map_markers|json_script:"marker-data" }}
+{{ rotation_timeline_data|json_script:"timeline-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    // ===== GLOBALS =====
+    let map;
+    let markerMode = false;
+    let editMode = false;
+    let heatMapMode = false;
+    let waterZoneMode = false;
+    let pathMode = false;
+    let homeMarker;
+    let areaPolygons = [];
+    let selectedPolygon = null;
+    let waterCircles = [];
+    let pathPoints = [];
+    let pathPolyline = null;
+    let pathMarkers = [];
+    const farmLocation = { lat: parseFloat("{{ farm_settings.latitude|default:'0.0' }}") || 0.0, lng: parseFloat("{{ farm_settings.longitude|default:'0.0' }}") || 0.0 };
+    const MARKER_ICONS = { 'Barn': '🏠', 'Shelter': '⛺', 'Water': '💧', 'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍' };
+
+    // ===== ON LOAD =====
+    document.addEventListener('DOMContentLoaded', function() {
+        // Panel toggle
+        var panelToggle = document.getElementById('panelToggle');
+        var sidePanel = document.getElementById('sidePanel');
+        if (panelToggle) panelToggle.addEventListener('click', function() {
+            sidePanel.classList.toggle('collapsed');
+            panelToggle.textContent = sidePanel.classList.contains('collapsed') ? '▶' : '◀';
+        });
+
+        // Toolbar buttons
+        document.getElementById('addMarkerBtn').addEventListener('click', toggleMarkerMode);
+        document.getElementById('editAreaBtn').addEventListener('click', toggleEditMode);
+        document.getElementById('heatMapBtn').addEventListener('click', toggleHeatMap);
+        document.getElementById('waterZoneBtn').addEventListener('click', toggleWaterZones);
+        document.getElementById('pathBtn').addEventListener('click', togglePathMode);
+
+        // Map type buttons
+        document.getElementById('mapTypeSatellite').addEventListener('click', function() { setMapType('satellite'); });
+        document.getElementById('mapTypeTerrain').addEventListener('click', function() { setMapType('terrain'); });
+        document.getElementById('mapTypeRoad').addEventListener('click', function() { setMapType('roadmap'); });
+        document.getElementById('mapTypeHybrid').addEventListener('click', function() { setMapType('hybrid'); });
+
+        // Restore map type
+        var savedType = localStorage.getItem('goatOS_mapType') || 'satellite';
+        highlightMapTypeBtn(savedType);
+
+        // Condition form submit
+        document.getElementById('conditionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitConditionScore();
+        });
+
+        // Confirm-before-submit forms
+        document.querySelectorAll('form[data-confirm]').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                if (!confirm(this.dataset.confirm)) e.preventDefault();
+            });
+        });
+
+        // Build rotation timeline
+        buildRotationTimeline();
+    });
+
+    // ===== MARKER MODE =====
+    function toggleMarkerMode() {
+        markerMode = !markerMode;
+        if (markerMode && pathMode) togglePathMode();
+        var btn = document.getElementById('addMarkerBtn');
+        btn.classList.toggle('active-marker', markerMode);
+        if (markerMode) showToast("Click on the map to place a marker.", "info");
+    }
+
+    // ===== EDIT MODE =====
+    function toggleEditMode() {
+        editMode = !editMode;
+        var btn = document.getElementById('editAreaBtn');
+        btn.classList.toggle('active-edit', editMode);
+        areaPolygons.forEach(function(p) { p.polygon.setEditable(editMode); });
+        if (editMode) showToast("Click a pasture to select it. Drag vertices to edit.", "info");
+    }
+
+    // ===== HEAT MAP OVERLAY (Feature 5) =====
+    function toggleHeatMap() {
+        heatMapMode = !heatMapMode;
+        var btn = document.getElementById('heatMapBtn');
+        btn.classList.toggle('active-heat', heatMapMode);
+        var heatColors = { 1: '#d32f2f', 2: '#f57c00', 3: '#fbc02d', 4: '#8bc34a', 5: '#4caf50' };
+        areaPolygons.forEach(function(aObj) {
+            if (heatMapMode) {
+                var score = aObj.conditionScore || 0;
+                var color = score > 0 ? heatColors[score] : '#9e9e9e';
+                aObj.polygon.setOptions({ fillColor: color, fillOpacity: 0.6, strokeColor: color });
+            } else {
+                aObj.polygon.setOptions({
+                    fillColor: aObj.originalColor, fillOpacity: aObj.originalOpacity,
+                    strokeColor: aObj.originalColor
+                });
+            }
+        });
+    }
+
+    // ===== WATER SOURCE RADIUS (Feature 8) =====
+    function toggleWaterZones() {
+        waterZoneMode = !waterZoneMode;
+        var btn = document.getElementById('waterZoneBtn');
+        btn.classList.toggle('active-water', waterZoneMode);
+        waterCircles.forEach(function(c) { c.setVisible(waterZoneMode); });
+    }
+
+    // ===== WALKING PATH TOOL (Feature 9) =====
+    function togglePathMode() {
+        pathMode = !pathMode;
+        var btn = document.getElementById('pathBtn');
+        btn.classList.toggle('active-path', pathMode);
+        if (pathMode) {
+            if (markerMode) toggleMarkerMode();
+            showToast("Click to add points. Double-click to finish.", "info");
+        } else {
+            clearPath();
+        }
+    }
+
+    function clearPath() {
+        if (pathPolyline) { pathPolyline.setMap(null); pathPolyline = null; }
+        pathMarkers.forEach(function(m) { m.setMap(null); });
+        pathMarkers = [];
+        pathPoints = [];
+        document.getElementById('pathDistance').style.display = 'none';
+    }
+
+    function addPathPoint(latLng) {
+        pathPoints.push(latLng);
+        var marker = new google.maps.Marker({
+            position: latLng, map: map,
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: '#9c27b0', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' }
+        });
+        pathMarkers.push(marker);
+
+        if (pathPolyline) pathPolyline.setMap(null);
+        pathPolyline = new google.maps.Polyline({
+            path: pathPoints, map: map,
+            strokeColor: '#9c27b0', strokeWeight: 3, strokeOpacity: 0.8
+        });
+
+        if (pathPoints.length > 1) {
+            var totalMeters = google.maps.geometry.spherical.computeLength(pathPolyline.getPath());
+            var totalFeet = totalMeters * 3.28084;
+            var display = document.getElementById('pathDistance');
+            display.textContent = 'Distance: ' + totalFeet.toFixed(0) + ' ft (' + totalMeters.toFixed(0) + ' m)';
+            display.style.display = 'block';
+        }
+    }
+
+    // ===== MAP TYPE TOGGLE (Feature 10) =====
+    function setMapType(type) {
+        if (!map) return;
+        map.setMapTypeId(type);
+        localStorage.setItem('goatOS_mapType', type);
+        highlightMapTypeBtn(type);
+    }
+
+    function highlightMapTypeBtn(type) {
+        document.querySelectorAll('.map-type-btn').forEach(function(b) { b.classList.remove('active-type'); });
+        var btnMap = { 'satellite': 'mapTypeSatellite', 'terrain': 'mapTypeTerrain', 'roadmap': 'mapTypeRoad', 'hybrid': 'mapTypeHybrid' };
+        var btn = document.getElementById(btnMap[type]);
+        if (btn) btn.classList.add('active-type');
+    }
+
+    // ===== CONDITION SCORE SUBMIT =====
+    function submitConditionScore() {
+        var areaId = document.getElementById('condAreaSelect').value;
+        var score = document.getElementById('condScore').value;
+        var date = document.getElementById('condDate').value;
+        var notes = document.getElementById('condNotes').value;
+        var formData = new FormData();
+        formData.append('score', score);
+        formData.append('date', date);
+        formData.append('notes', notes);
+        formData.append('csrfmiddlewaretoken', csrftoken);
+        fetch('/pasture/' + areaId + '/condition/', {
+            method: 'POST', body: formData
+        }).then(function(r) {
+            if (r.ok) {
+                showToast("Condition score saved!", "success");
+                document.getElementById('condNotes').value = '';
+            } else {
+                showToast("Failed to save condition.", "error");
+            }
+        });
+    }
+
+    // ===== POLYGON HELPERS =====
+    function getPolygonCentroid(coords) {
+        var latSum = 0, lngSum = 0;
+        coords.forEach(function(c) { latSum += c.lat; lngSum += c.lng; });
+        return { lat: latSum / coords.length, lng: lngSum / coords.length };
+    }
+
+    function saveEditedArea(areaObj) {
+        var path = areaObj.polygon.getPath();
+        var coords = [];
+        for (var i = 0; i < path.getLength(); i++) {
+            var pt = path.getAt(i);
+            coords.push({ lat: pt.lat(), lng: pt.lng() });
+        }
+        var body = { coordinates: coords };
+        if (areaObj.pendingName) body.name = areaObj.pendingName;
+        if (areaObj.pendingColor) body.color = areaObj.pendingColor;
+        fetch('/api/area/' + areaObj.id + '/update/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        }).then(function(r) {
+            if (r.ok) {
+                showToast("Area updated!", "success");
+                if (areaObj.pendingColor) {
+                    areaObj.originalColor = areaObj.pendingColor;
+                    if (!heatMapMode) {
+                        areaObj.polygon.setOptions({ fillColor: areaObj.pendingColor, strokeColor: areaObj.pendingColor });
+                    }
+                }
+                if (areaObj.pendingName) areaObj.name = areaObj.pendingName;
+            } else {
+                showToast("Failed to save.", "error");
+            }
+        });
+    }
+
+    function deleteArea(areaObj) {
+        if (!confirm('Delete "' + areaObj.name + '"? This cannot be undone.')) return;
+        fetch('/api/area/' + areaObj.id + '/delete/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken }
+        }).then(function(r) {
+            if (r.ok) { areaObj.polygon.setMap(null); showToast("Area deleted.", "success"); }
+            else showToast("Failed to delete.", "error");
+        });
+    }
+
+    // ===== ROTATION TIMELINE (Feature 4) =====
+    function buildRotationTimeline() {
+        var container = document.getElementById('rotationTimeline');
+        var startLabel = document.getElementById('timelineStart');
+        var dataEl = document.getElementById('timeline-data');
+        if (!dataEl || !container) return;
+
+        var data;
+        try { data = JSON.parse(dataEl.textContent); } catch(e) { return; }
+        if (!data.length) { container.innerHTML = '<em style="color:#999;font-size:.85em;">No rotation data in the last 90 days.</em>'; return; }
+
+        var today = new Date();
+        var ninetyAgo = new Date(today);
+        ninetyAgo.setDate(ninetyAgo.getDate() - 90);
+        startLabel.textContent = ninetyAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        var totalDays = 90;
+        var areaNames = [];
+        data.forEach(function(d) { if (areaNames.indexOf(d.area_name) === -1) areaNames.push(d.area_name); });
+
+        var html = '';
+        areaNames.forEach(function(aName) {
+            html += '<div class="timeline-track" title="' + aName + '">';
+            var entries = data.filter(function(d) { return d.area_name === aName; });
+            entries.forEach(function(entry) {
+                var start = new Date(entry.start_date);
+                var end = entry.end_date ? new Date(entry.end_date) : today;
+                if (start < ninetyAgo) start = ninetyAgo;
+                if (end > today) end = today;
+                var dayStart = Math.max(0, Math.floor((start - ninetyAgo) / 86400000));
+                var dayEnd = Math.min(totalDays, Math.ceil((end - ninetyAgo) / 86400000));
+                var leftPct = (dayStart / totalDays * 100).toFixed(1);
+                var widthPct = Math.max(2, ((dayEnd - dayStart) / totalDays * 100)).toFixed(1);
+                var goatList = entry.goats.join(', ');
+                html += '<div class="timeline-bar" style="left:' + leftPct + '%;width:' + widthPct + '%;background:' + entry.color + ';" title="' + aName + ': ' + goatList + '">' + aName + '</div>';
+            });
+            html += '</div>';
+        });
+        container.innerHTML = html;
+    }
+
+    // ===== INIT MAP =====
+    function initMap() {
+        var savedType = localStorage.getItem('goatOS_mapType') || 'satellite';
+        map = new google.maps.Map(document.getElementById("fullMap"), {
+            zoom: 18, center: farmLocation, mapTypeId: savedType
+        });
+
+        // HOME MARKER
+        homeMarker = new google.maps.Marker({
+            position: farmLocation, map: map,
+            title: "Farm Home", draggable: false,
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#FFEB3B", fillOpacity: 1, strokeWeight: 2, strokeColor: "black" }
+        });
+
+        // MAP CLICK HANDLER
+        map.addListener('click', function(e) {
+            if (markerMode) {
+                document.getElementById('marker_lat').value = e.latLng.lat();
+                document.getElementById('marker_lng').value = e.latLng.lng();
+                document.getElementById('marker-form').style.display = 'block';
+                document.querySelector('#marker-form input[name="name"]').focus();
+                toggleMarkerMode();
+            } else if (pathMode) {
+                addPathPoint(e.latLng);
+            }
+        });
+
+        // DOUBLE-CLICK finishes path
+        map.addListener('dblclick', function() {
+            if (pathMode) {
+                pathMode = false;
+                document.getElementById('pathBtn').classList.remove('active-path');
+                showToast("Path complete. Toggle Path again to clear.", "info");
+            }
+        });
+
+        // ===== LOAD GRAZING AREAS =====
+        var existingAreas = [];
+        var dataElement = document.getElementById('grazing-data');
+        if (dataElement) {
+            try { existingAreas = JSON.parse(dataElement.textContent); } catch(e) { console.error("Failed to parse grazing areas:", e); }
+        }
+
+        var totalFencing = 0;
+
+        if (Array.isArray(existingAreas)) {
+            existingAreas.forEach(function(area) {
+                var fillOpacity = 0.35;
+                if (area.condition_score) fillOpacity = 0.2 + (area.condition_score * 0.1);
+
+                var polygon = new google.maps.Polygon({
+                    paths: area.coords, strokeColor: area.color, strokeOpacity: 0.8,
+                    strokeWeight: 2, fillColor: area.color, fillOpacity: fillOpacity, editable: false
+                });
+                polygon.setMap(map);
+
+                var areaObj = {
+                    id: area.id, name: area.name, polygon: polygon,
+                    originalColor: area.color, originalOpacity: fillOpacity,
+                    conditionScore: area.condition_score
+                };
+                areaPolygons.push(areaObj);
+
+                // Feature 1: Perimeter / Fencing Calculator
+                var perimeterFt = 0;
+                var perimeterInfo = '';
+                if (google.maps.geometry && area.coords.length >= 3) {
+                    var closedPath = area.coords.map(function(c) { return new google.maps.LatLng(c.lat, c.lng); });
+                    closedPath.push(closedPath[0]); // close the loop
+                    var perimeterMeters = google.maps.geometry.spherical.computeLength(closedPath);
+                    perimeterFt = perimeterMeters * 3.28084;
+                    totalFencing += perimeterFt;
+                    perimeterInfo = '<br><strong>Perimeter:</strong> ' + perimeterFt.toFixed(0) + ' ft';
+                }
+
+                // Area measurement
+                var areaSize = '';
+                var acresVal = 0;
+                if (google.maps.geometry && area.coords.length >= 3) {
+                    var aPath = area.coords.map(function(c) { return new google.maps.LatLng(c.lat, c.lng); });
+                    var sqMeters = google.maps.geometry.spherical.computeArea(aPath);
+                    acresVal = sqMeters / 4046.86;
+                    areaSize = '<br><strong>Area:</strong> ' + acresVal.toFixed(2) + ' acres';
+                }
+
+                // Feature 2: Stocking Rate Calculator
+                var stockingInfo = '';
+                if (acresVal > 0) {
+                    var condMultiplier = 1.0;
+                    if (area.condition_score) {
+                        condMultiplier = 0.4 + (area.condition_score * 0.12); // 0.52 to 1.0
+                    }
+                    var minGoats = Math.floor(acresVal * 6 * condMultiplier);
+                    var maxGoats = Math.ceil(acresVal * 8 * condMultiplier);
+                    var currentCount = area.goat_count || 0;
+                    var warning = '';
+                    if (currentCount > maxGoats) warning = ' <span style="color:#d32f2f;font-weight:bold;">OVER</span>';
+                    else if (currentCount < minGoats && currentCount > 0) warning = ' <span style="color:#ff9800;font-weight:bold;">UNDER</span>';
+                    stockingInfo = '<br><strong>Capacity:</strong> ' + minGoats + '-' + maxGoats + ' goats (' + currentCount + ' now)' + warning;
+                }
+
+                // Condition badge
+                var condBadge = '';
+                if (area.condition_score) {
+                    var colors = ['#d32f2f','#f57c00','#fbc02d','#8bc34a','#4caf50'];
+                    var c = colors[area.condition_score - 1] || '#999';
+                    condBadge = '<br><strong>Condition:</strong> <span style="background:' + c + ';color:#fff;padding:1px 6px;border-radius:8px;font-size:.8em;">' + area.condition_score + '/5</span>';
+                }
+
+                // Rest days
+                var restInfo = '';
+                if (area.days_resting !== null && area.days_resting !== undefined) {
+                    restInfo = '<br><strong>Resting:</strong> ' + area.days_resting + ' days';
+                }
+
+                // Goat count
+                var goatInfo = '';
+                if (area.goat_count > 0) {
+                    goatInfo = '<br><strong>Goats (' + area.goat_count + '):</strong> ' + area.goat_names.join(', ');
+                }
+
+                // Feature 3: Condition sparkline canvas
+                var sparklineHtml = '<br><canvas id="spark-' + area.id + '" width="150" height="60" style="margin-top:6px;"></canvas>';
+
+                // Feature 6: Name/Color edit fields in InfoWindow
+                var idx = areaPolygons.length - 1;
+                var editFields = '<div style="margin-top:8px; border-top:1px solid #eee; padding-top:8px;">' +
+                    '<div style="display:flex;gap:4px;align-items:flex-end;margin-bottom:4px;">' +
+                    '<input type="text" value="' + area.name.replace(/"/g, '&quot;') + '" id="editName-' + area.id + '" style="flex:1;padding:4px;font-size:.85em;border:1px solid #ddd;border-radius:3px;" title="Edit name">' +
+                    '<input type="color" value="' + area.color + '" id="editColor-' + area.id + '" style="width:40px;height:28px;padding:0;border:1px solid #ddd;border-radius:3px;" title="Edit color">' +
+                    '</div>' +
+                    '<div style="display:flex;gap:4px;">' +
+                    '<button data-action="save" data-idx="' + idx + '" data-areaid="' + area.id + '" style="background:#2196f3;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;flex:1;">Save</button>' +
+                    '<button data-action="delete" data-idx="' + idx + '" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Delete</button>' +
+                    '</div></div>';
+
+                // Build InfoWindow
+                var infoContent = '<div style="max-width:280px;" id="infoContent-' + area.id + '">' +
+                    '<strong style="font-size:1.1em;">' + area.name + '</strong>' +
+                    areaSize + perimeterInfo + stockingInfo + condBadge + restInfo + goatInfo +
+                    sparklineHtml + editFields + '</div>';
+
+                polygon.addListener("click", function(e) {
+                    if (!area.coords || area.coords.length === 0) return;
+                    var iw = new google.maps.InfoWindow({
+                        content: infoContent,
+                        position: e.latLng || getPolygonCentroid(area.coords)
+                    });
+                    iw.open(map);
+
+                    // Load sparkline + bind edit buttons after InfoWindow renders
+                    google.maps.event.addListener(iw, 'domready', function() {
+                        loadSparkline(area.id);
+                        // Bind save/delete buttons inside InfoWindow
+                        var container = document.getElementById('infoContent-' + area.id);
+                        if (container) {
+                            var saveBtn = container.querySelector('[data-action="save"]');
+                            var delBtn = container.querySelector('[data-action="delete"]');
+                            if (saveBtn) saveBtn.addEventListener('click', function() {
+                                var i = parseInt(this.dataset.idx);
+                                var aid = this.dataset.areaid;
+                                areaPolygons[i].pendingName = document.getElementById('editName-' + aid).value;
+                                areaPolygons[i].pendingColor = document.getElementById('editColor-' + aid).value;
+                                saveEditedArea(areaPolygons[i]);
+                            });
+                            if (delBtn) delBtn.addEventListener('click', function() {
+                                var i = parseInt(this.dataset.idx);
+                                deleteArea(areaPolygons[i]);
+                            });
+                        }
+                    });
+                });
+
+                // Goat count badge on map
+                if (area.goat_count > 0) {
+                    var centroid = getPolygonCentroid(area.coords);
+                    new google.maps.Marker({
+                        position: centroid, map: map,
+                        label: { text: String(area.goat_count), color: '#fff', fontWeight: 'bold', fontSize: '12px' },
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: '#4caf50', fillOpacity: 0.9, strokeWeight: 2, strokeColor: '#fff' },
+                        title: area.goat_count + ' goats in ' + area.name
+                    });
+                }
+            });
+        }
+
+        // Update total fencing stat
+        document.getElementById('totalFencingStat').innerHTML = '<strong>Total Fencing:</strong> ' + totalFencing.toFixed(0) + ' ft';
+
+        // ===== MAP MARKERS =====
+        var markersData = [];
+        var markerEl = document.getElementById('marker-data');
+        if (markerEl) {
+            try { markersData = JSON.parse(markerEl.textContent); } catch(e) { console.error("Failed to parse markers:", e); }
+        }
+        markersData.forEach(function(m) {
+            var icon = MARKER_ICONS[m.marker_type] || '📍';
+            var markerObj = new google.maps.Marker({
+                position: { lat: m.latitude, lng: m.longitude }, map: map,
+                title: m.name,
+                label: { text: icon, fontSize: '20px' },
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 }
+            });
+
+            // Feature 8: Water source radius circles
+            if (m.marker_type === 'Water') {
+                var circle = new google.maps.Circle({
+                    center: { lat: m.latitude, lng: m.longitude },
+                    radius: 100, map: map,
+                    fillColor: '#2196f3', fillOpacity: 0.15,
+                    strokeColor: '#2196f3', strokeWeight: 1, strokeOpacity: 0.4,
+                    visible: false
+                });
+                waterCircles.push(circle);
+            }
+
+            var deleteUrl = '/marker/' + m.id + '/delete/';
+            markerObj.addListener('click', function() {
+                new google.maps.InfoWindow({
+                    content: '<strong>' + m.name + '</strong><br>' + m.marker_type +
+                        (m.notes ? '<br><em>' + m.notes + '</em>' : '') +
+                        '<br><form method="POST" action="' + deleteUrl + '" style="margin-top:6px;">' +
+                        '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken + '">' +
+                        '<button type="submit" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Remove</button></form>'
+                }).open(map, markerObj);
+            });
+        });
+
+        // ===== DRAWING MANAGER =====
+        var drawingManager = new google.maps.drawing.DrawingManager({
+            drawingMode: null, drawingControl: true,
+            drawingControlOptions: { position: google.maps.ControlPosition.TOP_LEFT, drawingModes: ['polygon', 'rectangle'] },
+            polygonOptions: { fillColor: '#ffff00', fillOpacity: 0.5, strokeWeight: 2, clickable: false, editable: true, zIndex: 1 }
+        });
+        drawingManager.setMap(map);
+
+        google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+            drawingManager.setDrawingMode(null);
+            var newShape = event.overlay;
+            var pathData = [];
+            if (event.type === 'polygon') {
+                var path = newShape.getPath();
+                for (var i = 0; i < path.getLength(); i++) {
+                    var point = path.getAt(i);
+                    pathData.push({ lat: point.lat(), lng: point.lng() });
+                }
+            } else if (event.type === 'rectangle') {
+                var bounds = newShape.getBounds();
+                var ne = bounds.getNorthEast();
+                var sw = bounds.getSouthWest();
+                pathData = [
+                    { lat: ne.lat(), lng: ne.lng() }, { lat: ne.lat(), lng: sw.lng() },
+                    { lat: sw.lat(), lng: sw.lng() }, { lat: sw.lat(), lng: ne.lng() }
+                ];
+            }
+            document.getElementById('new-area-form').style.display = 'block';
+            document.getElementById('area_coords').value = JSON.stringify(pathData);
+            document.querySelector('input[name="area_name"]').focus();
+        });
+    }
+
+    // ===== CONDITION SPARKLINE (Feature 3) =====
+    function loadSparkline(areaId) {
+        var canvas = document.getElementById('spark-' + areaId);
+        if (!canvas) return;
+        fetch('/api/pasture/' + areaId + '/conditions/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.length) {
+                    canvas.style.display = 'none';
+                    return;
+                }
+                var labels = data.map(function(d) { return d.date; });
+                var scores = data.map(function(d) { return d.score; });
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{ data: scores, borderColor: '#4caf50', borderWidth: 2, pointRadius: 2, tension: 0.3, fill: false }]
+                    },
+                    options: {
+                        responsive: false, animation: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false, min: 0, max: 5 }
+                        }
+                    }
+                });
+            })
+            .catch(function() { canvas.style.display = 'none'; });
+    }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ farm_settings.google_maps_api_key|default:'' }}&libraries=drawing,geometry&callback=initMap" async defer></script>
+{% endblock %}

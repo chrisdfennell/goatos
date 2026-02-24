@@ -1,0 +1,406 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #3f51b5; }
+    .main-card { background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+    
+    /* Event Form */
+    .add-event-form { background: #e8eaf6; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; transition: background-color 0.3s; }
+    .form-group-inline { display: flex; flex-direction: column; gap: 4px; }
+    .form-group-inline label { font-size: 0.8em; color: #5c6bc0; font-weight: 600; margin-left: 2px; }
+    input, select { padding: 8px; border: 1px solid #c5cae9; border-radius: 4px; font-family: inherit; }
+    .btn-add { background: #3f51b5; color: white; border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; height: 35px; transition: background 0.2s; }
+    .btn-add:hover { background: #303f9f; }
+    
+    /* Calendar Overrides */
+    #calendar { max-width: 100%; margin: 0 auto; min-height: 600px; }
+    .fc-event { cursor: pointer !important; border: none !important; padding: 3px 6px !important; font-size: 0.95em !important; border-radius: 4px; transition: all 0.2s; margin-bottom: 2px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .fc-event:hover { transform: scale(1.01); filter: brightness(0.95); z-index: 5; }
+    .fc-event-title { font-weight: 500; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    .fc-daygrid-day.fc-day-today { background-color: #e8eaf6 !important; }
+    .fc-toolbar-title { font-size: 1.5em !important; }
+    .fc-button-primary { background-color: #3f51b5 !important; border-color: #3f51b5 !important; }
+    .fc-button-active { background-color: #283593 !important; border-color: #283593 !important; }
+
+    /* Modal Styles */
+    .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .modal-title { margin: 0; color: #2c3e50; font-size: 1.5em; }
+    .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #888; }
+    .task-list { list-style: none; padding: 0; margin: 0; }
+    .task-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; }
+    .task-item:last-child { border-bottom: none; }
+    .task-checkbox { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; accent-color: #4CAF50; }
+    .task-label { flex: 1; font-size: 1.1em; }
+    .task-done { text-decoration: line-through; color: #aaa; }
+
+    /* Edit Form Styles */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; color: #666; }
+    .form-control { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+    .btn-save { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; }
+    .btn-delete { background: #ef5350; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .main-card, body.dark-mode .modal-content { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .add-event-form { background-color: #283593; }
+    body.dark-mode .form-group-inline label { color: #c5cae9; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode .form-control { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .modal-title { color: #fff; }
+    body.dark-mode .modal-header { border-bottom-color: #333; }
+    body.dark-mode .task-item { border-bottom-color: #333; }
+    body.dark-mode .fc-theme-standard .fc-scrollgrid { border-color: #333; }
+    body.dark-mode .fc-theme-standard td, body.dark-mode .fc-theme-standard th { border-color: #333; }
+    body.dark-mode .fc-daygrid-day.fc-day-today { background-color: #283593 !important; }
+    body.dark-mode .fc-col-header-cell-cushion, body.dark-mode .fc-daygrid-day-number { color: #e0e0e0; text-decoration: none; }
+    body.dark-mode .fc-list-day-cushion { background-color: #2d2d2d; }
+    body.dark-mode .fc-list-event:hover td { background-color: #333; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">📅 Farm Calendar</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="main-card">
+        <!-- Simple Add Form -->
+        <form method="POST" class="add-event-form">
+            {% csrf_token %}
+            
+            <div class="form-group-inline" style="flex: 2; min-width: 200px;">
+                <label>New Event Title</label>
+                <input type="text" name="title" placeholder="e.g. Vet Visit" required title="Event title">
+            </div>
+            
+            <div class="form-group-inline">
+                <label>Start Date</label>
+                <input type="date" name="date" required value="{% now 'Y-m-d' %}" title="Start date">
+            </div>
+
+            <div class="form-group-inline">
+                <label>End Date (Optional)</label>
+                <input type="date" name="end_date" title="End date">
+            </div>
+
+            <div class="form-group-inline" style="min-width: 150px;">
+                <label>Category</label>
+                <select name="category" title="Event category">
+                    <option value="General">General</option>
+                    <option value="Vet">Vet Visit</option>
+                    <option value="Show">Goat Show</option>
+                    <option value="Breeding">Breeding</option>
+                    <option value="Kidding">Kidding</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Purchase">Purchase</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-add">+ Add Event</button>
+        </form>
+
+        <div id='calendar'></div>
+    </div>
+</div>
+
+<!-- CHORE MODAL -->
+<div id="choreModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">✅ Daily Chores</h3>
+            <button class="close-btn" onclick="closeModal('choreModal')">×</button>
+        </div>
+        <div id="modal-date" style="color: #666; margin-bottom: 15px;"></div>
+        <ul class="task-list" id="task-list-container">
+            <li style="text-align: center; color: #888;">Loading tasks...</li>
+        </ul>
+    </div>
+</div>
+
+<!-- EDIT EVENT MODAL -->
+<div id="editEventModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Event</h3>
+            <button class="close-btn" onclick="closeModal('editEventModal')">×</button>
+        </div>
+        <input type="hidden" id="edit-event-id">
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="edit-event-title" class="form-control" title="Event title">
+        </div>
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex:1;">
+                <label>Start Date</label>
+                <input type="date" id="edit-event-date" class="form-control" title="Start date">
+            </div>
+            <div style="flex:1;">
+                <label>End Date</label>
+                <input type="date" id="edit-event-end" class="form-control" title="End date">
+            </div>
+        </div>
+        <button onclick="saveEventChanges()" class="btn-save">Save Changes</button>
+        <button onclick="deleteEvent()" class="btn-delete">Delete Event</button>
+    </div>
+</div>
+
+{{ events_json|json_script:"events-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentModalDate = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        
+        // Safe JSON Parsing Logic
+        let events = [];
+        try {
+            const scriptTag = document.getElementById('events-data');
+            if (scriptTag) {
+                let rawData = JSON.parse(scriptTag.textContent);
+                if (typeof rawData === 'string') {
+                    events = JSON.parse(rawData);
+                } else {
+                    events = rawData;
+                }
+            }
+        } catch (e) {
+            console.error("Error parsing events:", e);
+        }
+
+        if (!Array.isArray(events)) { events = []; }
+
+        // Force "Daily Chores" Event
+        const hasChores = events.some(e => e.title && e.title.includes('Daily Chores'));
+        if (!hasChores) {
+            events.push({
+                id: 'daily-chores', 
+                title: 'Daily Chores',
+                daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+                color: '#4CAF50',
+                className: 'chore-event',
+                allDay: true,
+                editable: false 
+            });
+        }
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,listMonth'
+            },
+            buttonText: {
+                today:    'Today',
+                month:    'Calendar',
+                list:     'List'
+            },
+            navLinks: true,
+            events: events,
+            editable: true, 
+            
+            eventContent: function(arg) {
+                let title = arg.event.title;
+                let content = document.createElement('div');
+                content.className = 'fc-event-title';
+                
+                if (title.includes('Daily Chores')) {
+                    content.innerHTML = '✅ ' + title;
+                } else if (!title.includes('👶') && !title.includes('🏥') && !title.includes('📅')) {
+                    content.innerHTML = '🔗 ' + title;
+                } else {
+                    content.innerHTML = title;
+                }
+                
+                return { domNodes: [content] }
+            },
+
+            // DRAG AND DROP (Move)
+            eventDrop: function(info) {
+                if (info.event.extendedProps.type === 'custom') {
+                    const newEnd = info.event.end ? info.event.end.toISOString().split('T')[0] : null;
+                    
+                    fetch('/api/event/move/', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+                        body: JSON.stringify({
+                            id: info.event.id,
+                            date: info.event.start.toISOString().split('T')[0],
+                            end_date: newEnd 
+                        })
+                    }).then(res => res.json()).then(data => {
+                        if (data.status !== 'success') info.revert();
+                    });
+                } else {
+                    alert("You can only move custom Farm Events.");
+                    info.revert();
+                }
+            },
+
+            // RESIZE (Extend/Shorten)
+            eventResize: function(info) {
+                if (info.event.extendedProps.type === 'custom') {
+                    const newEnd = info.event.end ? info.event.end.toISOString().split('T')[0] : null;
+                    
+                    fetch('/api/event/resize/', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+                        body: JSON.stringify({
+                            id: info.event.id,
+                            end_date: newEnd
+                        })
+                    }).then(res => res.json()).then(data => {
+                        if (data.status !== 'success') info.revert();
+                    });
+                } else {
+                    alert("You can only resize custom Farm Events.");
+                    info.revert();
+                }
+            },
+
+            eventClick: function(info) {
+                // 1. Chores
+                if (info.event.classNames.includes('chore-event') || info.event.title.includes('Daily Chores')) {
+                    info.jsEvent.preventDefault();
+                    const dateObj = info.event.start || info.event.end || new Date(); 
+                    const offset = dateObj.getTimezoneOffset();
+                    const adjustedDate = new Date(dateObj.getTime() + (Math.abs(offset)*60*1000));
+                    const dateStr = adjustedDate.toISOString().split('T')[0];
+                    openChoreModal(dateStr);
+                } 
+                // 2. Custom Editable Events
+                else if (info.event.extendedProps.type === 'custom') {
+                    info.jsEvent.preventDefault();
+                    openEditModal(info.event);
+                }
+                // 3. System Links
+                else if (info.event.extendedProps.url || info.event.url) {
+                    const url = info.event.extendedProps.url || info.event.url;
+                    if(url && url !== '#') {
+                        window.location.href = url;
+                    }
+                    info.jsEvent.preventDefault();
+                }
+            }
+        });
+        calendar.render();
+    });
+
+    // --- CHORE LOGIC ---
+    function openChoreModal(dateStr) {
+        currentModalDate = dateStr;
+        const modal = document.getElementById('choreModal');
+        const list = document.getElementById('task-list-container');
+        const dateLabel = document.getElementById('modal-date');
+        
+        modal.style.display = 'flex';
+        dateLabel.textContent = new Date(dateStr).toDateString();
+        list.innerHTML = '<li style="text-align: center; color: #888; padding: 20px;">Loading tasks...</li>';
+
+        fetch(`/api/tasks/${dateStr}/`)
+            .then(response => response.json())
+            .then(data => {
+                list.innerHTML = '';
+                if (!data.tasks || data.tasks.length === 0) {
+                    list.innerHTML = `<li style="padding: 20px; color: #888; text-align: center;">No tasks configured.<br><a href="/admin/farm/dailytask/add/" target="_blank" style="color: #2196F3;">+ Add Tasks</a></li>`;
+                    return;
+                }
+                data.tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'task-checkbox';
+                    checkbox.checked = task.completed;
+                    checkbox.onchange = () => toggleTask(task.id, checkbox);
+                    const span = document.createElement('span');
+                    span.className = 'task-label ' + (task.completed ? 'task-done' : '');
+                    span.textContent = task.name + (task.time_of_day !== 'ANY' ? ` (${task.time_of_day})` : '');
+                    checkbox.addEventListener('change', () => {
+                        if(checkbox.checked) span.classList.add('task-done');
+                        else span.classList.remove('task-done');
+                    });
+                    li.appendChild(checkbox);
+                    li.appendChild(span);
+                    list.appendChild(li);
+                });
+            })
+            .catch(err => { console.error(err); });
+    }
+
+    function toggleTask(taskId, checkbox) {
+        fetch(`/api/task/${taskId}/toggle/${currentModalDate}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken }
+        })
+            .then(res => res.json())
+            .catch(err => { console.error(err); checkbox.checked = !checkbox.checked; });
+    }
+
+    // --- EDIT EVENT LOGIC ---
+    function openEditModal(event) {
+        document.getElementById('editEventModal').style.display = 'flex';
+        document.getElementById('edit-event-id').value = event.id;
+        document.getElementById('edit-event-title').value = event.title.replace('📅 ', '');
+        
+        document.getElementById('edit-event-date').value = event.start.toISOString().split('T')[0];
+        
+        // Handle End Date (FullCalendar end is exclusive, so subtract 1 day to show correct date to user)
+        if (event.end) {
+            const endDate = new Date(event.end);
+            endDate.setDate(endDate.getDate() - 1);
+            document.getElementById('edit-event-end').value = endDate.toISOString().split('T')[0];
+        } else {
+            document.getElementById('edit-event-end').value = '';
+        }
+    }
+
+    function saveEventChanges() {
+        const id = document.getElementById('edit-event-id').value;
+        const title = document.getElementById('edit-event-title').value;
+        const date = document.getElementById('edit-event-date').value;
+        const end = document.getElementById('edit-event-end').value;
+
+        fetch('/api/event/update/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+            body: JSON.stringify({ id: id, title: title, date: date, end_date: end })
+        }).then(res => {
+            if(res.ok) window.location.reload();
+            else alert("Error saving event");
+        });
+    }
+
+    function deleteEvent() {
+        const id = document.getElementById('edit-event-id').value;
+        if(!confirm("Are you sure you want to delete this event?")) return;
+
+        fetch(`/api/event/delete/${id}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken }
+        }).then(res => {
+            if(res.ok) window.location.reload();
+            else alert("Error deleting event");
+        });
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    
+    window.onclick = function(event) {
+        if (event.target.classList.contains('custom-modal')) {
+            event.target.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

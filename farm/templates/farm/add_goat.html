@@ -1,0 +1,40 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .add-goat-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto; }
+    body.dark-mode .add-goat-card { background: #1e1e1e; }
+    .form-label { font-weight: 600; color: #2c3e50; }
+    body.dark-mode .form-label { color: #e0e0e0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="dashboard-title" style="font-size:1.5em; margin:0;">🐐 Add New Goat</h1>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    <div class="add-goat-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                {% if field.field.widget.input_type == 'checkbox' %}
+                <div class="form-check">
+                    {{ field }}
+                    <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+                {% else %}
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% endif %}
+                {% if field.help_text %}<small class="text-muted d-block">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-success btn-lg w-100 mt-3">Add Goat</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

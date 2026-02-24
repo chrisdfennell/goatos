@@ -1,0 +1,195 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .kidding-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 20px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; transition: background-color .3s; }
+    .card-title { color: #9C27B0; border-bottom: 2px solid #f3e5f5; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+
+    .due-list { list-style: none; padding: 0; margin: 0; }
+    .due-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #ccc; }
+    .due-item.overdue { background: #ffebee; border-left-color: #d32f2f; }
+    .due-item.this-week { background: #fff3e0; border-left-color: #ff9800; }
+    .due-item.two-weeks { background: #fffde7; border-left-color: #fbc02d; }
+    .due-item.later { background: #e8f5e9; border-left-color: #4caf50; }
+
+    .due-name { font-weight: 700; font-size: 1.1em; }
+    .due-date { font-size: 0.9em; color: #666; }
+    .due-countdown { font-weight: 700; font-size: 1.3em; min-width: 80px; text-align: center; }
+    .due-countdown.overdue { color: #d32f2f; }
+    .due-countdown.this-week { color: #ff9800; }
+    .due-countdown.two-weeks { color: #fbc02d; }
+    .due-countdown.later { color: #4caf50; }
+
+    .due-actions { margin-left: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; color: #666; font-size: 0.85em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+
+    .btn-log { background: #9C27B0; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; text-decoration: none; }
+    .btn-log:hover { background: #7B1FA2; }
+
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #9C27B0; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    .btn-submit:hover { background-color: #7B1FA2; }
+
+    @media (max-width: 900px) { .kidding-grid { grid-template-columns: 1fr; } }
+
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .due-item.overdue { background: #4a0000; }
+    body.dark-mode .due-item.this-week { background: #3e2723; }
+    body.dark-mode .due-item.two-weeks { background: #33300a; }
+    body.dark-mode .due-item.later { background: #1b3e1b; }
+    body.dark-mode .due-date { color: #aaa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold" style="color:#9C27B0;">🤰 Kidding Season</h1>
+        <div>
+            <a href="{% url 'breeding_dashboard' %}" class="btn btn-outline-secondary me-2">🧬 Breeding</a>
+            <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+        </div>
+    </div>
+
+    <div class="kidding-grid">
+        <!-- Pregnant Does -->
+        <div class="card">
+            <h3 class="card-title">🗓️ Expecting Does</h3>
+            {% if pregnant_does %}
+            <ul class="due-list">
+                {% for log in pregnant_does %}
+                <li class="due-item {{ log.urgency }}">
+                    <div class="due-countdown {{ log.urgency }}">
+                        {% if log.days_until < 0 %}{{ log.days_until|abs }} days<br>overdue{% elif log.days_until == 0 %}TODAY{% else %}{{ log.days_until }}d{% endif %}
+                    </div>
+                    <div>
+                        <div class="due-name"><a href="{% url 'goat_detail' log.goat.id %}" style="color:inherit;text-decoration:none;">{{ log.goat.name }}</a></div>
+                        <div class="due-date">Due: {{ log.due_date|date:"M j, Y" }} &bull; Bred: {{ log.breeding_date|date:"M j" }} &bull; Mate: {{ log.mate_name }}</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color:#999; text-align:center; padding:30px;">No pregnant does at this time.</p>
+            {% endif %}
+        </div>
+
+        <!-- Quick Log Kidding -->
+        <div class="card" style="align-self: start;">
+            <h3 class="card-title">🐣 Log Kidding</h3>
+            <form method="POST" action="{% url 'add_kidding_record' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="kidding_season_dashboard">
+                <label style="font-size:0.8em; color:#666;">Dam</label>
+                <select name="dam_id" required title="Select dam">
+                    <option value="">-- Select Doe --</option>
+                    {% for doe in does %}
+                    <option value="{{ doe.id }}">{{ doe.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label style="font-size:0.8em; color:#666;">Linked Breeding Record</label>
+                <select name="breeding_log_id" title="Linked breeding record">
+                    <option value="">-- None --</option>
+                    {% for bl in breeding_logs %}
+                    <option value="{{ bl.id }}">{{ bl.goat.name }} - {{ bl.breeding_date|date:"M j" }} (Due: {{ bl.due_date|date:"M j" }})</option>
+                    {% endfor %}
+                </select>
+
+                <label style="font-size:0.8em; color:#666;">Kidding Date</label>
+                <input type="date" name="kidding_date" value="{% now 'Y-m-d' %}" required title="Kidding date">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Birth Type</label>
+                        <select name="birth_type" title="Birth type">
+                            <option value="Single">Single</option>
+                            <option value="Twins">Twins</option>
+                            <option value="Triplets">Triplets</option>
+                            <option value="Quads">Quads</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Presentation</label>
+                        <select name="presentation" title="Presentation">
+                            <option value="Normal">Normal</option>
+                            <option value="Breach">Breach</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Kids Born</label>
+                        <input type="number" name="num_kids_born" value="1" min="0" required title="Number of kids born">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Alive</label>
+                        <input type="number" name="num_alive" value="1" min="0" required title="Number of kids alive">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Stillborn</label>
+                        <input type="number" name="num_stillborn" value="0" min="0" title="Number of stillborn">
+                    </div>
+                </div>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                    <input type="checkbox" name="assisted" style="width:auto; margin:0;" title="Assisted delivery"> Assisted delivery
+                </label>
+
+                <textarea name="complications" rows="1" placeholder="Complications (if any)" title="Complications"></textarea>
+                <textarea name="notes" rows="1" placeholder="Notes" title="Notes"></textarea>
+                <button type="submit" class="btn-submit">Record Kidding</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Kiddings -->
+    <div class="card" style="margin-top:25px;">
+        <h3 class="card-title">📋 Recent Kidding Records</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Dam</th>
+                        <th>Type</th>
+                        <th>Kids</th>
+                        <th>Alive</th>
+                        <th>Presentation</th>
+                        <th>Assisted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kr in recent_kiddings %}
+                    <tr>
+                        <td>{{ kr.kidding_date|date:"M j, Y" }}</td>
+                        <td><a href="{% url 'goat_detail' kr.dam.id %}">{{ kr.dam.name }}</a></td>
+                        <td>{{ kr.birth_type }}</td>
+                        <td>{{ kr.num_kids_born }}</td>
+                        <td>{{ kr.num_alive }}</td>
+                        <td>{{ kr.presentation }}</td>
+                        <td>{% if kr.assisted %}✅{% else %}—{% endif %}</td>
+                        <td>
+                            <form method="POST" action="{% url 'delete_kidding_record' kr.id %}" style="display:inline;" onsubmit="return confirm('Delete?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;">🗑️</button></form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" style="text-align:center; padding:30px; color:#888;">No kidding records yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

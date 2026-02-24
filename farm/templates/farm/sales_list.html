@@ -1,0 +1,220 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page specific overrides & Dark Mode Fixes */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; border: 1px solid #333; }
+    body.dark-mode .card-body { background-color: #1e1e1e; }
+    body.dark-mode .card.shadow-sm { background-color: #1e1e1e !important; }
+    body.dark-mode .form-control, body.dark-mode .form-select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .table { color: #e0e0e0; border-color: #333; }
+    body.dark-mode .table-light { background-color: #2d2d2d; color: #e0e0e0; }
+    body.dark-mode .table-light th { background-color: #2d2d2d; color: #b0b0b0; border-color: #444; }
+    body.dark-mode .table-hover tbody tr:hover { background-color: #333; color: #fff; }
+    body.dark-mode td { border-color: #333; }
+    body.dark-mode .text-dark { color: #e0e0e0 !important; }
+    body.dark-mode .text-muted { color: #aaa !important; }
+    body.dark-mode .bg-warning.text-dark { background-color: #f57c00 !important; color: #fff !important; }
+    body.dark-mode a.text-dark { color: #90caf9 !important; }
+    body.dark-mode i.text-muted { color: #aaa !important; }
+    #addSaleForm { display: none; }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 style="margin-bottom: 0;">💰 Sales Ledger</h2>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('addSaleForm').style.display = document.getElementById('addSaleForm').style.display === 'none' ? 'block' : 'none';"><i class="fas fa-plus"></i> Record New Sale</button>
+    </div>
+
+    <!-- Add Sale Form (Toggle) -->
+    <div id="addSaleForm" class="card mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">New Sale</h5>
+            <form method="POST" action="{% url 'add_sale' %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Customer</label>
+                        <select name="customer" class="form-select" required title="Select customer">
+                            <option value="" disabled selected>Select customer...</option>
+                            {% for c in customers %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Goat</label>
+                        <select name="goat" class="form-select" required title="Select goat">
+                            <option value="" disabled selected>Select goat...</option>
+                            {% for g in goats %}
+                            <option value="{{ g.id }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sale Date</label>
+                        <input type="date" name="sale_date" class="form-control" required title="Sale date">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Sale Price ($)</label>
+                        <input type="number" step="0.01" name="sale_price" class="form-control" required placeholder="0.00" title="Sale price">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Deposit ($)</label>
+                        <input type="number" step="0.01" name="deposit_amount" class="form-control" value="0" placeholder="0.00" title="Deposit amount">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" name="is_paid_in_full" class="form-check-input" id="paidCheck" title="Paid in full">
+                            <label class="form-check-label" for="paidCheck">Paid in Full</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100">Save Sale</button>
+                    </div>
+                    <div class="col-12">
+                        <input type="text" name="notes" class="form-control" placeholder="Notes (optional)" title="Sale notes">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Total Revenue</h5>
+                    <h3>${{ total_revenue|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title text-dark">Pending Payment</h5>
+                    <h3>${{ pending_revenue|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card mb-4 border-0 shadow-sm" style="background-color: #f8f9fa;">
+        <div class="card-body py-3">
+            <div class="row g-2">
+                <div class="col-md-8">
+                    <input type="text" id="salesSearch" class="form-control" placeholder="🔍 Search by customer, goat, or notes..." onkeyup="filterSales()" title="Search sales">
+                </div>
+                <div class="col-md-4">
+                    <select id="statusFilter" class="form-select" onchange="filterSales()" title="Filter by status">
+                        <option value="all">All Statuses</option>
+                        <option value="Paid">Paid in Full</option>
+                        <option value="Pending">Balance Due</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            {% if sales %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Goat</th>
+                            <th>Customer</th>
+                            <th>Price</th>
+                            <th>Deposit</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr class="sale-row"
+                            data-search="{{ sale.goat.name|lower }} {{ sale.customer.name|lower }} {{ sale.notes|lower }}"
+                            data-status="{% if sale.is_paid_in_full %}Paid{% else %}Pending{% endif %}">
+                            <td>{{ sale.sale_date|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'goat_detail' sale.goat.id %}" class="text-decoration-none fw-bold text-dark">
+                                    {{ sale.goat.name }} <i class="fas fa-external-link-alt fa-xs text-muted ms-1"></i>
+                                </a>
+                            </td>
+                            <td>
+                                {{ sale.customer.name }}
+                                {% if sale.customer.phone or sale.customer.email %}
+                                    <small class="d-block text-muted" style="font-size: 0.8em;">
+                                        {{ sale.customer.phone|default:sale.customer.email }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>${{ sale.sale_price }}</td>
+                            <td>${{ sale.deposit_amount }}</td>
+                            <td>
+                                <form method="POST" action="{% url 'toggle_sale_paid' sale.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    {% if sale.is_paid_in_full %}
+                                    <button type="submit" class="badge bg-success border-0" style="cursor:pointer;" title="Click to mark unpaid">Paid in Full</button>
+                                    {% else %}
+                                    <button type="submit" class="badge bg-danger border-0" style="cursor:pointer;" title="Click to mark paid">Balance Due</button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="{% url 'delete_sale' sale.id %}" style="display:inline;" onsubmit="return confirm('Delete this sale record?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-results" class="text-center py-4" style="display: none;">
+                <p class="text-muted">No sales found matching your filters.</p>
+            </div>
+            {% else %}
+                <p class="text-muted text-center py-4">No sales recorded yet. Click "Record New Sale" above to get started.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterSales() {
+        const search = document.getElementById('salesSearch').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('.sale-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.getAttribute('data-search');
+            const rowStatus = row.getAttribute('data-status');
+
+            const matchesSearch = text.includes(search);
+            const matchesStatus = status === 'all' || rowStatus === status;
+
+            if (matchesSearch && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const noResults = document.getElementById('no-results');
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+    }
+</script>
+{% endblock %}

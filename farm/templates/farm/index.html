@@ -1,0 +1,1068 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard-specific CSS only */
+    .search-container { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); margin-bottom: 30px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; transition: background-color .3s; }
+    /* Responsive Search Input: Grows to fill space, minimum width ensures usability */
+    .search-input { flex: 1 1 300px; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1em; } 
+    .filter-select { padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1em; background-color: #fff; cursor: pointer; flex: 0 1 auto; }
+    .view-toggle-btn { background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 1.2em; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 45px; height: 45px; box-sizing: border-box; flex: 0 0 auto; }
+    .view-toggle-btn.active { background: #e3f2fd; border-color: #2196f3; color: #2196f3; }
+    
+    /* Mobile Adjustments for Search Bar */
+    @media (max-width: 768px) {
+        .search-container { gap: 8px; }
+        .search-input { min-width: 100%; order: 1; } /* Full width on mobile, moves to top if wrapped */
+        .filter-select { flex: 1; order: 2; } /* Selects share row below input */
+        .view-toggle-btn { order: 2; }
+    }
+
+    .goat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+    .goat-grid.list-view { grid-template-columns: 1fr; gap: 10px; }
+    .goat-grid.list-view .goat-card { flex-direction: row; align-items: center; height: auto; padding: 10px; }
+    .goat-grid.list-view .card-header { height: 60px; width: 60px; border-radius: 50%; margin-right: 15px; background: 0 0; overflow: visible; }
+    .goat-grid.list-view .card-avatar { width: 60px; height: 60px; line-height: 60px; font-size: 30px; bottom: 0; left: 0; transform: none; position: relative; box-shadow: none; border: 2px solid #eee; }
+    .goat-grid.list-view .card-body { padding: 0; text-align: left; flex-direction: row; align-items: center; justify-content: space-between; }
+    .goat-grid.list-view .card-name { margin: 0; font-size: 1.1em; width: 200px; }
+    .goat-grid.list-view .card-details { margin: 0; display: flex; gap: 20px; flex: 1; }
+    .goat-grid.list-view .detail-row { margin: 0; }
+    .goat-grid.list-view .btn-view { display: none; }
+    .goat-grid.list-view .card-actions { border-top: none; padding-top: 0; margin-left: 20px; }
+
+    .goat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); overflow: hidden; transition: transform .2s, box-shadow .2s, background-color .3s; display: flex; flex-direction: column; }
+    .goat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,.1); }
+    .card-header { background: #4caf50; height: 80px; position: relative; }
+    .goat-card[data-status=Sick] .card-header { background: #e53935; }
+    .goat-card[data-status=Vet] .card-header { background: #ff9800; }
+    .goat-card[data-status=Deceased] .card-header { background: #616161; }
+    .card-avatar { font-size: 50px; background: #fff; width: 80px; height: 80px; line-height: 80px; border-radius: 50%; text-align: center; position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); box-shadow: 0 4px 6px rgba(0,0,0,.1); cursor: default; object-fit: cover; padding: 0; }
+    .card-body { padding: 50px 20px 15px; text-align: center; flex: 1; display: flex; flex-direction: column; }
+    .card-name { font-size: 1.4em; margin: 10px 0 15px; color: #333; font-weight: 700; }
+    .card-name a { text-decoration: none; color: inherit; }
+    .badge { background: #ff5252; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: .4em; vertical-align: middle; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; position: relative; top: -3px; margin-left: 5px; }
+    .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: .85em; text-transform: uppercase; display: inline-block; }
+    .status-badge.Healthy { background: #e8f5e9; color: #2e7d32; }
+    .status-badge.Sick { background: #ffebee; color: #c62828; }
+    .status-badge.Vet { background: #fff3e0; color: #ef6c00; }
+    .status-badge.Deceased { background: #eee; color: #666; }
+    .card-details { color: #666; margin-bottom: 25px; font-size: .95em; flex: 1; }
+    .detail-row { margin: 5px 0; }
+    .btn-view { display: inline-block; background-color: #f0f2f5; color: #333; padding: 8px 25px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: background .2s, color .2s; border: 1px solid #e1e4e8; margin-bottom: 10px; }
+    .btn-view:hover { background-color: #2c3e50; color: #fff; border-color: #2c3e50; }
+    .card-actions { border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: center; gap: 10px; }
+    .action-btn { background: 0 0; border: none; cursor: pointer; font-size: 1.2em; padding: 5px 10px; border-radius: 6px; transition: background .2s; }
+    .action-btn:hover { background-color: #f0f2f5; }
+    .action-btn.milk { color: #2196f3; }
+    .action-btn.sick { color: #e53935; }
+    .action-btn.healthy { color: #4caf50; }
+    .empty-herd { grid-column: 1/-1; text-align: center; padding: 60px; color: #888; background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); }
+
+    #map-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); position: relative; display: flex; flex-direction: column; min-height: 500px; height: 100%; }
+    #map { flex-grow: 1; width: 100%; border-radius: 8px; background-color: #eee; min-height: 400px; }
+    #new-area-form { display: none; margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e1e4e8; }
+    .form-row { display: flex; gap: 10px; align-items: flex-end; }
+    .form-group { flex: 1; }
+    .form-group label { display: block; font-size: .8em; color: #666; margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .form-select[multiple] { min-height: 60px; border-color: #ddd; }
+    .save-btn { background: #2196f3; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 700; height: 35px; }
+
+    /* Rotation Manager */
+    .rotation-panel { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); margin-top: 20px; transition: background-color .3s; }
+    .rotation-panel h3 { margin-top: 0; color: #2c3e50; font-size: 1.15em; }
+    .assignment-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .assignment-table th { text-align: left; color: #666; font-size: .85em; padding: 8px; border-bottom: 2px solid #eee; }
+    .assignment-table td { padding: 8px; border-bottom: 1px solid #eee; font-size: .9em; }
+    .btn-end-rotation { background: #ff5722; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: .8em; }
+    .marker-form { display: none; margin-top: 15px; background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; }
+    .condition-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75em; font-weight: 700; color: #fff; }
+    body.dark-mode .rotation-panel { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .rotation-panel h3 { color: #e0e0e0; }
+    body.dark-mode .assignment-table th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode .assignment-table td { border-bottom-color: #333; }
+    body.dark-mode .marker-form { background-color: #1a237e; border-color: #283593; }
+    
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 50px; align-items: start; }
+    .sidebar-stack { display: flex; flex-direction: column; gap: 20px; }
+    .checklist-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); width: 100%; box-sizing: border-box; align-self: stretch; transition: all .3s ease; }
+    .checklist-card .card-header-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .checklist-card .toggle-icon { font-size: .8em; transition: transform .3s ease; color: #999; }
+    .checklist-card.collapsed .card-content { display: none; }
+    .checklist-card.collapsed .toggle-icon { transform: rotate(-90deg); }
+    .checklist-section-title { color: #4caf50; font-size: 1.1em; margin: 20px 0 10px 0; border-bottom: 2px solid #eef; padding-bottom: 5px; }
+    .checklist-section-title:first-child { margin-top: 0; }
+    .checklist-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-checkbox { width: 22px; height: 22px; margin-right: 15px; cursor: pointer; accent-color: #4caf50; }
+    .task-done { text-decoration: line-through; color: #aaa; }
+    .vet-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+    .vet-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .vet-name { font-weight: 700; color: #2c3e50; font-size: 1.1em; }
+    .vet-actions { display: flex; gap: 10px; margin-top: 5px; }
+    .vet-btn { text-decoration: none; font-size: .9em; padding: 5px 10px; border-radius: 4px; background: #f0f2f5; color: #333; }
+    .vet-btn:hover { background: #e1e4e8; }
+    .vet-call { color: #d32f2f; background: #ffebee; }
+    .vet-call:hover { background: #ffcdd2; }
+
+    /* Dark Mode Overrides (Dashboard) */
+    body.dark-mode .card-avatar {
+        background-color: #333;
+        color: #fff;
+        border-color: #333; /* For list view */
+    }
+    body.dark-mode .goat-grid.list-view .card-avatar {
+        border-color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block header_subtitle %}
+<span class="system-status">System Online | <span id="herd-count">{{ goats|length }}</span> Goats</span>
+{% endblock %}
+
+{% block content %}
+    <!-- SEARCH AND FILTER BAR -->
+    <div class="search-container">
+        <input type="text" id="goatSearch" class="search-input" placeholder="🔍 Search herd... (Press '/')" onkeyup="filterHerd()" title="Search herd">
+        
+        <select id="statusFilter" class="filter-select" onchange="filterHerd()" aria-label="Filter herd by status" title="Filter herd by status">
+            <option value="all">All Statuses</option>
+            <option value="Healthy">Healthy Only</option>
+            <option value="Sick">Sick Only</option>
+            <option value="Vet">At Vet</option>
+            <option value="Deceased">Deceased</option>
+        </select>
+
+        <!-- NEW: SORTING -->
+        <select id="sortHerd" class="filter-select" onchange="sortHerd()" aria-label="Sort herd" title="Sort herd">
+            <option value="name">Sort: Name (A-Z)</option>
+            <option value="age_young">Sort: Age (Youngest)</option>
+            <option value="age_old">Sort: Age (Oldest)</option>
+        </select>
+        
+        <!-- VIEW TOGGLE -->
+        <button onclick="toggleView('grid')" class="view-toggle-btn active" id="btn-grid" title="Grid View">⊞</button>
+        <button onclick="toggleView('list')" class="view-toggle-btn" id="btn-list" title="List View">☰</button>
+    </div>
+
+    <div class="goat-grid" id="herdGrid">
+        {% for goat in goats %}
+        <div class="goat-card" 
+             data-search="{{ goat.name|lower }} {{ goat.breed|lower }}"
+             data-status="{{ goat.status }}"
+             data-name="{{ goat.name|lower }}"
+             data-age="{{ goat.age_in_days }}">
+            <div class="card-header">
+                {% if goat.image %}
+                <img src="{{ goat.image.url }}" class="card-avatar" alt="{{ goat.name }}">
+                {% else %}
+                <div class="card-avatar">🐐</div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="card-name">
+                    <a href="{% url 'goat_detail' goat.id %}">{{ goat.name }}</a>
+                    {% if goat.is_fainting %}<span class="badge" title="Fainting Goat">Fainting</span>{% endif %}
+                </div>
+                <div class="card-details">
+                    <div class="detail-row"><strong>Breed:</strong> {{ goat.breed }}</div>
+                    {% if goat.gender %}<div class="detail-row"><strong>Sex:</strong> {{ goat.gender }}</div>{% endif %}
+                    <div class="detail-row"><strong>Age:</strong> {{ goat.display_age }}</div>
+                    <div class="detail-row">
+                        <strong>Status:</strong> 
+                        <span class="status-badge {{ goat.status }}">{{ goat.status }}</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'goat_detail' goat.id %}" class="btn-view">View Profile</a>
+
+                <!-- QUICK ACTIONS -->
+                <div class="card-actions">
+                    <button class="action-btn milk" data-milk-id="{{ goat.id }}"
+                        title="Quick Milk Log">💧</button>
+                    {% if goat.status == 'Sick' %}
+                    <form method="POST" action="{% url 'toggle_sick' goat.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="action-btn healthy" title="Mark Healthy">😊</button></form>
+                    {% else %}
+                    <form method="POST" action="{% url 'toggle_sick' goat.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="action-btn sick" title="Mark Sick">🩺</button></form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-herd">
+            <h2>No goats found.</h2>
+        </div>
+        {% endfor %}
+        <div id="no-results" class="empty-herd" style="display: none;">
+            <h3>No goats match your search.</h3>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SPLIT VIEW -->
+    <div class="dashboard-grid">
+        <!-- LEFT: MAP SECTION -->
+        <div id="map-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0; color:#2c3e50;">🛰️ Grazing Zone Manager</h2>
+                <a href="{% url 'map_dashboard' %}" style="padding:6px 14px; border-radius:4px; background:#2196f3; color:#fff; text-decoration:none; font-size:.85em; font-weight:700;">🗺️ Full Map</a>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                <button type="button" id="addMarkerBtn" style="padding:6px 12px; border-radius:4px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:.85em;" title="Add map marker">📍 Add Marker</button>
+                <button type="button" id="editAreaBtn" style="padding:6px 12px; border-radius:4px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:.85em;" title="Edit area boundaries">✏️ Edit Areas</button>
+            </div>
+            <div id="map"></div>
+            <div id="new-area-form">
+                <form action="{% url 'save_grazing_area' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" id="area_coords" name="area_coords">
+                    <div class="form-row">
+                        <div class="form-group"><label>Area Name</label><input type="text" name="area_name"
+                                placeholder="e.g. North Pasture" required title="Area name"></div>
+                        <div class="form-group" style="flex: 0 0 100px;"><label>Color</label><input type="color"
+                                name="area_color" value="#FF0000" style="height: 35px; padding: 2px;" title="Area color"></div>
+                        <button type="submit" class="save-btn">Save Area</button>
+                    </div>
+                </form>
+            </div>
+            <!-- Marker Form (hidden) -->
+            <div id="marker-form" class="marker-form">
+                <form action="{% url 'add_map_marker' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" id="marker_lat" name="latitude">
+                    <input type="hidden" id="marker_lng" name="longitude">
+                    <div class="form-row">
+                        <div class="form-group"><label>Name</label><input type="text" name="name" placeholder="e.g. Main Barn" required title="Marker name"></div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select name="marker_type" title="Marker type">
+                                <option value="Barn">Barn</option>
+                                <option value="Shelter">Shelter</option>
+                                <option value="Water">Water Trough</option>
+                                <option value="Feeder">Feeder</option>
+                                <option value="Gate">Gate</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="save-btn" style="background:#4caf50;">Save Marker</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ROTATION MANAGER -->
+        <div class="rotation-panel">
+            <h3>🔄 Pasture Rotation Manager</h3>
+
+            <!-- Assign Form -->
+            <form action="{% url 'assign_pasture' %}" method="POST" style="margin-bottom:15px;">
+                {% csrf_token %}
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                    <div style="flex:1; min-width:150px;">
+                        <label style="display:block; font-size:.8em; color:#666; margin-bottom:4px;">Pasture</label>
+                        <select name="grazing_area" required class="form-select" aria-label="Pasture selection" title="Pasture">
+                            {% for area in all_grazing_areas %}
+                            <option value="{{ area.id }}">{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="flex:2; min-width:200px;">
+                        <label style="display:block; font-size:.8em; color:#666; margin-bottom:4px;">Goats</label>
+                        <select name="goats" multiple required class="form-select" aria-label="Select goats to assign" title="Select goats to assign">
+                            {% for goat in goats %}
+                            <option value="{{ goat.id }}">{{ goat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="flex:0 0 140px;">
+                        <label style="display:block; font-size:.8em; color:#666; margin-bottom:4px;">Start Date</label>
+                        <input type="date" name="start_date" value="{% now 'Y-m-d' %}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" title="Start date">
+                    </div>
+                    <button type="submit" class="save-btn" style="background:#4caf50; flex:0 0 auto;">Assign</button>
+                </div>
+            </form>
+
+            <!-- Active Assignments -->
+            {% if active_assignments %}
+            <h4 style="margin:15px 0 8px; font-size:.95em; color:#4caf50;">Active Assignments</h4>
+            <table class="assignment-table">
+                <thead><tr><th>Pasture</th><th>Goats</th><th>Since</th><th></th></tr></thead>
+                <tbody>
+                {% for a in active_assignments %}
+                <tr>
+                    <td><strong>{{ a.grazing_area.name }}</strong></td>
+                    <td>{% for g in a.goats.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                    <td>{{ a.start_date|date:"M j" }}</td>
+                    <td><form method="POST" action="{% url 'end_pasture_assignment' a.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-end-rotation">End</button></form></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+
+        <!-- RIGHT: SIDEBAR (Checklist + Vets) -->
+        <div class="sidebar-stack">
+            <!-- 🔔 ACTION CENTER (SMART ALERTS) -->
+            {% if has_alerts %}
+            <div class="checklist-card" id="card-alerts" style="border-left: 5px solid #ff9800;">
+                <div class="card-header-row" onclick="toggleCard('card-alerts')">
+                    <h2 style="margin: 0; color: #e65100; display: flex; align-items: center; gap: 10px;">
+                        🔔 Action Center
+                    </h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-content">
+                    {% if low_stock_items %}
+                    <div style="margin-bottom: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #d32f2f; font-size: 0.9em; text-transform: uppercase;">⚠️
+                            Low Feed Stock</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for item in low_stock_items %}
+                            <li><strong>{{ item.name }}</strong>: {{ item.quantity }} {{ item.unit }} remaining</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if medical_alerts %}
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #e91e63; font-size: 0.9em; text-transform: uppercase;">🩺
+                            Medical Reminders</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for record in medical_alerts %}
+                            <li>
+                                <strong>{{ record.goat.name }}</strong>: {{ record.get_record_type_display }} due {{
+                                record.next_due_date|date:"M j" }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if kidding_alerts %}
+                    <div>
+                        <h4 style="margin: 0 0 5px 0; color: #9c27b0; font-size: 0.9em; text-transform: uppercase;">👶
+                            Kidding Soon</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for log in kidding_alerts %}
+                            <li>
+                                <strong>{{ log.goat.name }}</strong> due {{ log.due_date|date:"M j" }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if expired_meds %}
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #c62828; font-size: 0.9em; text-transform: uppercase;">💊
+                            Expired Medicine</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for med in expired_meds %}
+                            <li><strong>{{ med.name }}</strong> (Exp: {{ med.expiration_date|date:"M Y" }})</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if schedule_alerts %}
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #ff5722; font-size: 0.9em; text-transform: uppercase;">🔁
+                            Scheduled Treatments Due</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for s in schedule_alerts %}
+                            <li><strong>{% if s.goat %}{{ s.goat.name }}{% else %}Herd{% endif %}</strong>: {{ s.get_record_type_display }} due {{ s.next_due|date:"M j" }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if famacha_alerts %}
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #b71c1c; font-size: 0.9em; text-transform: uppercase;">🩸
+                            FAMACHA Concerns</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for item in famacha_alerts %}
+                            <li><a href="{% url 'goat_detail' item.goat.id %}" style="color:#333;font-weight:bold;">{{ item.goat.name }}</a>: FAMACHA {{ item.famacha_score }} ({{ item.date|date:"M j" }})</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if heat_alerts %}
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #e91e63; font-size: 0.9em; text-transform: uppercase;">🔥
+                            Predicted Heat</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for item in heat_alerts %}
+                            <li><a href="{% url 'goat_detail' item.goat.id %}" style="color:#333;font-weight:bold;">{{ item.goat.name }}</a>: Next heat ~{{ item.next_heat_date|date:"M j" }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if overcrowded_pens %}
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #d84315; font-size: 0.9em; text-transform: uppercase;">🏠
+                            Overcrowded Pens</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #555;">
+                            {% for pen in overcrowded_pens %}
+                            <li><a href="{% url 'barn_dashboard' %}" style="color:#333;font-weight:bold;">{{ pen.name }}</a>: {{ pen.occupant_count }}/{{ pen.capacity }} goats</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- WEATHER WIDGET -->
+            <div class="checklist-card" id="card-weather"
+                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <div class="card-header-row" onclick="toggleCard('card-weather')">
+                    <h2 style="margin: 0; color: white; display: flex; align-items: center; justify-content: space-between; width:100%;">
+                        <span>Current Weather</span>
+                        <span id="weather-icon" style="font-size: 1.5em; cursor: pointer;" title="Click to Refresh" onclick="event.stopPropagation(); fetchWeather();">🌤️</span>
+                    </h2>
+                    <span class="toggle-icon" style="color: white;">▼</span>
+                </div>
+                <div class="card-content">
+                    <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 10px;">
+                        <span id="weather-temp" style="font-size: 2.5em; font-weight: bold;">--°F</span>
+                        <span id="weather-desc" style="font-size: 1.1em; opacity: 0.9;">Loading...</span>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                        Wind: <span id="weather-wind">--</span> mph
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHECKLIST -->
+            <div class="checklist-card" id="card-chores">
+                <div class="card-header-row" onclick="toggleCard('card-chores')">
+                    <h2 style="margin: 0; color: #2c3e50;">✅ Daily Chores</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-content">
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 20px; margin-top: 5px;">{% now "l, F jS" %}</p>
+                    {% if am_tasks %}
+                    <h3 class="checklist-section-title">☀️ Morning</h3>
+                    {% for task in am_tasks %}
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checklist-checkbox" title="Toggle task completion"
+                               {% if task.id in completed_task_ids %}checked{% endif %}
+                               data-toggle-url="{% url 'toggle_task' task.id %}">
+                        <span class="{% if task.id in completed_task_ids %}task-done{% endif %}" style="flex:1;">{{ task.name }}</span>
+                        <form method="POST" action="{% url 'delete_task' task.id %}" style="display:inline;" data-confirm="Remove this task?">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;font-size:0.8em;color:#ccc;" title="Delete">✕</button></form>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if pm_tasks %}
+                    <h3 class="checklist-section-title">🌙 Evening</h3>
+                    {% for task in pm_tasks %}
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checklist-checkbox" title="Toggle task completion"
+                               {% if task.id in completed_task_ids %}checked{% endif %}
+                               data-toggle-url="{% url 'toggle_task' task.id %}">
+                        <span class="{% if task.id in completed_task_ids %}task-done{% endif %}" style="flex:1;">{{ task.name }}</span>
+                        <form method="POST" action="{% url 'delete_task' task.id %}" style="display:inline;" data-confirm="Remove this task?">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;font-size:0.8em;color:#ccc;" title="Delete">✕</button></form>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if any_tasks %}
+                    <h3 class="checklist-section-title">🔄 Anytime</h3>
+                    {% for task in any_tasks %}
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checklist-checkbox" title="Toggle task completion"
+                               {% if task.id in completed_task_ids %}checked{% endif %}
+                               data-toggle-url="{% url 'toggle_task' task.id %}">
+                        <span class="{% if task.id in completed_task_ids %}task-done{% endif %}" style="flex:1;">{{ task.name }}</span>
+                        <form method="POST" action="{% url 'delete_task' task.id %}" style="display:inline;" data-confirm="Remove this task?">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;font-size:0.8em;color:#ccc;" title="Delete">✕</button></form>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- Add Task Form -->
+                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid #eee;">
+                        <form method="POST" action="{% url 'add_task' %}" style="display:flex; gap:5px; align-items:center;">
+                            {% csrf_token %}
+                            <input type="text" name="name" placeholder="New task..." required style="flex:2; padding:8px; border:1px solid #ddd; border-radius:4px;" title="Task name">
+                            <select name="time_of_day" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;" title="Time of day">
+                                <option value="AM">Morning</option>
+                                <option value="PM">Evening</option>
+                                <option value="ANY" selected>Anytime</option>
+                            </select>
+                            <button type="submit" style="padding:8px 12px; background:#4caf50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VET CONTACTS -->
+            <div class="checklist-card" id="card-vets">
+                <div class="card-header-row" onclick="toggleCard('card-vets')">
+                    <h2 style="margin: 0; color: #d32f2f;">🚑 Vet Contacts</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-content" style="margin-top: 15px;">
+                    {% for vet in vets %}
+                    <div class="vet-item">
+                        <div class="vet-name">{{ vet.name }}</div>
+                        <div style="font-size:0.85em; color:#666;">{{ vet.phone }}{% if vet.email %} &middot; {{ vet.email }}{% endif %}</div>
+                        <div class="vet-actions">
+                            <a href="tel:{{ vet.phone }}" class="vet-btn vet-call">📞 Call</a>
+                            <a href="https://maps.google.com/?q={{ vet.address }}" target="_blank" rel="noopener" class="vet-btn" title="View on Map">📍 Map</a>
+                            <form method="POST" action="{% url 'delete_vet' vet.id %}" style="display:inline;" data-confirm="Remove {{ vet.name }}?">{% csrf_token %}<button type="submit" class="vet-btn" style="background:#ffebee; color:#c62828; cursor:pointer; border:none;">🗑️</button></form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color: #888; font-style: italic;">No vets listed yet.</p>
+                    {% endfor %}
+
+                    <!-- Add Vet Form -->
+                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid #eee;">
+                        <form method="POST" action="{% url 'add_vet' %}">
+                            {% csrf_token %}
+                            <input type="text" name="name" placeholder="Vet Name" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:5px; box-sizing:border-box;" title="Vet name">
+                            <div style="display:flex; gap:5px;">
+                                <input type="text" name="phone" placeholder="Phone" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;" title="Phone number">
+                                <input type="email" name="email" placeholder="Email" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;" title="Email address">
+                            </div>
+                            <input type="text" name="address" placeholder="Address" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-top:5px; box-sizing:border-box;" title="Address">
+                            <button type="submit" style="width:100%; margin-top:8px; padding:8px; background:#d32f2f; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+ Add Vet</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Milk Form (Used by Quick Action) -->
+    <form id="quickMilkForm" method="POST" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="amount" id="milkAmount">
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    {{ grazing_areas|json_script:"grazing-data" }}
+    {{ map_markers|json_script:"marker-data" }}
+    <script>
+        // GLOBALS
+        let map;
+        let mapPickMode = false;
+        let markerMode = false;
+        let editMode = false;
+        let homeMarker;
+        let areaPolygons = []; // Track polygons for editing
+        let selectedPolygon = null;
+        const farmLocation = { lat: parseFloat("{{ farm_settings.latitude|default:'0.0' }}") || 0.0, lng: parseFloat("{{ farm_settings.longitude|default:'0.0' }}") || 0.0 };
+        const MARKER_ICONS = {
+            'Barn': '🏠', 'Shelter': '⛺', 'Water': '💧',
+            'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍'
+        };
+
+        // --- ON LOAD: RESTORE PREFERENCES ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedView = localStorage.getItem('goatOS_view') || 'grid';
+            toggleView(savedView);
+            const savedSort = localStorage.getItem('goatOS_sort') || 'name';
+            document.getElementById('sortHerd').value = savedSort;
+            sortHerd();
+            // Restore Collapsed Cards
+            ['card-alerts', 'card-weather', 'card-chores', 'card-vets'].forEach(id => {
+                const card = document.getElementById(id);
+                if (card && localStorage.getItem('goatOS_collapsed_' + id) === 'true') {
+                    card.classList.add('collapsed');
+                }
+            });
+            
+            // Initialize Weather
+            fetchWeather();
+
+            // --- EVENT DELEGATION (replaces inline handlers to avoid linter errors) ---
+            // Task checkboxes
+            document.querySelectorAll('.checklist-checkbox[data-toggle-url]').forEach(function(cb) {
+                cb.addEventListener('change', function() {
+                    toggleTaskAJAX(this, this.dataset.toggleUrl);
+                });
+            });
+            // Quick milk buttons
+            document.querySelectorAll('[data-milk-id]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    quickMilk(this.dataset.milkId);
+                });
+            });
+            // Map toolbar buttons
+            var addMarkerBtn = document.getElementById('addMarkerBtn');
+            if (addMarkerBtn) addMarkerBtn.addEventListener('click', toggleMarkerMode);
+            var editAreaBtn = document.getElementById('editAreaBtn');
+            if (editAreaBtn) editAreaBtn.addEventListener('click', toggleEditMode);
+            // Confirm-before-submit forms
+            document.querySelectorAll('form[data-confirm]').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm(this.dataset.confirm)) e.preventDefault();
+                });
+            });
+        });
+
+        // --- WEATHER FUNCTION ---
+        async function fetchWeather() {
+            const tempEl = document.getElementById('weather-temp');
+            const descEl = document.getElementById('weather-desc');
+            const windEl = document.getElementById('weather-wind');
+            
+            if (!tempEl) return;
+            
+            // Loading state
+            descEl.innerText = "Loading...";
+            
+            try {
+                // Use farm location or default to Kansas City center if 0,0
+                let lat = farmLocation.lat;
+                let lng = farmLocation.lng;
+                
+                // Default to approx center of US if lat/lng are 0 (unconfigured)
+                if (!lat && !lng) { lat = 39.8; lng = -98.5; }
+
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Weather data fetch failed');
+                
+                const data = await response.json();
+                const weather = data.current_weather;
+                
+                tempEl.innerText = `${Math.round(weather.temperature)}°F`;
+                if (windEl) windEl.innerText = Math.round(weather.windspeed);
+                
+                // Simple condition text
+                descEl.innerText = "Current Temp";
+
+            } catch (error) {
+                console.error("Weather Error:", error);
+                tempEl.innerText = "--";
+                descEl.innerText = "Unavailable";
+            }
+        }
+
+        // --- KEYBOARD SHORTCUTS (Overriding Base if needed or adding specific) ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.getElementById('goatSearch').focus();
+            }
+        });
+
+        // --- COLLAPSIBLE CARD LOGIC ---
+        function toggleCard(id) {
+            const card = document.getElementById(id);
+            if (card) {
+                card.classList.toggle('collapsed');
+                const isCollapsed = card.classList.contains('collapsed');
+                localStorage.setItem('goatOS_collapsed_' + id, isCollapsed);
+            }
+        }
+
+        // --- VIEW TOGGLE ---
+        function toggleView(view) {
+            const grid = document.getElementById('herdGrid');
+            const btnGrid = document.getElementById('btn-grid');
+            const btnList = document.getElementById('btn-list');
+            if (view === 'list') {
+                grid.classList.add('list-view');
+                btnList.classList.add('active');
+                btnGrid.classList.remove('active');
+            } else {
+                grid.classList.remove('list-view');
+                btnGrid.classList.add('active');
+                btnList.classList.remove('active');
+            }
+            localStorage.setItem('goatOS_view', view);
+        }
+
+        // --- SORTING LOGIC ---
+        function sortHerd() {
+            const grid = document.getElementById('herdGrid');
+            const cards = Array.from(grid.getElementsByClassName('goat-card'));
+            const criteria = document.getElementById('sortHerd').value;
+            localStorage.setItem('goatOS_sort', criteria);
+
+            cards.sort((a, b) => {
+                if (criteria === 'name') {
+                    const nameA = a.getAttribute('data-name');
+                    const nameB = b.getAttribute('data-name');
+                    return nameA.localeCompare(nameB);
+                } else if (criteria === 'age_young') {
+                    return parseInt(a.getAttribute('data-age')) - parseInt(b.getAttribute('data-age'));
+                } else if (criteria === 'age_old') {
+                    return parseInt(b.getAttribute('data-age')) - parseInt(a.getAttribute('data-age'));
+                }
+                return 0;
+            });
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        // --- FILTER LOGIC ---
+        function filterHerd() {
+            const search = document.getElementById('goatSearch').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const cards = document.querySelectorAll('.goat-card');
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const text = card.getAttribute('data-search');
+                const cardStatus = card.getAttribute('data-status');
+                const matchesSearch = text.includes(search);
+                const matchesStatus = status === 'all' || cardStatus === status;
+                if (matchesSearch && matchesStatus) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            const noResults = document.getElementById('no-results');
+            if(noResults) noResults.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+            document.getElementById('herd-count').textContent = visibleCount;
+        }
+
+        // --- TASK AJAX ---
+        function toggleTaskAJAX(checkbox, url) {
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken }
+            })
+            .then(res => {
+                if (!res.ok) { checkbox.checked = !checkbox.checked; return; }
+                const label = checkbox.nextElementSibling;
+                if (checkbox.checked) label.classList.add('task-done');
+                else label.classList.remove('task-done');
+            })
+            .catch(() => { checkbox.checked = !checkbox.checked; });
+        }
+
+        // --- QUICK ACTIONS ---
+        function quickMilk(id) {
+            const amount = prompt("Enter milk yield (lbs):");
+            if (amount) {
+                const form = document.getElementById('quickMilkForm');
+                form.action = `/quick/milk/${id}/`;
+                document.getElementById('milkAmount').value = amount;
+                form.submit();
+            }
+        }
+
+        // --- MAP FUNCTIONS ---
+        // Bridge function called by base.html's "enableMapPick"
+        window.activateMapPicker = function() {
+            mapPickMode = true;
+        }
+
+        // --- MARKER MODE TOGGLE ---
+        function toggleMarkerMode() {
+            markerMode = !markerMode;
+            const btn = document.getElementById('addMarkerBtn');
+            btn.style.background = markerMode ? '#4caf50' : '#fff';
+            btn.style.color = markerMode ? '#fff' : '#333';
+            if (markerMode) showToast("Click on the map to place a marker.", "info");
+        }
+
+        // --- EDIT MODE TOGGLE ---
+        function toggleEditMode() {
+            editMode = !editMode;
+            const btn = document.getElementById('editAreaBtn');
+            btn.style.background = editMode ? '#2196f3' : '#fff';
+            btn.style.color = editMode ? '#fff' : '#333';
+            areaPolygons.forEach(p => p.polygon.setEditable(editMode));
+            if (editMode) showToast("Click a pasture to select it. Drag vertices to edit.", "info");
+        }
+
+        // --- POLYGON CENTROID HELPER ---
+        function getPolygonCentroid(coords) {
+            let latSum = 0, lngSum = 0;
+            coords.forEach(c => { latSum += c.lat; lngSum += c.lng; });
+            return { lat: latSum / coords.length, lng: lngSum / coords.length };
+        }
+
+        // --- SAVE EDITED POLYGON ---
+        function saveEditedArea(areaObj) {
+            const path = areaObj.polygon.getPath();
+            const coords = [];
+            for (let i = 0; i < path.getLength(); i++) {
+                const pt = path.getAt(i);
+                coords.push({ lat: pt.lat(), lng: pt.lng() });
+            }
+            fetch(`/api/area/${areaObj.id}/update/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coordinates: coords })
+            }).then(r => {
+                if (r.ok) showToast("Area updated!", "success");
+                else showToast("Failed to save.", "error");
+            });
+        }
+
+        // --- DELETE AREA ---
+        function deleteArea(areaObj) {
+            if (!confirm(`Delete "${areaObj.name}"? This cannot be undone.`)) return;
+            fetch(`/api/area/${areaObj.id}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken }
+            }).then(r => {
+                if (r.ok) { areaObj.polygon.setMap(null); showToast("Area deleted.", "success"); }
+                else showToast("Failed to delete.", "error");
+            });
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 18,
+                center: farmLocation,
+                mapTypeId: 'satellite'
+            });
+
+            // HOME MARKER
+            homeMarker = new google.maps.Marker({
+                position: farmLocation,
+                map: map,
+                title: "Farm Home",
+                draggable: true,
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#FFEB3B", fillOpacity: 1, strokeWeight: 2, strokeColor: "black" }
+            });
+
+            homeMarker.addListener('click', function(e) {
+                 if (mapPickMode) {
+                    const lat = e.latLng.lat();
+                    const lng = e.latLng.lng();
+                    document.getElementById('lat-input').value = lat;
+                    document.getElementById('lng-input').value = lng;
+                    homeMarker.setPosition({ lat: lat, lng: lng });
+                    openSettings();
+                 } else {
+                    openSettings();
+                    showToast("Edit Farm Location in Settings", "info");
+                 }
+            });
+
+            homeMarker.addListener('dragend', function(e) {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                document.getElementById('lat-input').value = lat;
+                document.getElementById('lng-input').value = lng;
+                openSettings();
+                showToast("Location updated! Click Save to confirm.", "info");
+            });
+
+            // Map Click
+            map.addListener('click', function (e) {
+                if (mapPickMode) {
+                    const lat = e.latLng.lat();
+                    const lng = e.latLng.lng();
+                    document.getElementById('lat-input').value = lat;
+                    document.getElementById('lng-input').value = lng;
+                    homeMarker.setPosition({ lat: lat, lng: lng });
+                    openSettings();
+                } else if (markerMode) {
+                    // Place marker
+                    document.getElementById('marker_lat').value = e.latLng.lat();
+                    document.getElementById('marker_lng').value = e.latLng.lng();
+                    document.getElementById('marker-form').style.display = 'block';
+                    document.querySelector('#marker-form input[name="name"]').focus();
+                    toggleMarkerMode();
+                }
+            });
+
+            // --- EXISTING GRAZING AREAS (with enhancements) ---
+            let existingAreas = [];
+            const dataElement = document.getElementById('grazing-data');
+            if (dataElement) {
+                try { existingAreas = JSON.parse(dataElement.textContent); }
+                catch (e) { console.error("Failed to parse grazing areas:", e); }
+            }
+            if (Array.isArray(existingAreas)) {
+                existingAreas.forEach(area => {
+                    // Feature 4: Adjust fill opacity based on condition score
+                    let fillOpacity = 0.35;
+                    let condColor = area.color;
+                    if (area.condition_score) {
+                        fillOpacity = 0.2 + (area.condition_score * 0.1); // 0.3 to 0.7
+                    }
+
+                    const polygon = new google.maps.Polygon({
+                        paths: area.coords,
+                        strokeColor: area.color,
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: condColor,
+                        fillOpacity: fillOpacity,
+                        editable: false,
+                    });
+                    polygon.setMap(map);
+
+                    const areaObj = { id: area.id, name: area.name, polygon: polygon };
+                    areaPolygons.push(areaObj);
+
+                    // Area measurement
+                    let areaSize = '';
+                    let acresVal = 0;
+                    if (google.maps.geometry && area.coords.length >= 3) {
+                        const path = area.coords.map(c => new google.maps.LatLng(c.lat, c.lng));
+                        const sqMeters = google.maps.geometry.spherical.computeArea(path);
+                        acresVal = sqMeters / 4046.86;
+                        areaSize = `<br><strong>Area:</strong> ${acresVal.toFixed(2)} acres`;
+                    }
+
+                    // Perimeter / fencing
+                    let perimeterInfo = '';
+                    if (google.maps.geometry && area.coords.length >= 3) {
+                        const closedPath = area.coords.map(c => new google.maps.LatLng(c.lat, c.lng));
+                        closedPath.push(closedPath[0]);
+                        const perimeterFt = google.maps.geometry.spherical.computeLength(closedPath) * 3.28084;
+                        perimeterInfo = `<br><strong>Perimeter:</strong> ${perimeterFt.toFixed(0)} ft`;
+                    }
+
+                    // Stocking rate
+                    let stockingInfo = '';
+                    if (acresVal > 0) {
+                        let condMult = 1.0;
+                        if (area.condition_score) condMult = 0.4 + (area.condition_score * 0.12);
+                        const minG = Math.floor(acresVal * 6 * condMult);
+                        const maxG = Math.ceil(acresVal * 8 * condMult);
+                        const cur = area.goat_count || 0;
+                        let warn = '';
+                        if (cur > maxG) warn = ' <span style="color:#d32f2f;font-weight:bold;">OVER</span>';
+                        else if (cur < minG && cur > 0) warn = ' <span style="color:#ff9800;font-weight:bold;">UNDER</span>';
+                        stockingInfo = `<br><strong>Capacity:</strong> ${minG}-${maxG} goats (${cur} now)${warn}`;
+                    }
+
+                    // Condition badge
+                    let condBadge = '';
+                    if (area.condition_score) {
+                        const colors = ['#d32f2f','#f57c00','#fbc02d','#8bc34a','#4caf50'];
+                        const c = colors[area.condition_score - 1] || '#999';
+                        condBadge = `<br><strong>Condition:</strong> <span style="background:${c};color:#fff;padding:1px 6px;border-radius:8px;font-size:.8em;">${area.condition_score}/5</span>`;
+                    }
+
+                    // Rest days
+                    let restInfo = '';
+                    if (area.days_resting !== null && area.days_resting !== undefined) {
+                        restInfo = `<br><strong>Resting:</strong> ${area.days_resting} days`;
+                    }
+
+                    // Goat count
+                    let goatInfo = '';
+                    if (area.goat_count > 0) {
+                        goatInfo = `<br><strong>Goats (${area.goat_count}):</strong> ${area.goat_names.join(', ')}`;
+                    }
+
+                    // Build InfoWindow content
+                    const idx = areaPolygons.length - 1;
+                    const infoContent = `<div style="max-width:250px;"><strong style="font-size:1.1em;">${area.name}</strong>${areaSize}${perimeterInfo}${stockingInfo}${condBadge}${restInfo}${goatInfo}` +
+                        `<br><div style="margin-top:8px;"><button data-action="save" data-idx="${idx}" style="background:#2196f3;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;margin-right:4px;">Save Edits</button><button data-action="delete" data-idx="${idx}" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Delete</button></div>` +
+                        `</div>`;
+
+                    polygon.addListener("click", (e) => {
+                        if (!area.coords || area.coords.length === 0) return;
+                        const iw = new google.maps.InfoWindow({
+                            content: infoContent,
+                            position: e.latLng || getPolygonCentroid(area.coords)
+                        });
+                        iw.open(map);
+                        google.maps.event.addListener(iw, 'domready', () => {
+                            document.querySelectorAll('[data-action="save"][data-idx="' + idx + '"]').forEach(b => {
+                                b.addEventListener('click', () => saveEditedArea(areaPolygons[idx]));
+                            });
+                            document.querySelectorAll('[data-action="delete"][data-idx="' + idx + '"]').forEach(b => {
+                                b.addEventListener('click', () => deleteArea(areaPolygons[idx]));
+                            });
+                        });
+                    });
+
+                    // Feature 6: Goat count badge on map
+                    if (area.goat_count > 0) {
+                        const centroid = getPolygonCentroid(area.coords);
+                        new google.maps.Marker({
+                            position: centroid,
+                            map: map,
+                            label: { text: String(area.goat_count), color: '#fff', fontWeight: 'bold', fontSize: '12px' },
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 14,
+                                fillColor: '#4caf50',
+                                fillOpacity: 0.9,
+                                strokeWeight: 2,
+                                strokeColor: '#fff'
+                            },
+                            title: `${area.goat_count} goats in ${area.name}`
+                        });
+                    }
+                });
+            }
+
+            // --- MAP MARKERS (Feature 3) ---
+            let markersData = [];
+            const markerEl = document.getElementById('marker-data');
+            if (markerEl) {
+                try { markersData = JSON.parse(markerEl.textContent); }
+                catch (e) { console.error("Failed to parse markers:", e); }
+            }
+            markersData.forEach(m => {
+                const icon = MARKER_ICONS[m.marker_type] || '📍';
+                const marker = new google.maps.Marker({
+                    position: { lat: m.latitude, lng: m.longitude },
+                    map: map,
+                    title: m.name,
+                    label: { text: icon, fontSize: '20px' },
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 } // invisible base, emoji label
+                });
+                const deleteUrl = `/marker/${m.id}/delete/`;
+                marker.addListener('click', () => {
+                    new google.maps.InfoWindow({
+                        content: `<strong>${m.name}</strong><br>${m.marker_type}${m.notes ? '<br><em>' + m.notes + '</em>' : ''}<br><form method="POST" action="${deleteUrl}" style="margin-top:6px;"><input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}"><button type="submit" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Remove</button></form>`
+                    }).open(map, marker);
+                });
+            });
+
+            // --- DRAWING MANAGER ---
+            const drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: null,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_LEFT,
+                    drawingModes: ['polygon', 'rectangle'],
+                },
+                polygonOptions: {
+                    fillColor: '#ffff00',
+                    fillOpacity: 0.5,
+                    strokeWeight: 2,
+                    clickable: false,
+                    editable: true,
+                    zIndex: 1
+                }
+            });
+            drawingManager.setMap(map);
+
+            google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
+                drawingManager.setDrawingMode(null);
+                const newShape = event.overlay;
+                let pathData = [];
+                if (event.type === 'polygon') {
+                    const path = newShape.getPath();
+                    for (let i = 0; i < path.getLength(); i++) {
+                        const point = path.getAt(i);
+                        pathData.push({ lat: point.lat(), lng: point.lng() });
+                    }
+                } else if (event.type === 'rectangle') {
+                    const bounds = newShape.getBounds();
+                    const ne = bounds.getNorthEast();
+                    const sw = bounds.getSouthWest();
+                    pathData = [
+                        { lat: ne.lat(), lng: ne.lng() },
+                        { lat: ne.lat(), lng: sw.lng() },
+                        { lat: sw.lat(), lng: sw.lng() },
+                        { lat: sw.lat(), lng: ne.lng() }
+                    ];
+                }
+                document.getElementById('new-area-form').style.display = 'block';
+                document.getElementById('area_coords').value = JSON.stringify(pathData);
+                document.querySelector('input[name="area_name"]').focus();
+            });
+        }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ farm_settings.google_maps_api_key|default:'' }}&libraries=drawing,geometry&callback=initMap" async defer></script>
+{% endblock %}

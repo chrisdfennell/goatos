@@ -1,0 +1,174 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #2e7d32; }
+    .card-title { margin-top: 0; color: #2e7d32; border-bottom: 2px solid #e8f5e9; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+    .stat-big { font-size: 2.5em; font-weight: bold; color: #333; margin: 10px 0; }
+    .stat-label { color: #666; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; color: #666; font-size: 0.9em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    
+    .text-success-custom { color: #2e7d32; }
+    .text-danger-custom { color: #c62828; }
+    .badge { background: #eee; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; color: #555; }
+    
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #2e7d32; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn-submit:hover { background-color: #1b5e20; }
+    .btn-expense { background-color: #c62828 !important; }
+    .btn-expense:hover { background-color: #b71c1c !important; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .stat-big { color: #fff; }
+    body.dark-mode .stat-label { color: #aaa; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode .badge { background-color: #333; color: #e0e0e0; }
+    body.dark-mode input, body.dark-mode select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .text-success-custom { color: #66bb6a; } /* Lighter green for dark mode */
+    body.dark-mode .text-danger-custom { color: #ef5350; } /* Lighter red for dark mode */
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">💰 Farm Finances</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <!-- Stats Row -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div style="display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <div class="stat-big text-success-custom">${{ total_income|floatformat:2 }}</div>
+                    <div class="stat-label">Total Income</div>
+                </div>
+                <div style="border-left: 1px solid #eee;"></div>
+                <div>
+                    <div class="stat-big text-danger-custom">${{ total_expense|floatformat:2 }}</div>
+                    <div class="stat-label">Total Expenses</div>
+                </div>
+                <div style="border-left: 1px solid #eee;"></div>
+                <div>
+                    <div class="stat-big {% if net_profit >= 0 %}text-success-custom{% else %}text-danger-custom{% endif %}">
+                        {% if net_profit > 0 %}+{% endif %}${{ net_profit|floatformat:2 }}
+                    </div>
+                    <div class="stat-label">Net Profit</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Transaction -->
+        <div class="card">
+            <h3 class="card-title">➕ New Transaction</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div style="display: flex; gap: 10px;">
+                    <select name="type" id="typeSelect" onchange="updateFormColor()" style="flex: 1;" title="Transaction type">
+                        <option value="Expense">Expense 💸</option>
+                        <option value="Income">Income 💰</option>
+                    </select>
+                    <input type="date" name="date" value="{% now 'Y-m-d' %}" style="flex: 1;" title="Transaction date">
+                </div>
+                
+                <select name="category" title="Transaction category">
+                    <option value="Feed">Feed & Hay</option>
+                    <option value="Vet">Vet & Medical</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Goat Sale">Goat Sale</option>
+                    <option value="Product Sale">Product Sale</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" step="0.01" name="amount" placeholder="Amount ($)" required style="flex: 1;" title="Transaction amount">
+                    <input type="text" name="description" placeholder="Description (e.g. 10 Bales)" style="flex: 2;" title="Transaction description">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <select name="goat_id" style="flex: 1;" title="Select goat">
+                        <option value="">-- Goat (optional) --</option>
+                        {% for goat in goats %}
+                        <option value="{{ goat.id }}">{{ goat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="supplier_id" style="flex: 1;" title="Select supplier">
+                        <option value="">-- Supplier (optional) --</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit btn-expense" id="submitBtn">Log Expense</button>
+            </form>
+        </div>
+
+        <!-- Ledger -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3 class="card-title">📋 Recent Ledger</h3>
+            {% if transactions %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th style="text-align: right;">Amount</th>
+                            <th style="width:50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr>
+                            <td>{{ t.date|date:"M d, Y" }}</td>
+                            <td><span class="badge">{{ t.category }}</span></td>
+                            <td style="color: #666;">{{ t.description }}</td>
+                            <td style="text-align: right; font-weight: bold;" class="{% if t.type == 'Income' %}text-success-custom{% else %}text-danger-custom{% endif %}">
+                                {% if t.type == 'Income' %}+{% else %}-{% endif %}${{ t.amount }}
+                            </td>
+                            <td>
+                                <form method="POST" action="{% url 'delete_transaction' t.id %}" style="display:inline;" onsubmit="return confirm('Delete this transaction?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p style="color: #888; text-align: center; padding: 20px;">No transactions recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateFormColor() {
+        const type = document.getElementById('typeSelect').value;
+        const btn = document.getElementById('submitBtn');
+        
+        if (type === 'Income') {
+            btn.classList.remove('btn-expense');
+            btn.innerText = 'Log Income 💰';
+        } else {
+            btn.classList.add('btn-expense');
+            btn.innerText = 'Log Expense 💸';
+        }
+    }
+    // Run once on load to set initial state correctly
+    document.addEventListener('DOMContentLoaded', updateFormColor);
+</script>
+{% endblock %}

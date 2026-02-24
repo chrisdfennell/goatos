@@ -1,0 +1,176 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #607D8B; } /* Slate for Business */
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+    .card-title { margin-top: 0; color: #607D8B; border-bottom: 2px solid #eceff1; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+    
+    /* Lists */
+    .list-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .list-item:last-child { border-bottom: none; }
+    .item-main { font-weight: bold; color: #333; }
+    .item-sub { font-size: 0.85em; color: #888; margin-top: 2px; }
+    
+    /* Status Badges */
+    .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; cursor: pointer; border: none; }
+    .status-Active { background: #e3f2fd; color: #1565c0; }
+    .status-Fulfilled { background: #e8f5e9; color: #2e7d32; }
+    .status-Cancelled { background: #ffebee; color: #c62828; }
+
+    /* Forms */
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #607D8B; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn-submit:hover { background-color: #455A64; }
+    
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .list-item { border-bottom-color: #333; }
+    body.dark-mode .item-main { color: #fff; }
+    body.dark-mode .item-sub { color: #aaa; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode hr { border-color: #333; }
+    body.dark-mode .status-Active { background-color: #1a237e; color: #90caf9; }
+    body.dark-mode .status-Fulfilled { background-color: #1b5e20; color: #a5d6a7; }
+    body.dark-mode .status-Cancelled { background-color: #b71c1c; color: #ef9a9a; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">🤝 Customer CRM</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <!-- LEFT: WAITING LIST -->
+        <div class="card">
+            <h3 class="card-title">📋 Kid Waiting List</h3>
+            {% if waiting_list %}
+                {% for entry in waiting_list %}
+                <div class="list-item">
+                    <div>
+                        <div class="item-main">{{ entry.customer.name }}</div>
+                        <div class="item-sub">
+                            Wants: <strong>{{ entry.preferred_gender }}</strong> 
+                            {% if entry.preferred_dam %}from <strong>{{ entry.preferred_dam.name }}</strong>{% endif %}
+                        </div>
+                        {% if entry.notes %}<div class="item-sub" style="font-style:italic;">"{{ entry.notes }}"</div>{% endif %}
+                    </div>
+                    <form method="POST" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_status_id" value="{{ entry.id }}">
+                        <button type="submit" class="status-badge status-{{ entry.status }}" title="Click to Toggle Status">{{ entry.status }}</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #aaa; padding: 20px;">No active waitlist requests.</p>
+            {% endif %}
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <h4 style="margin-top:0; color:#607D8B;">Add Request</h4>
+            <form method="POST">
+                {% csrf_token %}
+                <select name="waitlist_customer" required title="Select customer">
+                    <option value="" disabled selected>Select Customer...</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+                <div style="display:flex; gap:10px;">
+                    <select name="preferred_gender" style="flex:1;" title="Preferred gender">
+                        <option value="Any">Any Gender</option>
+                        <option value="Doe">Doe</option>
+                        <option value="Buck">Buck</option>
+                        <option value="Wether">Wether</option>
+                    </select>
+                    <select name="preferred_dam" style="flex:1;" title="Preferred dam">
+                        <option value="">Any Dam</option>
+                        {% for goat in goats %}
+                        <option value="{{ goat.id }}">{{ goat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="text" name="waitlist_notes" placeholder="Notes (e.g. Blue eyes preferred)" title="Waitlist notes">
+                <button type="submit" class="btn-submit">Add to List</button>
+            </form>
+        </div>
+
+        <!-- RIGHT: CUSTOMER LIST -->
+        <div class="card">
+            <h3 class="card-title">👥 Customers</h3>
+            
+            <!-- Add Customer Form -->
+            <form method="POST" style="background:#f5f7f8; padding:15px; border-radius:8px; margin-bottom:20px;" class="customer-form">
+                {% csrf_token %}
+                <input type="text" name="customer_name" placeholder="Name" required title="Customer name">
+                <div style="display:flex; gap:10px;">
+                    <input type="email" name="customer_email" placeholder="Email" title="Customer email">
+                    <input type="text" name="customer_phone" placeholder="Phone" title="Customer phone">
+                </div>
+                <textarea name="customer_notes" rows="1" placeholder="Notes..." title="Customer notes"></textarea>
+                <button type="submit" class="btn-submit">Save New Customer</button>
+            </form>
+            
+            <style>
+                /* Specific dark mode override for the form background inside this card */
+                body.dark-mode .customer-form { background-color: #2d2d2d !important; border: 1px solid #444; }
+            </style>
+
+            <!-- List -->
+            {% for c in customers %}
+            <div class="list-item" id="customer-{{ c.id }}">
+                <div style="flex:1;">
+                    <div class="item-main">{{ c.name }}</div>
+                    <div class="item-sub">
+                        {% if c.email %}📧 {{ c.email }}{% endif %}
+                        {% if c.phone %}📞 {{ c.phone }}{% endif %}
+                    </div>
+                    {% if c.notes %}<div class="item-sub" style="font-style:italic;">"{{ c.notes }}"</div>{% endif %}
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <span style="font-size: 0.8em; color: #aaa; margin-right:5px;">{{ c.date_added|date:"M Y" }}</span>
+                    <button onclick="editCustomer({{ c.id }})" style="background:#e3f2fd; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.85em;" title="Edit">✏️</button>
+                    <form method="POST" action="{% url 'delete_customer' c.id %}" style="display:inline;" onsubmit="return confirm('Delete {{ c.name }} and all their records?');">{% csrf_token %}<button type="submit" style="background:#ffebee; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.85em;" title="Delete">🗑️</button></form>
+                </div>
+            </div>
+            <!-- Hidden Edit Form -->
+            <div id="edit-customer-{{ c.id }}" style="display:none; padding:10px; background:#f5f7f8; border-radius:8px; margin-bottom:10px;">
+                <form method="POST" action="{% url 'edit_customer' c.id %}">
+                    {% csrf_token %}
+                    <input type="text" name="name" value="{{ c.name }}" required title="Customer name">
+                    <div style="display:flex; gap:10px;">
+                        <input type="email" name="email" value="{{ c.email }}" placeholder="Email" title="Email">
+                        <input type="text" name="phone" value="{{ c.phone }}" placeholder="Phone" title="Phone">
+                    </div>
+                    <textarea name="notes" rows="1" placeholder="Notes..." title="Notes">{{ c.notes }}</textarea>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn-submit" style="flex:1;">Save</button>
+                        <button type="button" onclick="document.getElementById('edit-customer-{{ c.id }}').style.display='none'" class="btn-submit" style="flex:1; background:#999;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            {% empty %}
+                <p style="text-align: center; color: #aaa;">No customers yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function editCustomer(id) {
+    const form = document.getElementById('edit-customer-' + id);
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

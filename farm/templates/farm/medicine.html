@@ -1,0 +1,215 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .dashboard-title { color: #e91e63; }
+    .card-title { color: #e91e63; border-bottom: 2px solid #fce4ec; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+    
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 20px; transition: background-color 0.3s; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; color: #666; font-size: 0.9em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    
+    .text-expired { color: #c62828; font-weight: bold; background: #ffebee; padding: 2px 5px; border-radius: 4px; }
+    .text-ok { color: #2e7d32; }
+    .dosage-badge { background: #e8eaf6; color: #3f51b5; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+    
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #e91e63; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn-submit:hover { background-color: #c2185b; }
+    
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Dark Mode */
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode input, body.dark-mode select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .dosage-badge { background-color: #333; color: #7986cb; }
+    body.dark-mode .text-expired { background-color: #4a0000; color: #ff8a80; }
+    body.dark-mode .text-ok { color: #81c784; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="dashboard-title">💊 Medicine Cabinet</h1>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <!-- Inventory List -->
+        <div class="card">
+            <h3 class="card-title">Current Inventory</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Stock</th>
+                            <th>Dosage Rate</th>
+                            <th>Expires</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for med in meds %}
+                        <tr>
+                            <td>
+                                <strong>{{ med.name }}</strong>
+                                {% if med.batch %}<div style="font-size:0.8em; color:#888;">Batch: {{ med.batch }}</div>{% endif %}
+                            </td>
+                            <td>{{ med.quantity }} {{ med.unit }}</td>
+                            <td><span class="dosage-badge">{{ med.dosage_instruction }}</span></td>
+                            <td>
+                                {% if med.is_expired %}
+                                    <span class="text-expired">{{ med.expiration_date|date:"M Y" }} (EXP)</span>
+                                {% else %}
+                                    <span class="text-ok">{{ med.expiration_date|date:"M Y" }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:#888;">Cabinet is empty.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Form -->
+        <div class="card" style="align-self: start;">
+            <h3 class="card-title">➕ Stock New Med</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <label style="font-size:0.8em; color:#666;">Medicine Name</label>
+                <input type="text" name="name" required placeholder="e.g. Penicillin" title="Medicine name">
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Quantity</label>
+                        <input type="number" step="0.01" name="quantity" required placeholder="100" title="Quantity">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="unit" style="font-size:0.8em; color:#666;">Unit</label>
+                        <select id="unit" name="unit" title="Unit">
+                            <option value="ml">ml / cc</option>
+                            <option value="g">grams</option>
+                            <option value="pill">pills</option>
+                            <option value="oz">oz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="font-size:0.8em; color:#666;">Dosage Calculation</label>
+                <div style="display: flex; gap: 5px; align-items: center; margin-bottom: 10px;">
+                    <input type="number" step="0.01" name="dosage_amount" placeholder="Amt (1)" value="1.00" style="margin:0;" title="Dosage amount">
+                    <span style="font-size:0.8em;">per</span>
+                    <input type="number" step="0.01" name="dosage_weight_interval" placeholder="Lbs (100)" value="0.00" style="margin:0;" title="Dosage weight interval">
+                    <span style="font-size:0.8em;">lbs</span>
+                </div>
+                <small style="display:block; color:#888; margin-top:-5px; margin-bottom:10px;">Set lbs to 0 for fixed dose.</small>
+
+                <label style="font-size:0.8em; color:#666;">Details</label>
+                <input type="text" name="batch" placeholder="Batch #" title="Batch number">
+                <label for="expiration_date" style="font-size:0.8em; color:#666;">Expiration Date</label>
+                <input type="date" id="expiration_date" name="expiration_date" title="Expiration Date" placeholder="YYYY-MM-DD">
+
+                <button type="submit" class="btn-submit">Add to Cabinet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recurring Medical Schedules -->
+    <div style="margin-top: 30px;">
+        <div class="card">
+            <h3 class="card-title">🔁 Recurring Medical Schedules</h3>
+            <p style="color:#888; font-size:0.9em; margin-bottom:15px;">Set up recurring treatments. When a matching medical record is logged, the schedule auto-updates.</p>
+
+            <form method="POST" action="{% url 'add_medical_schedule' %}" style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:10px; align-items:end; margin-bottom:20px;">
+                {% csrf_token %}
+                <div>
+                    <label for="goat_id" style="font-size:0.8em; color:#666;">Goat (blank = herd-wide)</label>
+                    <select id="goat_id" name="goat_id" aria-label="Goat (blank = herd-wide)" title="Select goat">
+                        <option value="">-- Whole Herd --</option>
+                        {% for g in goats %}
+                        <option value="{{ g.id }}">{{ g.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="record_type" style="font-size:0.8em; color:#666;">Treatment Type</label>
+                    <select id="record_type" name="record_type" title="Record type">
+                        <option value="Vaccine">Vaccination</option>
+                        <option value="Deworm">Deworming</option>
+                        <option value="Hoof">Hoof Trim</option>
+                        <option value="Checkup">General Checkup</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8em; color:#666;">Every (days)</label>
+                    <input type="number" name="interval_days" placeholder="e.g. 90" required min="1" title="Interval in days">
+                </div>
+                <div>
+                    <label for="last_performed" style="font-size:0.8em; color:#666;">Last Performed</label>
+                    <input type="date" id="last_performed" name="last_performed" required value="{% now 'Y-m-d' %}" title="Last Performed" aria-label="Last Performed">
+                </div>
+                <button type="submit" class="btn-submit" style="margin-bottom:10px;">Add Schedule</button>
+            </form>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Goat</th>
+                            <th>Interval</th>
+                            <th>Last Done</th>
+                            <th>Next Due</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sched in schedules %}
+                        <tr>
+                            <td><strong>{{ sched.get_record_type_display }}</strong></td>
+                            <td>
+                                {% if sched.goat %}
+                                    <a href="{% url 'goat_detail' sched.goat.id %}">{{ sched.goat.name }}</a>
+                                {% else %}
+                                    <em style="color:#888;">Whole Herd</em>
+                                {% endif %}
+                            </td>
+                            <td>Every {{ sched.interval_days }} days</td>
+                            <td>{{ sched.last_performed|date:"M j, Y" }}</td>
+                            <td>{{ sched.next_due|date:"M j, Y" }}</td>
+                            <td>
+                                {% if sched.is_due_soon %}
+                                    <span class="text-expired">⚠️ Due Soon</span>
+                                {% else %}
+                                    <span class="text-ok">✅ OK</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{% url 'delete_medical_schedule' sched.id %}" style="display:inline;" onsubmit="return confirm('Delete this schedule?');">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1em;" title="Delete">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">No recurring schedules set up yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

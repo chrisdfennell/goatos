@@ -1,0 +1,231 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
+    .tool-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; transition: transform 0.2s; }
+    .tool-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,.1); }
+    .tool-icon { font-size: 2.5em; margin-bottom: 15px; display: block; }
+    .tool-title { color: #2c3e50; margin-top: 0; margin-bottom: 5px; font-size: 1.25em; font-weight: 700; }
+    .tool-desc { color: #666; font-size: 0.9em; margin-bottom: 20px; height: 40px; }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 0.85em; color: #555; margin-bottom: 5px; font-weight: 600; }
+    .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1em; box-sizing: border-box; }
+    .calc-btn { background-color: #2196f3; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 700; font-size: 1em; transition: background 0.2s; }
+    .calc-btn:hover { background-color: #1976d2; }
+    .result-box { background-color: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; font-weight: 700; font-size: 1.1em; display: none; border: 1px solid #bbdefb; }
+    .note-pad { width: 100%; height: 150px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; resize: none; font-family: monospace; background: #fff9c4; color: #333; }
+    
+    /* Result Text Colors (Light Mode Defaults) */
+    .result-highlight-green { color: #2e7d32; font-size: 1.4em; }
+    .result-highlight-red { color: #d32f2f; font-size: 1.4em; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .tool-card { background-color: #1e1e1e; border-color: #333; box-shadow: 0 2px 5px rgba(0,0,0,.2); }
+    body.dark-mode .tool-title { color: #e0e0e0; }
+    body.dark-mode .tool-desc { color: #aaa; }
+    body.dark-mode .input-group label { color: #ccc; }
+    body.dark-mode .input-group input, body.dark-mode .input-group select { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .result-box { background-color: #1565c0; color: #fff; border-color: #0d47a1; }
+    body.dark-mode .note-pad { background-color: #424242; color: #fff; border-color: #555; }
+    body.dark-mode .text-dark { color: #e0e0e0 !important; }
+    body.dark-mode .btn-outline-secondary { color: #ccc; border-color: #666; }
+    body.dark-mode .btn-outline-secondary:hover { background-color: #444; color: #fff; }
+    /* Dark Mode Result Highlights */
+    body.dark-mode .result-highlight-green { color: #81c784; }
+    body.dark-mode .result-highlight-red { color: #ff8a80; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold text-dark">🧮 Farm Utilities</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <div class="tools-grid">
+        
+        <!-- TOOL 1: GESTATION CALCULATOR -->
+        <div class="tool-card">
+            <span class="tool-icon">🤰</span>
+            <h3 class="tool-title">Kidding Date Calculator</h3>
+            <p class="tool-desc">Calculate estimated due date based on standard 150-day gestation.</p>
+            
+            <div class="input-group">
+                <label for="breedingDate">Breeding Date</label>
+                <input type="date" id="breedingDate" name="breedingDate" title="Breeding date" placeholder="YYYY-MM-DD">
+            </div>
+            <button class="calc-btn" onclick="calcGestation()">Calculate Due Date</button>
+            <div id="gestationResult" class="result-box"></div>
+        </div>
+
+        <!-- TOOL 2: WEIGHT ESTIMATOR -->
+        <div class="tool-card">
+            <span class="tool-icon">⚖️</span>
+            <h3 class="tool-title">Weight Estimator</h3>
+            <p class="tool-desc">Estimate weight using heart girth (chest circumference) in inches.</p>
+            
+            <div class="input-group">
+                <label>Heart Girth (Inches)</label>
+                <input type="number" id="girthInput" placeholder="e.g. 30" title="Heart girth measurement">
+            </div>
+            <button class="calc-btn" onclick="calcWeight()">Estimate Weight</button>
+            <div id="weightResult" class="result-box"></div>
+            <small class="text-muted d-block mt-2 text-center" style="font-size: 0.8em;">Based on standard goat heart-girth formula.</small>
+        </div>
+
+        <!-- TOOL 3: DOSAGE CALCULATOR -->
+        <div class="tool-card">
+            <span class="tool-icon">💉</span>
+            <h3 class="tool-title">Dosage Helper</h3>
+            <p class="tool-desc">Calculate injection volume based on animal weight and dosage rate.</p>
+            
+            <div class="input-group">
+                <label>Animal Weight (lbs)</label>
+                <input type="number" id="doseWeight" placeholder="e.g. 100" title="Animal weight">
+            </div>
+            <div class="input-group">
+                <label>Dosage Rate</label>
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <input type="number" id="doseRate" placeholder="e.g. 1" style="flex:1;" title="Dosage rate">
+                    <span style="font-size:0.9em;">ml per</span>
+                    <input type="number" id="dosePer" placeholder="e.g. 100" style="flex:1;" title="Per weight amount">
+                    <span style="font-size:0.9em;">lbs</span>
+                </div>
+            </div>
+            <button class="calc-btn" onclick="calcDosage()">Calculate Dose</button>
+            <div id="dosageResult" class="result-box"></div>
+        </div>
+
+        <!-- TOOL 4: SCRATCHPAD -->
+        <div class="tool-card">
+            <span class="tool-icon">📝</span>
+            <h3 class="tool-title">Scratchpad</h3>
+            <p class="tool-desc">Quick notes. Autosaves to your browser.</p>
+            <textarea id="scratchpad" class="note-pad" placeholder="Type notes here..." oninput="saveNotes()" title="Scratchpad notes"></textarea>
+            <button class="btn btn-sm btn-link text-danger mt-2" onclick="clearNotes()">Clear</button>
+        </div>
+
+        <!-- TOOL 5: DATA EXPORT -->
+        <div class="tool-card">
+            <span class="tool-icon">📊</span>
+            <h3 class="tool-title">Data Export (CSV)</h3>
+            <p class="tool-desc">Download your farm data as CSV spreadsheets for backup or analysis.</p>
+            <a href="{% url 'export_goats' %}" class="calc-btn d-block text-center text-decoration-none mb-2" style="background:#4CAF50;">🐐 Export Herd</a>
+            <a href="{% url 'export_finances' %}" class="calc-btn d-block text-center text-decoration-none mb-2" style="background:#FF9800;">💰 Export Finances</a>
+            <a href="{% url 'export_milk' %}" class="calc-btn d-block text-center text-decoration-none mb-2" style="background:#2196F3;">🥛 Export Milk Logs</a>
+            <a href="{% url 'export_medical' %}" class="calc-btn d-block text-center text-decoration-none" style="background:#E91E63;">🏥 Export Medical Records</a>
+        </div>
+
+        <!-- TOOL 6: HERD STATS -->
+        <div class="tool-card">
+            <span class="tool-icon">📈</span>
+            <h3 class="tool-title">Herd Summary</h3>
+            <p class="tool-desc">Quick overview of your current herd count by status.</p>
+            <div style="text-align:center; font-size: 1.1em; line-height: 2;">
+                <div><strong>Total:</strong> {{ goats|length }} goats</div>
+                {% regroup goats by status as status_list %}
+                {% for status in status_list %}
+                <div><strong>{{ status.grouper }}:</strong> {{ status.list|length }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TOOL 7: DATABASE BACKUP -->
+        <div class="tool-card">
+            <span class="tool-icon">💾</span>
+            <h3 class="tool-title">Database Backup</h3>
+            <p class="tool-desc">Download a full copy of your GoatOS database.</p>
+            <a href="{% url 'backup_database' %}" class="calc-btn d-block text-center text-decoration-none mb-2" style="background:#4CAF50;">📦 Download Database</a>
+            <a href="{% url 'backup_media' %}" class="calc-btn d-block text-center text-decoration-none" style="background:#2196F3;">🖼️ Download Media Files</a>
+            <small class="text-muted d-block mt-2 text-center" style="font-size: 0.8em;">Includes all goat data, logs, finances, and settings.</small>
+        </div>
+
+        <!-- TOOL 8: DATABASE RESTORE -->
+        <div class="tool-card">
+            <span class="tool-icon">🔄</span>
+            <h3 class="tool-title">Restore Database</h3>
+            <p class="tool-desc">Upload a backup file to restore your data.</p>
+            <form method="POST" action="{% url 'restore_database' %}" enctype="multipart/form-data" onsubmit="return confirm('This will REPLACE your current database. Are you sure?');">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="db_file">Select Backup File (.sqlite3)</label>
+                    <input type="file" id="db_file" name="db_file" accept=".sqlite3,.db" required title="Select a backup file (.sqlite3 or .db)" aria-required="true">
+                </div>
+                <button type="submit" class="calc-btn" style="background:#ff5722;">⚠️ Restore Database</button>
+            </form>
+            <small class="text-muted d-block mt-2 text-center" style="font-size: 0.8em; color:#d32f2f !important;">Warning: This overwrites all current data!</small>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- GESTATION ---
+    function calcGestation() {
+        const dateInput = document.getElementById('breedingDate').value;
+        if(!dateInput) return;
+        
+        const breedingDate = new Date(dateInput);
+        // Add 150 days
+        const dueDate = new Date(breedingDate);
+        dueDate.setDate(breedingDate.getDate() + 150);
+        
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        // Use CSS class for color instead of inline style
+        const resultHTML = `Due Date: <br><span class="result-highlight-green">${dueDate.toLocaleDateString('en-US', options)}</span>`;
+        
+        const box = document.getElementById('gestationResult');
+        box.innerHTML = resultHTML;
+        box.style.display = 'block';
+    }
+
+    // --- WEIGHT ---
+    function calcWeight() {
+        const girth = parseFloat(document.getElementById('girthInput').value);
+        if(!girth) return;
+
+        // Common formula: (Heart Girth x Heart Girth) / 10.4
+        const weight = (girth * girth) / 10.4; 
+        
+        const box = document.getElementById('weightResult');
+        box.innerText = `Approx: ${Math.round(weight)} lbs`;
+        box.style.display = 'block';
+    }
+
+    // --- DOSAGE ---
+    function calcDosage() {
+        const weight = parseFloat(document.getElementById('doseWeight').value);
+        const rate = parseFloat(document.getElementById('doseRate').value);
+        const per = parseFloat(document.getElementById('dosePer').value);
+        
+        if(!weight || !rate || !per) return;
+        
+        const dose = (weight / per) * rate;
+        
+        const box = document.getElementById('dosageResult');
+        // Use CSS class for color instead of inline style
+        box.innerHTML = `Give: <span class="result-highlight-red">${dose.toFixed(2)} ml</span>`;
+        box.style.display = 'block';
+    }
+
+    // --- SCRATCHPAD ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('farm_scratchpad');
+        if(saved) document.getElementById('scratchpad').value = saved;
+    });
+
+    function saveNotes() {
+        const text = document.getElementById('scratchpad').value;
+        localStorage.setItem('farm_scratchpad', text);
+    }
+    
+    function clearNotes() {
+        if(confirm('Clear notes?')) {
+            document.getElementById('scratchpad').value = '';
+            localStorage.removeItem('farm_scratchpad');
+        }
+    }
+</script>
+{% endblock %}

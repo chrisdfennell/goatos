@@ -1,0 +1,850 @@
+{% extends 'farm/base.html' %}
+
+{% block content %}
+<style>
+    /* Page Specific Overrides */
+    .profile-card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+    .profile-header { background: #4CAF50; color: white; padding: 30px; text-align: center; position: relative; }
+    
+    .avatar-container { position: relative; width: 120px; margin: 0 auto 10px; }
+    .avatar { font-size: 80px; background: white; width: 120px; height: 120px; line-height: 120px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2); cursor: default; color: #333; }
+    .avatar-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background: white; }
+    
+    .camera-btn { position: absolute; bottom: 0; right: 0; background: #2196F3; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 18px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .camera-btn:hover { transform: scale(1.1); background: #1976D2; }
+
+    .goat-name { margin: 10px 0 5px; font-size: 2.5em; }
+    .badge { background: #ff5252; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.5em; vertical-align: middle; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .status-select { padding: 5px 10px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; font-size: 1em; text-align: center; width: auto; margin: 0; }
+    .profile-body { padding: 30px; flex: 1; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e1e4e8; }
+    .stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .stat-value { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
+    
+    .section-header { border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 1.4em; color: #2c3e50; margin: 0; }
+    
+    /* Timelines & Forms */
+    .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px solid #e0e0e0; }
+    .log-entry { position: relative; margin-bottom: 20px; padding-left: 20px; }
+    .log-entry::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ccc; }
+    .log-date { font-size: 0.85em; color: #888; margin-bottom: 5px; display: block; }
+    .log-content { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ccc; }
+    
+    /* Colors for different log types */
+    .log-entry.medical::before { background: #e91e63; box-shadow: 0 0 0 2px #e91e63; }
+    .log-entry.medical .log-content { border-left-color: #e91e63; background: #fff5f8; }
+    
+    .log-entry.feeding::before { background: #FF9800; box-shadow: 0 0 0 2px #FF9800; }
+    .log-entry.feeding .log-content { border-left-color: #FF9800; background: #fff8e1; }
+
+    .log-entry.breeding::before { background: #9C27B0; box-shadow: 0 0 0 2px #9C27B0; }
+    .log-entry.breeding .log-content { border-left-color: #9C27B0; background: #f3e5f5; }
+
+    .log-entry.milk::before { background: #2196F3; box-shadow: 0 0 0 2px #2196F3; }
+    .log-entry.milk .log-content { border-left-color: #2196F3; background: #e3f2fd; }
+
+    textarea, input[type="text"], input[type="date"], select, input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-medical { background-color: #e91e63; }
+    .btn-feed { background-color: #FF9800; }
+    .btn-breed { background-color: #9C27B0; }
+    .btn-weight { background-color: #009688; }
+    .btn-print { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.9em; }
+    .btn-print:hover { background: rgba(255,255,255,0.4); }
+
+    /* Forms (Moved from inline to classes for Dark Mode support) */
+    .weight-form { background: #e0f2f1; padding: 15px; border-radius: 8px; border: 1px solid #b2dfdb; margin-bottom: 20px; }
+    .feed-form { background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe0b2; margin-bottom: 20px; }
+    .breed-form { background: #f3e5f5; padding: 15px; border-radius: 8px; border: 1px solid #e1bee7; margin-bottom: 20px; }
+    .med-form { background: #fff5f8; padding: 15px; border-radius: 8px; border: 1px solid #f8bbd0; margin-bottom: 20px; }
+    .gallery-form { background: #f0f4f8; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; display:flex; gap:10px; align-items:center; }
+    .manage-box { background: #f8f9fa; padding: 20px; border-radius: 8px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .empty-chart-msg { text-align:center; padding:50px; color:#aaa; background:#f9f9f9; border-radius:8px; }
+
+    /* PEDIGREE & GALLERY */
+    .tree { display: flex; justify-content: center; margin-top: 20px; }
+    .tree ul { padding-top: 20px; position: relative; transition: all 0.5s; display: flex; justify-content: center; }
+    .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
+    .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 1px solid #ccc; width: 50%; height: 20px; }
+    .tree li::after { right: auto; left: 50%; border-left: 1px solid #ccc; }
+    .tree li:only-child::after, .tree li:only-child::before { display: none; }
+    .tree li:only-child{ padding-top: 0; }
+    .tree li:first-child::before, .tree li:last-child::after{ border: 0 none; }
+    .tree li:last-child::before{ border-right: 1px solid #ccc; border-radius: 0 5px 0 0; }
+    .tree li:first-child::after{ border-radius: 5px 0 0 0; }
+    .tree ul ul::before{ content: ''; position: absolute; top: 0; left: 50%; border-left: 1px solid #ccc; width: 0; height: 20px; }
+    .tree-node { border: 1px solid #ccc; padding: 10px; text-decoration: none; color: #666; font-family: arial, verdana, tahoma; font-size: 0.8em; display: inline-block; border-radius: 5px; transition: all 0.5s; background: white; min-width: 80px; }
+    .tree-node:hover, .tree-node:hover+ul li .tree-node { background: #c8e4f8; color: #000; border: 1px solid #94a0b4; }
+    .tree-node.main { background: #4CAF50; color: white; font-weight: bold; font-size: 1em; }
+    .tree-node.empty { border: 1px dashed #ccc; color: #ccc; background: #f9f9f9; }
+
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+    .gallery-item { position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: 150px; cursor: pointer; }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .gallery-item:hover img { transform: scale(1.05); }
+    .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 5px; font-size: 0.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+
+    /* Photo Timeline */
+    .photo-timeline { display: flex; overflow-x: auto; gap: 20px; padding: 15px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+    .photo-timeline::-webkit-scrollbar { height: 6px; }
+    .photo-timeline::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .timeline-photo { flex: 0 0 180px; scroll-snap-align: start; text-align: center; }
+    .timeline-photo img { width: 180px; height: 140px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; }
+    .timeline-photo img:hover { transform: scale(1.05); }
+    .timeline-photo .tl-date { font-size: 0.75em; color: #888; margin-top: 6px; }
+    .timeline-photo .tl-caption { font-size: 0.8em; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Lightbox */
+    .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+    .lightbox-overlay.active { display: flex; }
+    .lightbox-overlay img { max-width: 90vw; max-height: 80vh; border-radius: 8px; box-shadow: 0 5px 30px rgba(0,0,0,0.5); }
+    .lightbox-caption { color: #fff; margin-top: 15px; font-size: 1em; }
+    .lightbox-close { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 2em; cursor: pointer; background: none; border: none; z-index: 2001; }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); color: #fff; font-size: 2.5em; cursor: pointer; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.25); }
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+
+    /* Offspring section */
+    .offspring-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
+    .offspring-card { background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: center; border: 1px solid #e1e4e8; transition: transform 0.2s; }
+    .offspring-card:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+    .offspring-card a { text-decoration: none; color: inherit; }
+    .offspring-emoji { font-size: 2em; display: block; margin-bottom: 5px; }
+    .offspring-name { font-weight: 700; color: #2c3e50; }
+    .offspring-meta { font-size: 0.8em; color: #888; margin-top: 3px; }
+
+    /* Modal */
+    #dosageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .modal-title { margin-top: 0; color: #2c3e50; }
+    .result-box { background: #e8eaf6; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; }
+    .result-val { font-size: 2em; font-weight: bold; color: #3f51b5; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-cancel { background: #ccc; color: #333; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode .profile-card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .stat-box { background-color: #2d2d2d; border-color: #444; }
+    body.dark-mode .stat-value { color: #fff; }
+    body.dark-mode .stat-label { color: #aaa; }
+    body.dark-mode .section-title { color: #e0e0e0; }
+    body.dark-mode .log-content { background-color: #2d2d2d; color: #e0e0e0; border-left-color: #555; }
+    body.dark-mode .log-date { color: #aaa; }
+    
+    body.dark-mode .log-entry.medical .log-content { background-color: #3e1b26; border-left-color: #ad1457; }
+    body.dark-mode .log-entry.feeding .log-content { background-color: #3e2b1b; border-left-color: #ef6c00; }
+    body.dark-mode .log-entry.breeding .log-content { background-color: #2d1b3e; border-left-color: #7b1fa2; }
+    body.dark-mode .log-entry.milk .log-content { background-color: #1a237e; border-left-color: #1565c0; }
+
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .tree-node { background-color: #2d2d2d; border-color: #444; color: #ccc; }
+    body.dark-mode .tree-node.empty { border-color: #444; background-color: #1e1e1e; }
+    body.dark-mode .section-header { border-bottom-color: #333; }
+    body.dark-mode .modal-content { background-color: #1e1e1e; }
+    body.dark-mode .modal-title { color: #fff; }
+    body.dark-mode .result-box { background-color: #283593; }
+    body.dark-mode .result-val { color: #fff; }
+
+    /* FIXED: Specific Dark Mode Form Backgrounds */
+    body.dark-mode .weight-form { background-color: #004d40; border-color: #00695c; }
+    body.dark-mode .feed-form { background-color: #3e2723; border-color: #4e342e; }
+    body.dark-mode .breed-form { background-color: #311b92; border-color: #4527a0; }
+    body.dark-mode .med-form { background-color: #4a1428; border-color: #880e4f; }
+    body.dark-mode .gallery-form { background-color: #263238; border-color: #37474f; }
+    body.dark-mode .manage-box { background-color: #212121; }
+    body.dark-mode .empty-chart-msg { background-color: #2d2d2d; color: #888; border: 1px solid #444; }
+
+    /* FIXED: Avatar Dark Mode */
+    body.dark-mode .avatar { background: #333; color: #fff; }
+    body.dark-mode .avatar-img { border-color: #333; background: #333; }
+    body.dark-mode .camera-btn { border: 2px solid #333; }
+
+    /* Dark Mode: Photo Timeline & Offspring */
+    body.dark-mode .timeline-photo .tl-date { color: #aaa; }
+    body.dark-mode .timeline-photo .tl-caption { color: #ccc; }
+    body.dark-mode .photo-timeline::-webkit-scrollbar-thumb { background: #555; }
+    body.dark-mode .offspring-card { background-color: #2d2d2d; border-color: #444; }
+    body.dark-mode .offspring-name { color: #e0e0e0; }
+    body.dark-mode .offspring-meta { color: #aaa; }
+</style>
+
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h1 class="dashboard-title" style="font-size:1.5em; margin:0;">🐐 Profile</h1></div>
+        <div>
+            <a href="{% url 'edit_goat' goat.id %}" class="btn btn-primary me-2">✏️ Edit Profile</a>
+            <a href="{% url 'index' %}" class="btn btn-secondary me-2">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <a href="{% url 'stall_card' goat.id %}" target="_blank" class="btn-print" title="Print Stall Card">🖨️ Stall Card</a>
+            
+            <div class="avatar-container">
+                {% if goat.image %}
+                    <img src="{{ goat.image.url }}" class="avatar-img" alt="{{ goat.name }}">
+                {% else %}
+                    <div class="avatar">🐐</div>
+                {% endif %}
+                
+                <button class="camera-btn" onclick="document.getElementById('imageUpload').click()" title="Change Photo">📷</button>
+                
+                <!-- Hidden Form -->
+                <form id="photoForm" method="POST" enctype="multipart/form-data" style="display: none;">
+                    {% csrf_token %}
+                    <input type="file" name="image" id="imageUpload" accept="image/*" onchange="document.getElementById('photoForm').submit()">
+                </form>
+            </div>
+
+            <h1 class="goat-name">{{ goat.name }} {% if goat.is_fainting %}<span class="badge">Fainting</span>{% endif %}</h1>
+            <form action="{% url 'update_goat_status' goat.id %}" method="post" style="margin: 10px auto; display: inline-block;">
+                {% csrf_token %}
+                <select name="status" class="status-select" onchange="this.form.submit()" title="Goat status">
+                    {% if goat.status == 'Healthy' %}<option value="Healthy" selected>Healthy 🟢</option>{% else %}<option value="Healthy">Healthy 🟢</option>{% endif %}
+                    {% if goat.status == 'Sick' %}<option value="Sick" selected>Sick 🔴</option>{% else %}<option value="Sick">Sick 🔴</option>{% endif %}
+                    {% if goat.status == 'Vet' %}<option value="Vet" selected>At Vet 🟠</option>{% else %}<option value="Vet">At Vet 🟠</option>{% endif %}
+                    {% if goat.status == 'Deceased' %}<option value="Deceased" selected>Deceased ⚫</option>{% else %}<option value="Deceased">Deceased ⚫</option>{% endif %}
+                </select>
+            </form>
+            <div style="opacity: 0.9; margin-top: 5px;">ID: #{{ goat.id }}</div>
+        </div>
+
+        <div class="profile-body">
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-label">Breed</div><div class="stat-value">{{ goat.breed }}</div></div>
+                {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.get_gender_display }}</div></div>{% endif %}
+                <div class="stat-box"><div class="stat-label">Age</div><div class="stat-value">{{ goat.display_age }}{% if goat.birthdate %}<div style="font-size: 0.6em; font-weight: normal; color: #666; margin-top: 5px;">Born: {{ goat.birthdate|date:"M j, Y" }}</div>{% endif %}</div></div>
+            </div>
+
+            <h3>Bio</h3>
+            <p style="line-height: 1.6; color: #555;" class="text-muted">{{ goat.bio|default:"No bio." }}</p>
+
+            <!-- PHOTO GALLERY & TIMELINE -->
+            <div class="section-header"><h3 class="section-title">📷 Photo Gallery</h3></div>
+
+            <form method="post" enctype="multipart/form-data" class="gallery-form">
+                {% csrf_token %}
+                <input type="file" name="gallery_image" accept="image/*" required style="flex:1;" title="Select photo">
+                <input type="text" name="caption" placeholder="Caption (optional)" style="flex:2; margin-bottom:0;" title="Photo caption">
+                <button type="submit" class="btn-submit" style="background:#607D8B;">Upload</button>
+            </form>
+
+            {% if gallery_photos %}
+            <!-- Photo Timeline (horizontal scroll) -->
+            <div class="photo-timeline">
+                {% for photo in gallery_photos %}
+                <div class="timeline-photo">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" onclick="openLightbox({{ forloop.counter0 }})" loading="lazy">
+                    <div class="tl-date">{{ photo.date_added|date:"M j, Y" }}</div>
+                    {% if photo.caption %}<div class="tl-caption">{{ photo.caption }}</div>{% endif %}
+                    <form method="POST" action="{% url 'delete_goat_photo' photo.id %}" style="margin-top:4px;" onsubmit="return confirm('Delete this photo?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.8em;">🗑️</button></form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align:center; padding:30px; color:#aaa;">No photos in gallery yet. Upload one above!</div>
+            {% endif %}
+
+            <!-- Grid view -->
+            {% if gallery_photos %}
+            <div class="gallery-grid">
+                {% for photo in gallery_photos %}
+                <div class="gallery-item" onclick="openLightbox({{ forloop.counter0 }})">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" loading="lazy">
+                    {% if photo.caption %}<div class="gallery-caption">{{ photo.caption }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- PEDIGREE SECTION -->
+            <div class="section-header"><h3 class="section-title">🌳 Lineage</h3></div>
+
+            <!-- Ancestors (upward tree) -->
+            <div class="tree">
+                <ul>
+                    <li>
+                        <a href="#" class="tree-node main">{{ goat.name }}</a>
+                        <ul>
+                            <!-- SIRE SIDE -->
+                            <li>
+                                {% if goat.sire %}
+                                <a href="{% url 'goat_detail' goat.sire.id %}" class="tree-node">{{ goat.sire.name }} (Sire)</a>
+                                <ul>
+                                    <li>
+                                        {% if goat.sire.sire %}<a href="{% url 'goat_detail' goat.sire.sire.id %}" class="tree-node">{{ goat.sire.sire.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                    </li>
+                                    <li>
+                                        {% if goat.sire.dam %}<a href="{% url 'goat_detail' goat.sire.dam.id %}" class="tree-node">{{ goat.sire.dam.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                    </li>
+                                </ul>
+                                {% else %}
+                                <span class="tree-node empty">Unknown Sire</span>
+                                {% endif %}
+                            </li>
+                            <!-- DAM SIDE -->
+                            <li>
+                                {% if goat.dam %}
+                                <a href="{% url 'goat_detail' goat.dam.id %}" class="tree-node">{{ goat.dam.name }} (Dam)</a>
+                                <ul>
+                                    <li>
+                                        {% if goat.dam.sire %}<a href="{% url 'goat_detail' goat.dam.sire.id %}" class="tree-node">{{ goat.dam.sire.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                    </li>
+                                    <li>
+                                        {% if goat.dam.dam %}<a href="{% url 'goat_detail' goat.dam.dam.id %}" class="tree-node">{{ goat.dam.dam.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                    </li>
+                                </ul>
+                                {% else %}
+                                <span class="tree-node empty">Unknown Dam</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Offspring -->
+            {% if offspring %}
+            <div class="section-header" style="margin-top:25px;"><h3 class="section-title">🐐 Offspring ({{ offspring|length }})</h3></div>
+            <div class="offspring-grid">
+                {% for kid in offspring %}
+                <div class="offspring-card">
+                    <a href="{% url 'goat_detail' kid.id %}">
+                        <span class="offspring-emoji">{% if kid.image %}<img src="{{ kid.image.url }}" alt="{{ kid.name }}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">{% else %}🐐{% endif %}</span>
+                        <div class="offspring-name">{{ kid.name }}</div>
+                        <div class="offspring-meta">
+                            {{ kid.breed }}
+                            {% if kid.birthdate %} &bull; {{ kid.display_age }}{% endif %}
+                            {% if kid.gender %} &bull; {{ kid.get_gender_display }}{% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- WEIGHT & GROWTH SECTION -->
+            <div class="section-header"><h3 class="section-title">⚖️ Weight & Growth</h3></div>
+            
+            <div style="height: 300px; width: 100%; margin-bottom: 20px;">
+                <canvas id="weightChart"></canvas>
+            </div>
+
+            <form action="{% url 'add_weight_record' goat.id %}" method="post" class="weight-form">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="number" step="0.01" name="weight" placeholder="Weight (lbs)" required style="font-size: 1.1em; font-weight: bold;" title="Weight in pounds">
+                    <input type="date" name="date" required value="{% now 'Y-m-d' %}" title="Weigh date">
+                </div>
+                <textarea name="notes" rows="1" placeholder="Notes (e.g. tape measure, scale)..." title="Weight notes"></textarea>
+                <button type="submit" class="btn-submit btn-weight">Log Weight</button>
+            </form>
+
+            {% if weight_logs %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for log in weight_logs|slice:":5" %}
+                <div class="log-entry" style="margin-bottom: 10px;">
+                    <span class="log-date">{{ log.date|date:"M j, Y" }}
+                        <form method="POST" action="{% url 'delete_weight_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this weight record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content" style="border-left-color: #009688;">
+                        <strong>{{ log.weight }} lbs</strong>
+                        {% if log.notes %}<span style="color:#666; margin-left: 5px;">- {{ log.notes }}</span>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 1. FEEDING SECTION -->
+            <div class="section-header"><h3 class="section-title">🌾 Feeding Log</h3></div>
+            <form action="{% url 'add_feeding_record' goat.id %}" method="post" class="feed-form">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Treats">Treats</option><option value="Other">Other</option></select>
+                    <input type="text" name="amount" placeholder="Amount (e.g. 1 Flake)" required title="Feed amount">
+                </div>
+                <textarea name="notes" rows="1" placeholder="Details..." title="Feeding notes"></textarea>
+                <button type="submit" class="btn-submit btn-feed">Record Feed</button>
+            </form>
+            {% if feeding_logs %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for log in feeding_logs %}
+                <div class="log-entry feeding">
+                    <span class="log-date">{{ log.date|date:"F j, Y" }}
+                        <form method="POST" action="{% url 'delete_feeding_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this feeding record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content"><strong>{{ log.feed_type }}</strong> - {{ log.amount }}<br><span style="color:#666;">{{ log.notes }}</span></div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 2. MILK TRACKER SECTION -->
+            <div class="section-header"><h3 class="section-title">🥛 Milk Production</h3></div>
+            
+            <div style="height: 300px; width: 100%; margin-bottom: 20px; position: relative;">
+                <canvas id="milkChart"></canvas>
+            </div>
+
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for log in milk_logs %}
+                <div class="log-entry milk">
+                    <span class="log-date">{{ log.date|date:"M j, Y" }} - {{ log.time }}
+                        <form method="POST" action="{% url 'delete_milk_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this milk log?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content">
+                        <strong>{{ log.amount }} lbs</strong>
+                        {% if log.notes %}<br><span style="color:#666;">{{ log.notes }}</span>{% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                    <p id="no-milk-msg" style="color: #999; font-style: italic; margin-left: 20px;">No recent milk records.</p>
+                {% endfor %}
+            </div>
+
+            <!-- 3. BREEDING SECTION -->
+            <div class="section-header"><h3 class="section-title">🧬 Breeding Tracker</h3></div>
+            <form action="{% url 'add_breeding_record' goat.id %}" method="post" class="breed-form">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="text" name="mate_name" placeholder="Buck Name" required title="Mate name">
+                    <input type="date" name="breeding_date" required title="Breeding Date">
+                </div>
+                <textarea name="notes" rows="1" placeholder="Notes..." title="Breeding notes"></textarea>
+                <button type="submit" class="btn-submit btn-breed">Record Breeding</button>
+            </form>
+            {% if breeding_logs %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for log in breeding_logs %}
+                <div class="log-entry breeding">
+                    <span class="log-date">Bred: {{ log.breeding_date|date:"F j, Y" }}
+                        <form method="POST" action="{% url 'delete_breeding_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this breeding record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content">
+                        <div><strong>Mate:</strong> {{ log.mate_name }}</div>
+                        <div style="margin-top: 5px; font-weight: bold; color: #9C27B0;">🗓️ Due Date: {{ log.due_date|date:"F j, Y" }}</div>
+                        {% if log.notes %}<div style="color:#666; margin-top:5px;">{{ log.notes }}</div>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 4. MEDICAL SECTION & DOSAGE CALCULATOR -->
+            <div class="section-header" style="display:flex; justify-content:space-between;">
+                <h3 class="section-title">🏥 Medical History</h3>
+                <button onclick="openDosageModal()" style="background:#e91e63; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">🧮 Dosage Calculator</button>
+            </div>
+            <form action="{% url 'add_medical_record' goat.id %}" method="post" class="med-form">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select name="record_type" title="Record type"><option value="Vaccine">Vaccination</option><option value="Deworm">Deworming</option><option value="Hoof">Hoof Trim</option><option value="Checkup">Checkup</option><option value="Illness">Illness/Injury</option></select>
+                    <input type="date" name="date" required title="Medical date">
+                </div>
+                <textarea name="notes" rows="2" placeholder="Details..." title="Medical notes"></textarea>
+                <div style="font-size: 0.9em; margin-bottom: 5px; color: #e91e63;">Next Due Date (Optional):</div>
+                <input type="date" name="next_due_date" title="Next due date">
+                <button type="submit" class="btn-submit btn-medical">Record Medical</button>
+            </form>
+            {% if medical_records %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for record in medical_records %}
+                <div class="log-entry medical">
+                    <span class="log-date">{{ record.date|date:"F j, Y" }}
+                        <span style="float: right; font-weight: bold; color: #e91e63;">{{ record.get_record_type_display }}
+                            <form method="POST" action="{% url 'delete_medical_record' record.id %}" style="display:inline;" onsubmit="return confirm('Delete this medical record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;margin-left:5px;" title="Delete">🗑️</button></form>
+                        </span>
+                    </span>
+                    <div class="log-content">{{ record.notes|linebreaks }}{% if record.next_due_date %}<div style="margin-top: 10px; font-size: 0.9em; font-weight: bold; color: #e91e63;">⏰ Next Due: {{ record.next_due_date|date:"F j, Y" }}</div>{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- FAMACHA & BODY CONDITION SCORING -->
+            <div class="section-header"><h3 class="section-title">🩺 Health Scores (FAMACHA & BCS)</h3></div>
+            <form action="{% url 'add_health_score' goat.id %}" method="post" class="med-form" style="border-left-color: #ff5722;">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">FAMACHA (1-5)</label>
+                        <select name="famacha_score" title="FAMACHA score">
+                            <option value="">--</option>
+                            <option value="1">1 - Red (Healthy)</option>
+                            <option value="2">2 - Red-Pink</option>
+                            <option value="3">3 - Pink</option>
+                            <option value="4">4 - Pink-White</option>
+                            <option value="5">5 - White (Anemic)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">BCS (1.0-5.0)</label>
+                        <input type="number" step="0.5" min="1" max="5" name="body_condition_score" placeholder="e.g. 3.0" title="Body condition score">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Date</label>
+                        <input type="date" name="date" value="{% now 'Y-m-d' %}" title="Score date">
+                    </div>
+                </div>
+                <textarea name="notes" rows="1" placeholder="Notes..." title="Health score notes"></textarea>
+                <button type="submit" class="btn-submit" style="background:#ff5722;">Record Score</button>
+            </form>
+            {% if health_scores %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for hs in health_scores %}
+                <div class="log-entry medical">
+                    <span class="log-date">{{ hs.date|date:"F j, Y" }}
+                        <form method="POST" action="{% url 'delete_health_score' hs.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this health score?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content" style="border-left-color: #ff5722;">
+                        {% if hs.famacha_score %}<span style="font-weight:bold; color:{% if hs.famacha_score <= 2 %}#4caf50{% elif hs.famacha_score == 3 %}#ff9800{% else %}#d32f2f{% endif %};">FAMACHA: {{ hs.famacha_score }}</span>{% endif %}
+                        {% if hs.famacha_score and hs.body_condition_score %} &bull; {% endif %}
+                        {% if hs.body_condition_score %}<span style="font-weight:bold;">BCS: {{ hs.body_condition_score }}</span>{% endif %}
+                        {% if hs.notes %}<br><span style="color:#666;">{{ hs.notes }}</span>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- HEAT OBSERVATIONS -->
+            {% if goat.gender == 'F' or not goat.gender %}
+            <div class="section-header"><h3 class="section-title">🔥 Heat / Estrus Observations</h3></div>
+            <form action="{% url 'add_heat_observation' goat.id %}" method="post" class="breed-form">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Date Observed</label>
+                        <input type="date" name="date_observed" value="{% now 'Y-m-d' %}" required title="Date observed">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; color:#666;">Signs</label>
+                        <input type="text" name="signs" placeholder="e.g. tail flagging, mounting" title="Heat signs">
+                    </div>
+                </div>
+                <textarea name="notes" rows="1" placeholder="Notes..." title="Heat observation notes"></textarea>
+                <button type="submit" class="btn-submit btn-breed">Record Heat</button>
+            </form>
+            {% if heat_observations %}
+            <div class="timeline" style="margin-bottom: 40px;">
+                {% for ho in heat_observations %}
+                <div class="log-entry breeding">
+                    <span class="log-date">{{ ho.date_observed|date:"F j, Y" }}
+                        <form method="POST" action="{% url 'delete_heat_observation' ho.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this observation?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content">
+                        {% if ho.signs %}<strong>Signs:</strong> {{ ho.signs }}<br>{% endif %}
+                        <span style="color:#9c27b0; font-weight:bold;">Next predicted heat: {{ ho.next_heat_date|date:"M j, Y" }}</span>
+                        {% if ho.notes %}<br><span style="color:#666;">{{ ho.notes }}</span>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <!-- DOCUMENT VAULT -->
+            <div class="section-header"><h3 class="section-title">📄 Documents</h3></div>
+            <form action="{% url 'add_goat_document' goat.id %}" method="post" enctype="multipart/form-data" class="gallery-form" style="flex-wrap:wrap;">
+                {% csrf_token %}
+                <input type="file" name="file" required style="flex:1;" title="Select document file">
+                <input type="text" name="title" placeholder="Document title" required style="flex:1; margin-bottom:0;" title="Document title">
+                <select name="doc_type" style="flex:0 0 150px; margin-bottom:0;" title="Document type">
+                    <option value="Registration">Registration</option>
+                    <option value="Vet Report">Vet Report</option>
+                    <option value="Receipt">Receipt</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Certificate">Certificate</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button type="submit" class="btn-submit" style="background:#607D8B; width:auto;">Upload</button>
+            </form>
+            {% if documents %}
+            <div style="margin-top:15px;">
+                {% for doc in documents %}
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                    <div>
+                        <a href="{{ doc.file.url }}" target="_blank" style="font-weight:bold; color:#2196F3;">{{ doc.title }}</a>
+                        <span style="font-size:0.8em; color:#888; margin-left:8px;">{{ doc.get_doc_type_display }} &bull; {{ doc.date_uploaded|date:"M j, Y" }}</span>
+                    </div>
+                    <form method="POST" action="{% url 'delete_goat_document' doc.id %}" style="display:inline;" onsubmit="return confirm('Delete this document?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;">🗑️</button></form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color:#999; font-style:italic; text-align:center; padding:15px;">No documents uploaded yet.</p>
+            {% endif %}
+
+            <!-- CURRENT PEN -->
+            {% if current_pen %}
+            <div class="section-header"><h3 class="section-title">🏠 Current Pen</h3></div>
+            <div style="background:#e8f5e9; padding:15px; border-radius:8px; border:1px solid #c8e6c9; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong style="font-size:1.1em;">{{ current_pen.pen.name }}</strong>
+                    <span style="font-size:0.85em; color:#666; margin-left:10px;">{{ current_pen.pen.get_pen_type_display }} &bull; Since {{ current_pen.date_in|date:"M j, Y" }}</span>
+                </div>
+                <a href="{% url 'barn_dashboard' %}" style="color:#2e7d32; font-weight:bold; text-decoration:none;">Manage Pens →</a>
+            </div>
+            {% endif %}
+
+            <!-- 5. LOG SECTION -->
+            <div class="section-header"><h3 class="section-title">📋 Daily Logs</h3></div>
+            <form method="post" class="log-form">{% csrf_token %}<textarea name="note" rows="3" placeholder="Record a daily note..." title="Daily log note"></textarea><button type="submit" class="btn-submit">Add Log Entry</button></form>
+            <div class="timeline">
+                {% for log in logs %}
+                <div class="log-entry">
+                    <span class="log-date">{{ log.date|date:"F j, Y, g:i a" }}
+                        <form method="POST" action="{% url 'delete_goat_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this log entry?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
+                    </span>
+                    <div class="log-content">{{ log.note|linebreaks }}</div>
+                </div>
+                {% empty %}
+                <p style="color: #999; font-style: italic; margin-left: 20px;">No daily logs.</p>
+                {% endfor %}
+            </div>
+
+            <!-- 6. MANAGEMENT SECTION -->
+            <div class="section-header" style="border-top: 2px solid #eee; margin-top: 40px; padding-top: 20px;"><h3 class="section-title" style="color: #666;">⚙️ Manage Goat</h3></div>
+            <div class="manage-box">
+                <div style="flex: 1;"><p style="margin: 0; color: #666; font-size: 0.9em;">Danger Zone: Actions here cannot be undone.</p></div>
+                <form action="{% url 'delete_goat' goat.id %}" method="post" onsubmit="return confirm('Are you sure you want to PERMANENTLY DELETE {{ goat.name }}?');" style="margin: 0;">{% csrf_token %}<button type="submit" style="background-color: #d32f2f; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">🗑️ Delete Goat</button></form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- PHOTO LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox">
+    <button type="button" class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" onclick="navLightbox(-1)">&#8249;</button>
+    <button type="button" class="lightbox-nav lightbox-next" onclick="navLightbox(1)">&#8250;</button>
+    <img id="lightbox-img" src="" alt="Photo">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<!-- DOSAGE MODAL -->
+<div id="dosageModal">
+    <div class="modal-content">
+        <h2 class="modal-title">🧮 Dosage Calculator</h2>
+        <div style="margin-bottom:15px; font-size:0.9em; color:#666;">
+            Using weight: <strong>{{ latest_weight|default:"0" }} lbs</strong>
+            {% if not latest_weight %}<br><span style="color:red;">Warning: No weight logged!</span>{% endif %}
+        </div>
+        
+        <label>Select Medicine</label>
+        <select id="medSelect" onchange="calculateDose()" style="margin-bottom: 20px;" title="Select medicine">
+            <option value="" disabled selected>-- Choose Med --</option>
+            <!-- JS will populate this -->
+        </select>
+        
+        <div id="doseResult" class="result-box" style="display:none;">
+            <div>Recommended Dose:</div>
+            <div class="result-val" id="doseVal">--</div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="document.getElementById('dosageModal').style.display='none'">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Script -->
+{{ weight_chart_data|json_script:"weight-data" }}
+{{ milk_chart_data|json_script:"milk-data" }}
+{{ medicines_json|json_script:"meds-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const goatWeight = {{ latest_weight|default:0 }};
+    
+    function openDosageModal() {
+        const modal = document.getElementById('dosageModal');
+        const select = document.getElementById('medSelect');
+        const meds = JSON.parse(document.getElementById('meds-data').textContent);
+        
+        // Populate select if empty
+        if(select.options.length <= 1) {
+            meds.forEach(med => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify(med);
+                opt.text = med.name;
+                select.add(opt);
+            });
+        }
+        modal.style.display = 'flex';
+    }
+
+    function calculateDose() {
+        const select = document.getElementById('medSelect');
+        if(!select.value) return;
+        
+        const med = JSON.parse(select.value);
+        const resultBox = document.getElementById('doseResult');
+        const valBox = document.getElementById('doseVal');
+        
+        let dose = 0;
+        if(med.dosage_weight_interval > 0) {
+            // Formula: (GoatWeight / Interval) * Amount
+            dose = (goatWeight / med.dosage_weight_interval) * med.dosage_amount;
+        } else {
+            // Fixed dose
+            dose = med.dosage_amount;
+        }
+        
+        valBox.innerText = dose.toFixed(2) + " " + med.unit;
+        resultBox.style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // WEIGHT CHART
+        const dataElement = document.getElementById('weight-data');
+        if (dataElement) {
+            let chartData = JSON.parse(dataElement.textContent);
+            if (typeof chartData === 'string') {
+                chartData = JSON.parse(chartData);
+            }
+
+            if (chartData.weights && chartData.weights.length > 0) {
+                const ctx = document.getElementById('weightChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.dates,
+                        datasets: [{
+                            label: 'Weight (lbs)',
+                            data: chartData.weights,
+                            borderColor: '#009688',
+                            backgroundColor: 'rgba(0, 150, 136, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#009688',
+                            pointRadius: 5,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: false, title: {display: true, text: 'Lbs'} },
+                            x: { grid: {display: false} }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('weightChart').parentNode.innerHTML = 
+                    '<div class="empty-chart-msg">No weight data yet. Log first weight below!</div>';
+            }
+        }
+
+        // MILK CHART
+        const milkElement = document.getElementById('milk-data');
+        if (milkElement) {
+            let milkData = JSON.parse(milkElement.textContent);
+            if (typeof milkData === 'string') {
+                milkData = JSON.parse(milkData);
+            }
+
+            if (milkData.amounts && milkData.amounts.length > 0) {
+                const msg = document.getElementById('no-milk-msg');
+                if(msg) msg.style.display = 'none';
+
+                const ctx = document.getElementById('milkChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: milkData.dates,
+                        datasets: [{
+                            label: 'Daily Yield (lbs)',
+                            data: milkData.amounts,
+                            borderColor: '#2196F3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#2196F3',
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: {display: true, text: 'Lbs'} },
+                            x: { grid: {display: false} }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('milkChart').parentNode.innerHTML = 
+                    '<div class="empty-chart-msg">No milk records found.</div>';
+            }
+        }
+    });
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('dosageModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+        const lb = document.getElementById('lightbox');
+        if (event.target == lb) {
+            closeLightbox();
+        }
+    }
+
+    // --- LIGHTBOX ---
+    const galleryPhotos = [
+        {% for photo in gallery_photos %}
+        { src: "{{ photo.image.url }}", caption: "{{ photo.caption|default:''|escapejs }}", date: "{{ photo.date_added|date:'M j, Y' }}" },
+        {% endfor %}
+    ];
+    let currentPhotoIdx = 0;
+
+    function openLightbox(idx) {
+        currentPhotoIdx = idx;
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        const cap = document.getElementById('lightbox-caption');
+        const photo = galleryPhotos[idx];
+        img.src = photo.src;
+        cap.textContent = photo.caption ? photo.caption + ' — ' + photo.date : photo.date;
+        lb.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function navLightbox(dir) {
+        currentPhotoIdx = (currentPhotoIdx + dir + galleryPhotos.length) % galleryPhotos.length;
+        openLightbox(currentPhotoIdx);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        const lb = document.getElementById('lightbox');
+        if (!lb.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') navLightbox(-1);
+        if (e.key === 'ArrowRight') navLightbox(1);
+    });
+</script>
+{% endblock %}

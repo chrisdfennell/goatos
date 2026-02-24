@@ -1,0 +1,102 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; margin-top: 20px; }
+    .card-title { color: #ff5722; border-bottom: 2px solid #fbe9e7; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; color: #666; font-size: 0.85em; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+
+    .score-badge { display: inline-block; width: 32px; height: 32px; border-radius: 50%; text-align: center; line-height: 32px; font-weight: 700; color: #fff; font-size: 0.9em; }
+    .famacha-1 { background: #d32f2f; } /* Red = Healthy */
+    .famacha-2 { background: #f44336; }
+    .famacha-3 { background: #ff9800; }
+    .famacha-4 { background: #ffb74d; color: #333; }
+    .famacha-5 { background: #fff9c4; color: #333; } /* White = Anemic */
+
+    .bcs-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85em; }
+    .bcs-low { background: #ffebee; color: #c62828; }
+    .bcs-good { background: #e8f5e9; color: #2e7d32; }
+    .bcs-high { background: #fff3e0; color: #ef6c00; }
+
+    .legend { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
+
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode th { color: #aaa; border-bottom-color: #333; }
+    body.dark-mode td { border-bottom-color: #333; }
+    body.dark-mode .legend { background: #2d2d2d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold" style="color:#ff5722;">🩺 Herd Health Scores</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="card">
+        <h3 class="card-title">FAMACHA & Body Condition Score Legend</h3>
+        <div class="legend">
+            <div class="legend-item"><span class="score-badge famacha-1">1</span> Red (Healthy)</div>
+            <div class="legend-item"><span class="score-badge famacha-2">2</span> Red-Pink</div>
+            <div class="legend-item"><span class="score-badge famacha-3">3</span> Pink</div>
+            <div class="legend-item"><span class="score-badge famacha-4">4</span> Pink-White (Deworm!)</div>
+            <div class="legend-item"><span class="score-badge famacha-5">5</span> White (Anemic - Urgent!)</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="card-title">📊 Current Herd Scores</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Goat</th>
+                        <th>FAMACHA</th>
+                        <th>BCS</th>
+                        <th>Last Scored</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in scores_data %}
+                    <tr>
+                        <td><a href="{% url 'goat_detail' item.goat.id %}"><strong>{{ item.goat.name }}</strong></a></td>
+                        <td>
+                            {% if item.latest_famacha %}
+                            <span class="score-badge famacha-{{ item.latest_famacha }}">{{ item.latest_famacha }}</span>
+                            {% else %}
+                            <span style="color:#ccc;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.latest_bcs %}
+                            <span class="bcs-badge {% if item.latest_bcs < 2 %}bcs-low{% elif item.latest_bcs > 4 %}bcs-high{% else %}bcs-good{% endif %}">{{ item.latest_bcs }}</span>
+                            {% else %}
+                            <span style="color:#ccc;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if item.latest_date %}{{ item.latest_date|date:"M j, Y" }}{% else %}<span style="color:#ccc;">Never</span>{% endif %}</td>
+                        <td>
+                            {% if item.latest_famacha and item.latest_famacha >= 4 %}
+                            <span style="color:#d32f2f; font-weight:700;">⚠️ Needs Deworming</span>
+                            {% elif item.latest_famacha %}
+                            <span style="color:#4caf50;">✅ OK</span>
+                            {% else %}
+                            <span style="color:#999;">Not scored</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align:center; padding:30px; color:#888;">No goats found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

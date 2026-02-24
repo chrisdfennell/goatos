@@ -1,0 +1,160 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .barn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+    .pen-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 20px; border-top: 4px solid #4caf50; }
+    .pen-card.over-capacity { border-top-color: #d32f2f; }
+    .pen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .pen-name { font-weight: 700; font-size: 1.15em; }
+    .pen-type { font-size: 0.8em; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .pen-capacity { font-size: 0.9em; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+    .cap-ok { background: #e8f5e9; color: #2e7d32; }
+    .cap-full { background: #fff3e0; color: #ef6c00; }
+    .cap-over { background: #ffebee; color: #c62828; }
+
+    .pen-occupants { list-style: none; padding: 0; margin: 0 0 10px; }
+    .pen-occupant { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+    .pen-occupant:last-child { border-bottom: none; }
+    .pen-occupant a { text-decoration: none; color: #333; font-weight: 600; }
+    .pen-empty { text-align: center; color: #ccc; padding: 20px; font-style: italic; }
+
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; }
+    .card-title { color: #795548; border-bottom: 2px solid #efebe9; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.15em; margin-top: 0; }
+
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #795548; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    .btn-submit:hover { background-color: #5d4037; }
+    .btn-remove { background: none; border: none; cursor: pointer; color: #ccc; font-size: 0.9em; }
+    .btn-remove:hover { color: #d32f2f; }
+
+    @media (max-width: 768px) { .sidebar { grid-template-columns: 1fr; } }
+
+    body.dark-mode .pen-card, body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .pen-occupant { border-bottom-color: #333; }
+    body.dark-mode .pen-occupant a { color: #e0e0e0; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold" style="color:#795548;">🏠 Barn & Pen Management</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    {% if pens %}
+    <div class="barn-grid">
+        {% for pen in pens %}
+        <div class="pen-card {% if pen.is_over_capacity %}over-capacity{% endif %}">
+            <div class="pen-header">
+                <div>
+                    <div class="pen-name">{{ pen.name }}</div>
+                    <div class="pen-type">{{ pen.get_pen_type_display }}</div>
+                </div>
+                <div>
+                    <span class="pen-capacity {% if pen.occupant_count > pen.capacity %}cap-over{% elif pen.occupant_count == pen.capacity %}cap-full{% else %}cap-ok{% endif %}">
+                        {{ pen.occupant_count }}/{{ pen.capacity }}
+                    </span>
+                    <form method="POST" action="{% url 'delete_pen' pen.id %}" style="display:inline; margin-left:8px;" onsubmit="return confirm('Delete pen {{ pen.name }}? All assignments will be removed.');">{% csrf_token %}<button type="submit" class="btn-remove" title="Delete pen">🗑️</button></form>
+                </div>
+            </div>
+
+            {% if pen.current_occupants %}
+            <ul class="pen-occupants">
+                {% for assignment in pen.current_occupants %}
+                <li class="pen-occupant">
+                    <a href="{% url 'goat_detail' assignment.goat.id %}">🐐 {{ assignment.goat.name }}</a>
+                    <span style="font-size:0.8em; color:#999;">Since {{ assignment.date_in|date:"M j" }}</span>
+                    <form method="POST" style="display:inline;" action="{% url 'barn_dashboard' %}">{% csrf_token %}<input type="hidden" name="action" value="remove"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button type="submit" class="btn-remove" title="Remove from pen">✕</button></form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="pen-empty">Empty</div>
+            {% endif %}
+
+            {% if pen.notes %}<div style="font-size:0.85em; color:#888; margin-top:5px; font-style:italic;">{{ pen.notes }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:50px; color:#999; background:#fff; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,.05);">No pens configured yet. Add one below!</div>
+    {% endif %}
+
+    <div class="sidebar">
+        <!-- Add Pen -->
+        <div class="card">
+            <h3 class="card-title">➕ Add Pen</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_pen">
+                <label style="font-size:0.8em; color:#666;">Pen Name</label>
+                <input type="text" name="name" required placeholder="e.g. Kidding Stall 1" title="Pen name">
+
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Type</label>
+                        <select name="pen_type" title="Pen type">
+                            <option value="General">General</option>
+                            <option value="Kidding">Kidding Pen</option>
+                            <option value="Buck">Buck Pen</option>
+                            <option value="Doe">Doe Pen</option>
+                            <option value="Kid">Kid Pen</option>
+                            <option value="Sick">Sick Pen</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Capacity</label>
+                        <input type="number" name="capacity" value="5" min="1" title="Pen capacity">
+                    </div>
+                </div>
+
+                <textarea name="notes" rows="1" placeholder="Notes (optional)" title="Pen notes"></textarea>
+                <button type="submit" class="btn-submit">Add Pen</button>
+            </form>
+        </div>
+
+        <!-- Assign Goat -->
+        <div class="card">
+            <h3 class="card-title">🐐 Assign Goat to Pen</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign">
+
+                <label style="font-size:0.8em; color:#666;">Pen</label>
+                <select name="pen_id" required title="Select pen">
+                    <option value="">-- Select Pen --</option>
+                    {% for pen in pens %}
+                    <option value="{{ pen.id }}">{{ pen.name }} ({{ pen.occupant_count }}/{{ pen.capacity }})</option>
+                    {% endfor %}
+                </select>
+
+                <label style="font-size:0.8em; color:#666;">Goat</label>
+                <select name="goat_id" required title="Select goat">
+                    <option value="">-- Select Goat --</option>
+                    {% for goat in unassigned_goats %}
+                    <option value="{{ goat.id }}">{{ goat.name }}</option>
+                    {% endfor %}
+                    <optgroup label="── Already Assigned ──">
+                    {% for goat in goats %}
+                    {% if goat.id not in unassigned_goats %}
+                    <option value="{{ goat.id }}">{{ goat.name }} (will be moved)</option>
+                    {% endif %}
+                    {% endfor %}
+                    </optgroup>
+                </select>
+
+                <label style="font-size:0.8em; color:#666;">Date</label>
+                <input type="date" name="date_in" value="{% now 'Y-m-d' %}" title="Assignment date">
+
+                <textarea name="notes" rows="1" placeholder="Notes (optional)" title="Assignment notes"></textarea>
+                <button type="submit" class="btn-submit">Assign to Pen</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

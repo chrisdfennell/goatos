@@ -1,0 +1,115 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); padding: 25px; transition: background-color .3s; }
+    .card-title { color: #607d8b; border-bottom: 2px solid #eceff1; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; margin-top: 0; }
+
+    .supplier-list { list-style: none; padding: 0; margin: 0; }
+    .supplier-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; }
+    .supplier-item:last-child { border-bottom: none; }
+    .supplier-icon { font-size: 2em; width: 50px; text-align: center; }
+    .supplier-info { flex: 1; }
+    .supplier-name { font-weight: 700; font-size: 1.1em; }
+    .supplier-meta { font-size: 0.85em; color: #666; margin-top: 3px; }
+    .supplier-spent { font-weight: 700; color: #795548; font-size: 1.1em; text-align: right; min-width: 80px; }
+    .supplier-actions { display: flex; gap: 8px; }
+    .supplier-actions a { text-decoration: none; font-size: 1.1em; }
+
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+    .btn-submit { background-color: #607d8b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    .btn-submit:hover { background-color: #455a64; }
+
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    body.dark-mode .card { background-color: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .card-title { border-bottom-color: #333; }
+    body.dark-mode .supplier-item { border-bottom-color: #333; }
+    body.dark-mode .supplier-meta { color: #aaa; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: #2d2d2d; border-color: #444; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold" style="color:#607d8b;">🏪 Suppliers & Vendors</h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3 class="card-title">📒 Supplier Directory</h3>
+            <ul class="supplier-list">
+                {% for s in suppliers %}
+                <li class="supplier-item">
+                    <div class="supplier-icon">
+                        {% if s.category == 'Feed' %}🌾{% elif s.category == 'Vet' %}🏥{% elif s.category == 'Equipment' %}🔧{% elif s.category == 'Fencing' %}🧱{% elif s.category == 'Shearing' %}✂️{% else %}📦{% endif %}
+                    </div>
+                    <div class="supplier-info">
+                        <div class="supplier-name">{{ s.name }}</div>
+                        <div class="supplier-meta">
+                            {{ s.get_category_display }}
+                            {% if s.contact_name %} &bull; {{ s.contact_name }}{% endif %}
+                            {% if s.phone %} &bull; {{ s.phone }}{% endif %}
+                        </div>
+                        {% if s.email %}<div class="supplier-meta">{{ s.email }}</div>{% endif %}
+                        {% if s.notes %}<div class="supplier-meta" style="font-style:italic;">{{ s.notes|truncatewords:15 }}</div>{% endif %}
+                    </div>
+                    <div class="supplier-spent">${{ s.total_spent|floatformat:2 }}</div>
+                    <div class="supplier-actions">
+                        {% if s.phone %}<a href="tel:{{ s.phone }}" title="Call">📞</a>{% endif %}
+                        {% if s.email %}<a href="mailto:{{ s.email }}" title="Email">📧</a>{% endif %}
+                        <form method="POST" action="{% url 'delete_supplier' s.id %}" style="display:inline;" onsubmit="return confirm('Delete {{ s.name }}?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;">🗑️</button></form>
+                    </div>
+                </li>
+                {% empty %}
+                <li style="text-align:center; padding:40px; color:#888;">No suppliers yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card" style="align-self: start;">
+            <h3 class="card-title">➕ Add Supplier</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <label style="font-size:0.8em; color:#666;">Business Name</label>
+                <input type="text" name="name" required placeholder="e.g. Tractor Supply" title="Business name">
+
+                <label style="font-size:0.8em; color:#666;">Contact Person</label>
+                <input type="text" name="contact_name" placeholder="Optional" title="Contact person">
+
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Phone</label>
+                        <input type="text" name="phone" placeholder="555-123-4567" title="Phone number">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8em; color:#666;">Email</label>
+                        <input type="email" name="email" placeholder="optional" title="Email address">
+                    </div>
+                </div>
+
+                <label style="font-size:0.8em; color:#666;">Category</label>
+                <select name="category" title="Supplier category">
+                    <option value="Feed">Feed & Hay</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Vet">Veterinary</option>
+                    <option value="Shearing">Shearing</option>
+                    <option value="Fencing">Fencing</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label style="font-size:0.8em; color:#666;">Address</label>
+                <textarea name="address" rows="2" placeholder="Full address" title="Address"></textarea>
+
+                <label style="font-size:0.8em; color:#666;">Notes</label>
+                <textarea name="notes" rows="2" placeholder="Pricing notes, hours, etc." title="Notes"></textarea>
+
+                <button type="submit" class="btn-submit">Add Supplier</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

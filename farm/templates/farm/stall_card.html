@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ goat.name }} - Stall Card</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eee; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        
+        .card {
+            background: white;
+            width: 600px;
+            padding: 40px;
+            border: 2px solid #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .header { border-bottom: 3px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .name { font-size: 3em; margin: 0; font-weight: bold; color: #2c3e50; line-height: 1; }
+        .breed { font-size: 1.5em; color: #666; margin-top: 5px; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; font-size: 1.2em; }
+        .label { font-weight: bold; color: #888; text-transform: uppercase; font-size: 0.8em; display: block; margin-bottom: 5px; }
+        .value { color: #333; font-weight: 500; }
+        
+        .qr-section { position: absolute; top: 40px; right: 40px; text-align: center; }
+        .qr-img { width: 150px; height: 150px; border: 2px solid #333; }
+        .scan-text { font-size: 0.8em; margin-top: 5px; color: #666; }
+        
+        .pedigree { margin-top: 40px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        .ped-title { margin: 0 0 15px 0; color: #4CAF50; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9em; font-weight: bold; }
+        
+        .print-btn {
+            position: fixed; bottom: 20px; right: 20px; 
+            background: #2196F3; color: white; border: none; padding: 15px 30px; 
+            font-size: 1.2em; border-radius: 50px; cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .card { border: none; box-shadow: none; width: 100%; max-width: none; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{ qr_code }}" class="qr-img">
+            <div class="scan-text">Scan for Full Profile</div>
+        </div>
+
+        <div class="header">
+            <div>
+                <h1 class="name">{{ goat.name }}</h1>
+                <div class="breed">{{ goat.breed }}</div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div>
+                <span class="label">Date of Birth</span>
+                <div class="value">{{ goat.birthdate|date:"F j, Y" }} ({{ goat.display_age }})</div>
+            </div>
+            <div>
+                <span class="label">Status</span>
+                <div class="value">{{ goat.status }}</div>
+            </div>
+        </div>
+
+        <div class="pedigree">
+            <div class="ped-title">Lineage</div>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <span class="label">Sire (Father)</span>
+                    <div class="value">{{ goat.sire.name|default:"Unknown" }}</div>
+                </div>
+                <div>
+                    <span class="label">Dam (Mother)</span>
+                    <div class="value">{{ goat.dam.name|default:"Unknown" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; font-style: italic; color: #888; font-size: 0.9em;">
+            Managed by GoatOS • Printed on {% now "F j, Y" %}
+        </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Print Card</button>
+
+</body>
+</html>
