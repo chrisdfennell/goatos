@@ -43,6 +43,11 @@ class Goat(models.Model):
     dam = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='kids_dam', verbose_name="Dam (Mother)")
     sire = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='kids_sire', verbose_name="Sire (Father)")
 
+    # External / Registration Fields
+    is_external = models.BooleanField(default=False)
+    registration_number = models.CharField(max_length=100, blank=True)
+    external_owner = models.CharField(max_length=200, blank=True)
+
     def __str__(self):
         return f"{self.name} ({self.status})"
 

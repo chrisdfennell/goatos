@@ -212,6 +212,9 @@
                 </select>
             </form>
             <div style="opacity: 0.9; margin-top: 5px;">ID: #{{ goat.id }}</div>
+            {% if goat.registration_number %}<div style="opacity: 0.9; margin-top: 3px; font-size: .9em;">Reg: {{ goat.registration_number }}</div>{% endif %}
+            {% if goat.is_external %}<span style="display:inline-block; background:#ff9800; color:#fff; padding:3px 10px; border-radius:12px; font-size:.75em; font-weight:700; margin-top:6px;">EXTERNAL</span>{% endif %}
+            {% if goat.external_owner %}<div style="opacity: 0.8; margin-top: 3px; font-size: .85em;">Owner: {{ goat.external_owner }}</div>{% endif %}
         </div>
 
         <div class="profile-body">
@@ -274,13 +277,13 @@
                             <!-- SIRE SIDE -->
                             <li>
                                 {% if goat.sire %}
-                                <a href="{% url 'goat_detail' goat.sire.id %}" class="tree-node">{{ goat.sire.name }} (Sire)</a>
+                                <a href="{% url 'goat_detail' goat.sire.id %}" class="tree-node">{{ goat.sire.name }}{% if goat.sire.registration_number %} <small style="opacity:.7">{{ goat.sire.registration_number }}</small>{% endif %} (Sire){% if goat.sire.is_external %} <span style="background:#ff9800;color:#fff;padding:1px 6px;border-radius:8px;font-size:.65em;vertical-align:middle;">EXT</span>{% endif %}</a>
                                 <ul>
                                     <li>
-                                        {% if goat.sire.sire %}<a href="{% url 'goat_detail' goat.sire.sire.id %}" class="tree-node">{{ goat.sire.sire.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                        {% if goat.sire.sire %}<a href="{% url 'goat_detail' goat.sire.sire.id %}" class="tree-node">{{ goat.sire.sire.name }}{% if goat.sire.sire.registration_number %} <small style="opacity:.7">{{ goat.sire.sire.registration_number }}</small>{% endif %}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
                                     </li>
                                     <li>
-                                        {% if goat.sire.dam %}<a href="{% url 'goat_detail' goat.sire.dam.id %}" class="tree-node">{{ goat.sire.dam.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                        {% if goat.sire.dam %}<a href="{% url 'goat_detail' goat.sire.dam.id %}" class="tree-node">{{ goat.sire.dam.name }}{% if goat.sire.dam.registration_number %} <small style="opacity:.7">{{ goat.sire.dam.registration_number }}</small>{% endif %}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
                                     </li>
                                 </ul>
                                 {% else %}
@@ -290,13 +293,13 @@
                             <!-- DAM SIDE -->
                             <li>
                                 {% if goat.dam %}
-                                <a href="{% url 'goat_detail' goat.dam.id %}" class="tree-node">{{ goat.dam.name }} (Dam)</a>
+                                <a href="{% url 'goat_detail' goat.dam.id %}" class="tree-node">{{ goat.dam.name }}{% if goat.dam.registration_number %} <small style="opacity:.7">{{ goat.dam.registration_number }}</small>{% endif %} (Dam){% if goat.dam.is_external %} <span style="background:#ff9800;color:#fff;padding:1px 6px;border-radius:8px;font-size:.65em;vertical-align:middle;">EXT</span>{% endif %}</a>
                                 <ul>
                                     <li>
-                                        {% if goat.dam.sire %}<a href="{% url 'goat_detail' goat.dam.sire.id %}" class="tree-node">{{ goat.dam.sire.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                        {% if goat.dam.sire %}<a href="{% url 'goat_detail' goat.dam.sire.id %}" class="tree-node">{{ goat.dam.sire.name }}{% if goat.dam.sire.registration_number %} <small style="opacity:.7">{{ goat.dam.sire.registration_number }}</small>{% endif %}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
                                     </li>
                                     <li>
-                                        {% if goat.dam.dam %}<a href="{% url 'goat_detail' goat.dam.dam.id %}" class="tree-node">{{ goat.dam.dam.name }}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
+                                        {% if goat.dam.dam %}<a href="{% url 'goat_detail' goat.dam.dam.id %}" class="tree-node">{{ goat.dam.dam.name }}{% if goat.dam.dam.registration_number %} <small style="opacity:.7">{{ goat.dam.dam.registration_number }}</small>{% endif %}</a>{% else %}<span class="tree-node empty">Unknown</span>{% endif %}
                                     </li>
                                 </ul>
                                 {% else %}

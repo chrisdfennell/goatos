@@ -54,8 +54,8 @@ def get_weather_data(lat, lon):
 def index(request):
     context = get_common_context()
     farm_settings = context['farm_settings']
-    
-    goats = Goat.objects.all()
+
+    goats = Goat.objects.filter(is_external=False)
     grazing_areas = GrazingArea.objects.all()
     vets = Vet.objects.all()
     today = timezone.now().date()
@@ -211,7 +211,7 @@ def milk_dashboard(request):
     thirty_days_ago = timezone.now().date() - timedelta(days=30)
     monthly_logs = logs.filter(date__gte=thirty_days_ago)
     total_30_days = monthly_logs.aggregate(Sum('amount'))['amount__sum'] or 0
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
 
     context = get_common_context()
     context.update({
@@ -287,7 +287,7 @@ def finance_dashboard(request):
     month_income = transactions.filter(type='Income', date__gte=current_month_start).aggregate(Sum('amount'))['amount__sum'] or 0
     month_expense = transactions.filter(type='Expense', date__gte=current_month_start).aggregate(Sum('amount'))['amount__sum'] or 0
 
-    goats = Goat.objects.all().order_by('name')
+    goats = Goat.objects.filter(is_external=False).order_by('name')
     suppliers = Supplier.objects.all().order_by('name')
 
     context = get_common_context()
@@ -305,7 +305,7 @@ def finance_dashboard(request):
 
 def weight_dashboard(request):
     recent_weights = WeightLog.objects.select_related('goat').order_by('-date')[:20]
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     context = get_common_context()
     context.update({'recent_weights': recent_weights, 'goats': goats})
     return render(request, 'farm/weight.html', context)
@@ -428,7 +428,7 @@ def medicine_dashboard(request):
     
     meds = Medicine.objects.all().order_by('expiration_date')
     schedules = MedicalSchedule.objects.select_related('goat').all()
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     context = get_common_context()
     context.update({'meds': meds, 'schedules': schedules, 'goats': goats})
     return render(request, 'farm/medicine.html', context)
@@ -468,7 +468,7 @@ def crm_dashboard(request):
 
     customers = Customer.objects.all().order_by('name')
     waiting_list = WaitingList.objects.filter(status='Active').order_by('-date_added')
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
 
     context = get_common_context()
     context.update({
@@ -829,7 +829,7 @@ def sales_list(request):
     )
     pending_revenue = (pending_agg['total_price'] or 0) - (pending_agg['total_deposits'] or 0)
     customers = Customer.objects.all().order_by('name')
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     context = get_common_context()
     context.update({
         'sales': sales,
@@ -919,7 +919,7 @@ def export_goats_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="goats_export.csv"'
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Breed', 'Gender', 'Status', 'Birthdate', 'Age', 'Is Fainting', 'Dam', 'Sire', 'Bio'])
+    writer.writerow(['Name', 'Breed', 'Gender', 'Status', 'Birthdate', 'Age', 'Is Fainting', 'Dam', 'Sire', 'Registration #', 'External', 'External Owner', 'Bio'])
     for goat in Goat.objects.select_related('dam', 'sire').all():
         writer.writerow([
             goat.name, goat.breed, goat.gender,
@@ -927,6 +927,9 @@ def export_goats_csv(request):
             goat.is_fainting,
             goat.dam.name if goat.dam else '',
             goat.sire.name if goat.sire else '',
+            goat.registration_number,
+            goat.is_external,
+            goat.external_owner,
             goat.bio
         ])
     return response
@@ -1289,6 +1292,20 @@ def delete_grazing_area(request, area_id):
 
 
 # =====================================================
+# EXTERNAL GOATS
+# =====================================================
+
+def external_goats(request):
+    """List of external goats used for pedigree tracking."""
+    context = get_common_context()
+    goats = Goat.objects.filter(is_external=True).order_by('name')
+    for goat in goats:
+        goat.kid_count = Goat.objects.filter(Q(dam=goat) | Q(sire=goat)).distinct().count()
+    context['goats'] = goats
+    return render(request, 'farm/external_goats.html', context)
+
+
+# =====================================================
 # DEDICATED MAP PAGE + KML EXPORT
 # =====================================================
 
@@ -1296,7 +1313,7 @@ def map_dashboard(request):
     """Dedicated full-screen map page with all tools and collapsible panels."""
     context = get_common_context()
     today = timezone.now().date()
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     grazing_areas = GrazingArea.objects.all()
 
     areas_list = []
@@ -1399,7 +1416,7 @@ def export_grazing_areas_kml(request):
 # =====================================================
 
 def analytics_dashboard(request):
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     today = timezone.now().date()
 
     # Breed distribution
@@ -1839,7 +1856,7 @@ def activity_feed(request):
 # =====================================================
 
 def cost_analysis(request):
-    goats = Goat.objects.all()
+    goats = Goat.objects.filter(is_external=False)
     analysis = []
 
     for goat in goats:

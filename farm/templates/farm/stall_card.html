@@ -67,6 +67,12 @@
                 <span class="label">Status</span>
                 <div class="value">{{ goat.status }}</div>
             </div>
+            {% if goat.registration_number %}
+            <div>
+                <span class="label">Registration #</span>
+                <div class="value">{{ goat.registration_number }}</div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="pedigree">
@@ -74,11 +80,11 @@
             <div style="display: flex; justify-content: space-between;">
                 <div>
                     <span class="label">Sire (Father)</span>
-                    <div class="value">{{ goat.sire.name|default:"Unknown" }}</div>
+                    <div class="value">{{ goat.sire.name|default:"Unknown" }}{% if goat.sire.registration_number %} <span style="font-size:.8em;color:#888;">{{ goat.sire.registration_number }}</span>{% endif %}</div>
                 </div>
                 <div>
                     <span class="label">Dam (Mother)</span>
-                    <div class="value">{{ goat.dam.name|default:"Unknown" }}</div>
+                    <div class="value">{{ goat.dam.name|default:"Unknown" }}{% if goat.dam.registration_number %} <span style="font-size:.8em;color:#888;">{{ goat.dam.registration_number }}</span>{% endif %}</div>
                 </div>
             </div>
         </div>

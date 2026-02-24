@@ -1,0 +1,105 @@
+{% extends "farm/base.html" %}
+
+{% block header_subtitle %}
+<span class="system-status">External Goats &mdash; Pedigree Reference</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ext-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    .ext-table th { background: #2c3e50; color: #fff; padding: 14px 16px; text-align: left; font-size: .85em; text-transform: uppercase; letter-spacing: .5px; }
+    .ext-table td { padding: 12px 16px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    .ext-table tr:last-child td { border-bottom: none; }
+    .ext-table tr:hover td { background: #f8f9fa; }
+    .ext-badge { display: inline-block; background: #ff9800; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: .7em; font-weight: 700; vertical-align: middle; margin-left: 6px; }
+    .ext-empty { text-align: center; padding: 60px 20px; color: #aaa; }
+    .ext-empty i { font-size: 3em; display: block; margin-bottom: 15px; }
+    .ext-actions { display: flex; gap: 8px; }
+    .ext-actions a { color: #2196F3; font-size: .9em; }
+    .ext-actions form button { background: none; border: none; color: #e53935; cursor: pointer; font-size: .9em; padding: 0; }
+    .ext-actions form button:hover { text-decoration: underline; }
+    .ext-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .ext-header h2 { margin: 0; color: #2c3e50; }
+    .ext-count { background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: .85em; font-weight: 600; }
+    body.dark-mode .ext-table { background: #1e1e1e; }
+    body.dark-mode .ext-table th { background: #333; }
+    body.dark-mode .ext-table td { border-bottom-color: #333; color: #e0e0e0; }
+    body.dark-mode .ext-table tr:hover td { background: #2a2a2a; }
+    body.dark-mode .ext-header h2 { color: #ecf0f1; }
+    body.dark-mode .ext-count { background: #1b5e20; color: #a5d6a7; }
+    @media (max-width: 600px) {
+        .ext-table, .ext-table thead, .ext-table tbody, .ext-table th, .ext-table td, .ext-table tr { display: block; }
+        .ext-table thead { display: none; }
+        .ext-table td { padding: 8px 16px; text-align: right; position: relative; padding-left: 45%; }
+        .ext-table td::before { content: attr(data-label); position: absolute; left: 16px; font-weight: 700; text-align: left; color: #888; font-size: .85em; }
+        .ext-table tr { margin-bottom: 12px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ext-header">
+    <h2>🔗 External Goats</h2>
+    <div>
+        <span class="ext-count">{{ goats|length }} external record{{ goats|length|pluralize }}</span>
+        <a href="{% url 'add_goat' %}" style="margin-left:10px; background:#2c3e50; color:#fff; padding:8px 16px; border-radius:6px; font-size:.9em; font-weight:600;">+ Add External Goat</a>
+    </div>
+</div>
+
+<p style="color:#888; margin-bottom:20px; font-size:.9em;">
+    External goats are sires and dams from other breeders, kept here for pedigree tracking. They don't appear in your herd counts or dashboard.
+</p>
+
+{% if goats %}
+<table class="ext-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Breed</th>
+            <th>Gender</th>
+            <th>Registration #</th>
+            <th>Owner / Breeder</th>
+            <th>Used As Parent</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for goat in goats %}
+        <tr>
+            <td data-label="Name">
+                <a href="{% url 'goat_detail' goat.id %}" style="color:#2c3e50; font-weight:600;">{{ goat.name }}</a>
+                <span class="ext-badge">EXT</span>
+            </td>
+            <td data-label="Breed">{{ goat.breed|default:"—" }}</td>
+            <td data-label="Gender">{{ goat.get_gender_display|default:"—" }}</td>
+            <td data-label="Registration #" style="font-family:monospace; font-size:.9em;">{{ goat.registration_number|default:"—" }}</td>
+            <td data-label="Owner">{{ goat.external_owner|default:"—" }}</td>
+            <td data-label="Used As Parent">
+                {% if goat.kid_count %}
+                    <span style="background:#e3f2fd; color:#1565c0; padding:2px 8px; border-radius:10px; font-size:.85em;">{{ goat.kid_count }} kid{{ goat.kid_count|pluralize }}</span>
+                {% else %}
+                    <span style="color:#aaa;">None yet</span>
+                {% endif %}
+            </td>
+            <td data-label="Actions">
+                <div class="ext-actions">
+                    <a href="{% url 'edit_goat' goat.id %}" title="Edit">✏️ Edit</a>
+                    <form action="{% url 'delete_goat' goat.id %}" method="post" data-confirm="Delete {{ goat.name }}? This cannot be undone.">
+                        {% csrf_token %}
+                        <button type="submit" title="Delete">🗑️ Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="ext-empty">
+    <i>🔗</i>
+    <p>No external goats yet.</p>
+    <p style="font-size:.9em;">Add external sires and dams when recording pedigree info for goats purchased from other breeders.</p>
+    <a href="{% url 'add_goat' %}" style="display:inline-block; margin-top:10px; background:#2c3e50; color:#fff; padding:10px 20px; border-radius:8px;">+ Add External Goat</a>
+</div>
+{% endif %}
+{% endblock %}

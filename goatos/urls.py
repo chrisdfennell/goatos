@@ -20,7 +20,8 @@ urlpatterns = [
     path('medicine/', views.medicine_dashboard, name='medicine_dashboard'),
     path('crm/', views.crm_dashboard, name='crm_dashboard'),
     path('sales/', views.sales_list, name='sales_list'),
-    path('tools/', views.tools_dashboard, name='tools_dashboard'), # NEW
+    path('tools/', views.tools_dashboard, name='tools_dashboard'),
+    path('external-goats/', views.external_goats, name='external_goats'),
 
     # Settings & Updates
     path('update_settings/', views.update_settings, name='update_settings'),

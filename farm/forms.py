@@ -27,7 +27,7 @@ class PinForm(forms.Form):
 class GoatForm(forms.ModelForm):
     class Meta:
         model = Goat
-        fields = ['name', 'breed', 'gender', 'birthdate', 'age', 'is_fainting', 'status', 'bio', 'image', 'dam', 'sire']
+        fields = ['name', 'breed', 'gender', 'birthdate', 'age', 'is_fainting', 'status', 'bio', 'image', 'dam', 'sire', 'registration_number', 'is_external', 'external_owner']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Goat name'}),
@@ -40,4 +40,22 @@ class GoatForm(forms.ModelForm):
             'dam': forms.Select(attrs={'class': 'form-select'}),
             'sire': forms.Select(attrs={'class': 'form-select'}),
             'is_fainting': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'registration_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. ADGA-12345'}),
+            'is_external': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'external_owner': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Breeder / owner name'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['dam', 'sire']:
+            field = self.fields[field_name]
+            field.label_from_instance = self._goat_label
+
+    @staticmethod
+    def _goat_label(obj):
+        label = obj.name
+        if obj.registration_number:
+            label += f" — {obj.registration_number}"
+        if obj.is_external:
+            label += " (External)"
+        return label
