@@ -50,8 +50,21 @@ class Goat(models.Model):
     def display_age(self):
         if self.birthdate:
             today = date.today()
-            years = today.year - self.birthdate.year - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
-            return f"{years} Years"
+            total_days = (today - self.birthdate).days
+            if total_days < 7:
+                return f"{total_days} Days"
+            elif total_days < 30:
+                weeks = total_days // 7
+                return f"{weeks} Week{'s' if weeks != 1 else ''}"
+            elif total_days < 365:
+                months = total_days // 30
+                weeks = (total_days % 30) // 7
+                if weeks > 0:
+                    return f"{months} Month{'s' if months != 1 else ''}, {weeks} Week{'s' if weeks != 1 else ''}"
+                return f"{months} Month{'s' if months != 1 else ''}"
+            else:
+                years = today.year - self.birthdate.year - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
+                return f"{years} Year{'s' if years != 1 else ''}"
         return f"{self.age} Years"
 
     @property
