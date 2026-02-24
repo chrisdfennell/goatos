@@ -182,13 +182,13 @@ The satellite map and grazing tools require a Google Maps API key. Follow these 
 ### Forgot Admin Password?
 ```bash
 # Reset password for existing user
-docker exec -it goatos-container python manage.py changepassword admin
+docker exec -it goatos_app python manage.py changepassword admin
 
 # Or create a new admin user
-docker exec -it goatos-container python manage.py createsuperuser
+docker exec -it goatos_app python manage.py createsuperuser
 ```
 
-> Use `docker ps` to find your container name if it differs from `goatos-container`.
+> Use `docker ps` to find your container name if it differs from `goatos_app`.
 
 ---
 
