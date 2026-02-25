@@ -253,18 +253,6 @@
             <div style="text-align:center; padding:30px; color:#aaa;">No photos in gallery yet. Upload one above!</div>
             {% endif %}
 
-            <!-- Grid view -->
-            {% if gallery_photos %}
-            <div class="gallery-grid">
-                {% for photo in gallery_photos %}
-                <div class="gallery-item" onclick="openLightbox({{ forloop.counter0 }})">
-                    <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" loading="lazy">
-                    {% if photo.caption %}<div class="gallery-caption">{{ photo.caption }}</div>{% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
             <!-- PEDIGREE SECTION -->
             <div class="section-header"><h3 class="section-title">🌳 Lineage</h3></div>
 
