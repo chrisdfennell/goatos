@@ -175,6 +175,16 @@ urlpatterns = [
     path('barn/', views.barn_dashboard, name='barn_dashboard'),
     path('pen/<int:pen_id>/delete/', views.delete_pen, name='delete_pen'),
 
+    # Mobile Quick Entry (Feature 10)
+    path('quick-entry/', views.quick_entry, name='quick_entry'),
+
+    # Family Tree / Pedigree (Feature 11)
+    path('pedigree/', views.pedigree, name='pedigree'),
+    path('api/pedigree/<int:goat_id>/', views.pedigree_api, name='pedigree_api'),
+
+    # Alerts Dashboard (Feature 12)
+    path('alerts/', views.alerts_dashboard, name='alerts_dashboard'),
+
 ]
 
 # Always serve media files (runsslserver doesn't have a separate web server)

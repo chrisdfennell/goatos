@@ -1,0 +1,273 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .ped-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .ped-controls select { padding: 10px 15px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1em; min-width: 200px; }
+    .ped-controls .btn-view { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .ped-controls .btn-view.active { background: #2c3e50; color: #fff; }
+    .ped-controls .btn-view:not(.active) { background: #e0e0e0; color: #555; }
+
+    /* Pedigree Tree */
+    .ped-tree-container { overflow-x: auto; padding: 20px 0; }
+    .ped-tree { display: flex; align-items: center; gap: 40px; min-width: fit-content; }
+    .ped-node { background: #fff; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; min-width: 140px; text-align: center; position: relative; transition: all 0.2s; }
+    .ped-node:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .ped-node.doe { border-color: #e91e63; }
+    .ped-node.buck { border-color: #2196f3; }
+    .ped-node.external { border-style: dashed; opacity: 0.85; }
+    .ped-node-name { font-weight: 700; font-size: 1em; margin-bottom: 4px; }
+    .ped-node-name a { color: inherit; text-decoration: none; }
+    .ped-node-name a:hover { text-decoration: underline; }
+    .ped-node-info { font-size: 0.8em; color: #888; }
+    .ped-node-reg { font-size: 0.75em; color: #999; font-family: monospace; }
+    .ped-node-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-bottom: 6px; }
+    .ped-gender-icon { font-size: 0.9em; }
+
+    /* Generation columns */
+    .ped-gen { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+    .ped-gen-label { font-size: 0.75em; color: #999; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 5px; }
+    .ped-connector { display: flex; align-items: center; }
+    .ped-line { width: 30px; height: 2px; background: #ccc; }
+    .ped-branch { display: flex; flex-direction: column; gap: 10px; position: relative; }
+    .ped-branch::before { content: ''; position: absolute; left: -15px; top: 25%; bottom: 25%; width: 2px; background: #ccc; }
+
+    /* Kids list */
+    .ped-kids { margin-top: 15px; }
+    .ped-kids h4 { font-size: 0.9em; color: #666; margin-bottom: 8px; }
+    .ped-kids-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ped-kid-chip { padding: 6px 12px; background: #f5f5f5; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: background 0.2s; text-decoration: none; color: #333; }
+    .ped-kid-chip:hover { background: #e0e0e0; }
+    .ped-kid-chip.doe-chip { border-left: 3px solid #e91e63; }
+    .ped-kid-chip.buck-chip { border-left: 3px solid #2196f3; }
+
+    /* Herd Graph View */
+    .ped-graph { position: relative; min-height: 500px; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .ped-graph canvas { width: 100% !important; }
+
+    /* No selection state */
+    .ped-empty { text-align: center; padding: 60px 20px; color: #999; }
+    .ped-empty .big-icon { font-size: 4em; margin-bottom: 15px; }
+
+    /* Card-based pedigree chart */
+    .pedigree-chart { display: flex; gap: 20px; overflow-x: auto; padding: 20px; align-items: center; justify-content: center; }
+    .pedigree-col { display: flex; flex-direction: column; gap: 10px; justify-content: space-around; }
+    .pedigree-col.gen-0 { }
+    .pedigree-col.gen-1 { }
+    .pedigree-col.gen-2 { }
+
+    /* Dark mode */
+    body.dark-mode .ped-node { background: #1e1e1e; border-color: #444; }
+    body.dark-mode .ped-node.doe { border-color: #e91e63; }
+    body.dark-mode .ped-node.buck { border-color: #2196f3; }
+    body.dark-mode .ped-node-name { color: #e0e0e0; }
+    body.dark-mode .ped-graph { background: #1e1e1e; }
+    body.dark-mode .ped-kid-chip { background: #2d2d2d; color: #ccc; }
+    body.dark-mode .ped-kid-chip:hover { background: #333; }
+    body.dark-mode .ped-controls select { background: #2d2d2d; border-color: #444; color: #e0e0e0; }
+    body.dark-mode .ped-line, body.dark-mode .ped-branch::before { background: #555; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 5px;">🌳 Family Tree & Pedigree</h2>
+<p style="color: #888; margin-top: 0;">View ancestry and offspring for your herd.</p>
+
+<div class="ped-controls">
+    <form method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <select name="goat" onchange="this.form.submit()" title="Select a goat">
+            <option value="">-- Select a Goat --</option>
+            {% for goat in goats %}
+            <option value="{{ goat.id }}" {% if selected_goat and selected_goat.id == goat.id %}selected{% endif %}>{{ goat.name }} ({{ goat.gender }})</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+{% if selected_goat %}
+<!-- Individual Pedigree View -->
+<div class="ped-tree-container" id="pedigreeView">
+    <div id="pedigree-chart"></div>
+
+    {% if selected_goat %}
+    <div class="ped-kids" id="kids-section">
+        <!-- Kids populated by JS -->
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<!-- No goat selected - show herd overview -->
+<div class="ped-empty">
+    <div class="big-icon">🌳</div>
+    <h3>Select a goat to view their pedigree</h3>
+    <p>Choose a goat from the dropdown above to see their ancestry tree, or browse the herd relationships below.</p>
+</div>
+
+<!-- Simple herd relationships table -->
+<div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-top:20px;">
+    <h3 style="margin-top:0; color:#2c3e50;">Herd Lineage</h3>
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9em;">
+            <thead>
+                <tr style="border-bottom:2px solid #eee;">
+                    <th style="text-align:left; padding:10px;">Goat</th>
+                    <th style="text-align:left; padding:10px;">Gender</th>
+                    <th style="text-align:left; padding:10px;">Dam</th>
+                    <th style="text-align:left; padding:10px;">Sire</th>
+                    <th style="text-align:center; padding:10px;">Offspring</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goat in all_goats %}
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                    <td style="padding:10px;">
+                        <a href="?goat={{ goat.id }}" style="color:#2c3e50; font-weight:600; text-decoration:none;">{{ goat.name }}</a>
+                        {% if goat.is_external %}<span style="font-size:0.75em; color:#999; background:#f5f5f5; padding:2px 6px; border-radius:4px;">External</span>{% endif %}
+                    </td>
+                    <td style="padding:10px;">
+                        <span class="ped-gender-icon">{% if goat.gender == 'Doe' or goat.gender == 'Doeling' %}♀{% else %}♂{% endif %}</span>
+                        {{ goat.gender }}
+                    </td>
+                    <td style="padding:10px;">
+                        {% if goat.dam %}<a href="?goat={{ goat.dam.id }}" style="color:#e91e63; text-decoration:none;">{{ goat.dam.name }}</a>{% else %}<span style="color:#ccc;">Unknown</span>{% endif %}
+                    </td>
+                    <td style="padding:10px;">
+                        {% if goat.sire %}<a href="?goat={{ goat.sire.id }}" style="color:#2196f3; text-decoration:none;">{{ goat.sire.name }}</a>{% else %}<span style="color:#ccc;">Unknown</span>{% endif %}
+                    </td>
+                    <td style="padding:10px; text-align:center;">
+                        {{ goat.kids_dam.count|add:goat.kids_sire.count }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var treeData = {{ tree_data|safe }};
+
+function renderPedigreeChart(data) {
+    if (!data) return;
+    var container = document.getElementById('pedigree-chart');
+    container.innerHTML = '';
+
+    var chart = document.createElement('div');
+    chart.className = 'pedigree-chart';
+
+    // Build generation columns: gen0 = selected goat, gen1 = parents, gen2 = grandparents
+    var gen0 = [data];
+    var gen1 = [];
+    var gen2 = [];
+
+    if (data.dam) gen1.push(data.dam);
+    else gen1.push(null);
+    if (data.sire) gen1.push(data.sire);
+    else gen1.push(null);
+
+    // Grandparents
+    for (var i = 0; i < gen1.length; i++) {
+        var p = gen1[i];
+        if (p && p.dam) gen2.push(p.dam);
+        else gen2.push(null);
+        if (p && p.sire) gen2.push(p.sire);
+        else gen2.push(null);
+    }
+
+    // Render right-to-left: grandparents -> parents -> goat
+    var col2 = makeGenCol(gen2, 'Great-Grand');
+    var col1 = makeGenCol(gen1, 'Parents');
+    var col0 = makeGenCol(gen0, 'Selected');
+
+    chart.appendChild(col2);
+    chart.appendChild(makeConnectors(4, 2));
+    chart.appendChild(col1);
+    chart.appendChild(makeConnectors(2, 1));
+    chart.appendChild(col0);
+
+    container.appendChild(chart);
+
+    // Render kids section
+    if (data.kids && data.kids.length > 0) {
+        var kidsSection = document.getElementById('kids-section');
+        kidsSection.innerHTML = '<h4 style="color:#666; margin-bottom:10px;">Offspring (' + data.kids.length + ')</h4>';
+        var kidsList = document.createElement('div');
+        kidsList.className = 'ped-kids-list';
+        data.kids.forEach(function(kid) {
+            var chip = document.createElement('a');
+            chip.href = '?goat=' + kid.id;
+            chip.className = 'ped-kid-chip ' + (kid.gender === 'Doe' || kid.gender === 'Doeling' ? 'doe-chip' : 'buck-chip');
+            chip.textContent = kid.name + ' (' + kid.gender + ')';
+            kidsList.appendChild(chip);
+        });
+        kidsSection.appendChild(kidsList);
+    }
+}
+
+function makeGenCol(nodes, label) {
+    var col = document.createElement('div');
+    col.className = 'pedigree-col';
+    var lbl = document.createElement('div');
+    lbl.className = 'ped-gen-label';
+    lbl.textContent = label;
+    col.appendChild(lbl);
+    nodes.forEach(function(node) {
+        col.appendChild(makeNode(node));
+    });
+    return col;
+}
+
+function makeNode(data) {
+    var node = document.createElement('div');
+    if (!data) {
+        node.className = 'ped-node';
+        node.innerHTML = '<div class="ped-node-name" style="color:#ccc;">Unknown</div>';
+        node.style.opacity = '0.4';
+        return node;
+    }
+    var genderClass = (data.gender === 'Doe' || data.gender === 'Doeling') ? 'doe' : 'buck';
+    node.className = 'ped-node ' + genderClass + (data.is_external ? ' external' : '');
+
+    var html = '';
+    if (data.image) {
+        html += '<img src="' + data.image + '" class="ped-node-img" alt="' + data.name + '">';
+    }
+    var icon = genderClass === 'doe' ? '♀' : '♂';
+    if (data.is_external) {
+        html += '<div class="ped-node-name">' + icon + ' ' + data.name + '</div>';
+    } else {
+        html += '<div class="ped-node-name"><a href="?goat=' + data.id + '">' + icon + ' ' + data.name + '</a></div>';
+    }
+    html += '<div class="ped-node-info">' + data.breed + '</div>';
+    if (data.registration) {
+        html += '<div class="ped-node-reg">#' + data.registration + '</div>';
+    }
+    if (data.is_external) {
+        html += '<div class="ped-node-info" style="font-style:italic;">External</div>';
+    }
+    node.innerHTML = html;
+    return node;
+}
+
+function makeConnectors(fromCount, toCount) {
+    var div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.flexDirection = 'column';
+    div.style.justifyContent = 'space-around';
+    div.style.alignSelf = 'stretch';
+    for (var i = 0; i < Math.max(fromCount, toCount); i++) {
+        var line = document.createElement('div');
+        line.className = 'ped-line';
+        div.appendChild(line);
+    }
+    return div;
+}
+
+if (treeData) {
+    renderPedigreeChart(treeData);
+}
+</script>
+{% endblock %}

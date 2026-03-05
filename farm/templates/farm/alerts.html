@@ -1,0 +1,243 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .alerts-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .alerts-summary { display: flex; gap: 15px; flex-wrap: wrap; }
+    .alert-badge { padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9em; }
+    .alert-badge.danger { background: #ffebee; color: #c62828; }
+    .alert-badge.warning { background: #fff8e1; color: #f57f17; }
+    .alert-badge.total { background: #e3f2fd; color: #1565c0; }
+
+    .alert-section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .alert-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+    .alert-section-header h3 { margin: 0; font-size: 1.1em; }
+    .alert-section-header .count { background: #eee; padding: 2px 10px; border-radius: 12px; font-size: 0.85em; font-weight: 700; }
+
+    .alert-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; margin-bottom: 8px; transition: background 0.2s; }
+    .alert-item:hover { background: #f8f9fa; }
+    .alert-item:last-child { margin-bottom: 0; }
+
+    .alert-severity { width: 8px; height: 40px; border-radius: 4px; flex-shrink: 0; }
+    .alert-severity.danger { background: #ef5350; }
+    .alert-severity.warning { background: #ffa726; }
+    .alert-severity.info { background: #42a5f5; }
+
+    .alert-content { flex: 1; }
+    .alert-title { font-weight: 600; font-size: 0.95em; }
+    .alert-title a { color: inherit; text-decoration: none; }
+    .alert-title a:hover { text-decoration: underline; }
+    .alert-detail { font-size: 0.85em; color: #888; margin-top: 2px; }
+    .alert-action { font-size: 0.8em; }
+    .alert-action a { color: #1565c0; text-decoration: none; font-weight: 600; }
+    .alert-action a:hover { text-decoration: underline; }
+
+    .no-alerts { text-align: center; padding: 40px; color: #999; }
+    .no-alerts .big-icon { font-size: 3em; margin-bottom: 10px; }
+
+    /* Dark mode */
+    body.dark-mode .alert-section { background: #1e1e1e; }
+    body.dark-mode .alert-section-header { border-bottom-color: #333; }
+    body.dark-mode .alert-item:hover { background: #2d2d2d; }
+    body.dark-mode .alert-badge.danger { background: #3e1a1a; }
+    body.dark-mode .alert-badge.warning { background: #3e3518; }
+    body.dark-mode .alert-badge.total { background: #1a2e3e; }
+    body.dark-mode .alert-section-header .count { background: #333; color: #ccc; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="alerts-header">
+    <div>
+        <h2 style="margin:0;">🔔 Alerts & Notifications</h2>
+        <p style="color:#888; margin:5px 0 0;">All active farm alerts in one place.</p>
+    </div>
+    <div class="alerts-summary">
+        {% if danger_count > 0 %}
+        <span class="alert-badge danger">{{ danger_count }} Critical</span>
+        {% endif %}
+        <span class="alert-badge total">{{ total_alerts }} Total Alert{{ total_alerts|pluralize }}</span>
+    </div>
+</div>
+
+{% if total_alerts == 0 %}
+<div class="alert-section">
+    <div class="no-alerts">
+        <div class="big-icon">✅</div>
+        <h3>All Clear!</h3>
+        <p>No active alerts at this time. Your farm is running smoothly.</p>
+    </div>
+</div>
+{% endif %}
+
+{% if kidding_alerts %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🤰 Kidding Alerts</h3>
+        <span class="count">{{ kidding_alerts|length }}</span>
+    </div>
+    {% for alert in kidding_alerts %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title"><a href="{% url 'goat_detail' alert.goat.id %}">{{ alert.goat.name }}</a></div>
+            <div class="alert-detail">{{ alert.message }} &bull; Due: {{ alert.due_date|date:"M j, Y" }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'kidding_season_dashboard' %}">View</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if medical_alerts %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>💊 Medical Treatments Due</h3>
+        <span class="count">{{ medical_alerts|length }}</span>
+    </div>
+    {% for alert in medical_alerts %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title"><a href="{% url 'goat_detail' alert.goat.id %}">{{ alert.goat.name }}</a></div>
+            <div class="alert-detail">{{ alert.record_type }} &mdash; {{ alert.message }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'goat_detail' alert.goat.id %}">View</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if schedule_alerts %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>📅 Scheduled Treatments Due</h3>
+        <span class="count">{{ schedule_alerts|length }}</span>
+    </div>
+    {% for alert in schedule_alerts %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title">{{ alert.target }}</div>
+            <div class="alert-detail">{{ alert.record_type }} &mdash; {{ alert.message }} &bull; Every {{ alert.schedule.interval_days }} days</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if famacha_alerts %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🩺 FAMACHA Alerts</h3>
+        <span class="count">{{ famacha_alerts|length }}</span>
+    </div>
+    {% for alert in famacha_alerts %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title"><a href="{% url 'goat_detail' alert.goat.id %}">{{ alert.goat.name }}</a></div>
+            <div class="alert-detail">{{ alert.message }} &bull; Scored: {{ alert.date|date:"M j" }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'health_scores_dashboard' %}">Scores</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if heat_alerts %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🔥 Heat Predictions</h3>
+        <span class="count">{{ heat_alerts|length }}</span>
+    </div>
+    {% for alert in heat_alerts %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title"><a href="{% url 'goat_detail' alert.goat.id %}">{{ alert.goat.name }}</a></div>
+            <div class="alert-detail">{{ alert.message }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'breeding_dashboard' %}">Breeding</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if low_stock %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🚜 Low Feed Stock</h3>
+        <span class="count">{{ low_stock|length }}</span>
+    </div>
+    {% for alert in low_stock %}
+    <div class="alert-item">
+        <div class="alert-severity {{ alert.severity }}"></div>
+        <div class="alert-content">
+            <div class="alert-title">{{ alert.item.name }}</div>
+            <div class="alert-detail">{{ alert.message }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'silo_dashboard' %}">Silo</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if expired_meds %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>⚠️ Expired Medicines</h3>
+        <span class="count">{{ expired_meds|length }}</span>
+    </div>
+    {% for alert in expired_meds %}
+    <div class="alert-item">
+        <div class="alert-severity danger"></div>
+        <div class="alert-content">
+            <div class="alert-title">{{ alert.medicine.name }}</div>
+            <div class="alert-detail">{{ alert.message }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'medicine_dashboard' %}">Cabinet</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if overcrowded %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🏠 Overcrowded Pens</h3>
+        <span class="count">{{ overcrowded|length }}</span>
+    </div>
+    {% for alert in overcrowded %}
+    <div class="alert-item">
+        <div class="alert-severity warning"></div>
+        <div class="alert-content">
+            <div class="alert-title">{{ alert.pen.name }}</div>
+            <div class="alert-detail">{{ alert.message }}</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'barn_dashboard' %}">Barn</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if sick_goats %}
+<div class="alert-section">
+    <div class="alert-section-header">
+        <h3>🤒 Sick Goats</h3>
+        <span class="count">{{ sick_goats|length }}</span>
+    </div>
+    {% for goat in sick_goats %}
+    <div class="alert-item">
+        <div class="alert-severity warning"></div>
+        <div class="alert-content">
+            <div class="alert-title"><a href="{% url 'goat_detail' goat.id %}">{{ goat.name }}</a></div>
+            <div class="alert-detail">{{ goat.breed }} &bull; Marked as sick</div>
+        </div>
+        <div class="alert-action"><a href="{% url 'goat_detail' goat.id %}">View</a></div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

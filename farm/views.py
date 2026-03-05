@@ -2028,3 +2028,287 @@ def delete_pen(request, pen_id):
     pen.delete()
     messages.success(request, 'Pen deleted.')
     return redirect('barn_dashboard')
+
+
+# =====================================================
+# FEATURE 10: MOBILE QUICK-ENTRY MODE
+# =====================================================
+
+def quick_entry(request):
+    """Mobile-optimized quick entry for milk, weight, feeding, and health scores."""
+    goats = Goat.objects.filter(status__in=['Healthy', 'Sick'], is_external=False).order_by('name')
+    does = goats.filter(gender__in=['Doe', 'Doeling'])
+
+    if request.method == 'POST':
+        entry_type = request.POST.get('entry_type')
+        goat_id = request.POST.get('goat_id')
+        goat = get_object_or_404(Goat, pk=goat_id)
+        entry_date = request.POST.get('date') or date.today()
+
+        if entry_type == 'milk':
+            MilkLog.objects.create(
+                goat=goat,
+                date=entry_date,
+                time=request.POST.get('time', 'AM'),
+                amount=request.POST.get('amount'),
+                notes=request.POST.get('notes', ''),
+            )
+            messages.success(request, f'Milk logged for {goat.name}.')
+        elif entry_type == 'weight':
+            WeightLog.objects.create(
+                goat=goat,
+                date=entry_date,
+                weight=request.POST.get('weight'),
+                notes=request.POST.get('notes', ''),
+            )
+            messages.success(request, f'Weight logged for {goat.name}.')
+        elif entry_type == 'feeding':
+            FeedingLog.objects.create(
+                goat=goat,
+                date=entry_date,
+                feed_type=request.POST.get('feed_type', 'Hay'),
+                amount=request.POST.get('amount', ''),
+                notes=request.POST.get('notes', ''),
+            )
+            messages.success(request, f'Feeding logged for {goat.name}.')
+        elif entry_type == 'health':
+            HealthScore.objects.create(
+                goat=goat,
+                date=entry_date,
+                famacha_score=request.POST.get('famacha_score') or None,
+                body_condition_score=request.POST.get('body_condition_score') or None,
+                notes=request.POST.get('notes', ''),
+            )
+            messages.success(request, f'Health score logged for {goat.name}.')
+        elif entry_type == 'medical':
+            MedicalRecord.objects.create(
+                goat=goat,
+                date=entry_date,
+                record_type=request.POST.get('record_type', 'Checkup'),
+                notes=request.POST.get('notes', ''),
+                next_due_date=request.POST.get('next_due_date') or None,
+            )
+            messages.success(request, f'Medical record logged for {goat.name}.')
+
+        return redirect('quick_entry')
+
+    context = get_common_context()
+    context.update({
+        'goats': goats,
+        'does': does,
+        'today': date.today().isoformat(),
+    })
+    return render(request, 'farm/quick_entry.html', context)
+
+
+# =====================================================
+# FEATURE 11: FAMILY TREE / PEDIGREE VIEWER
+# =====================================================
+
+def pedigree(request):
+    """Interactive family tree / pedigree viewer."""
+    goats = Goat.objects.filter(is_external=False).order_by('name')
+    all_goats = Goat.objects.all()  # Include external for lineage
+    selected_id = request.GET.get('goat')
+    selected_goat = None
+    tree_data = None
+
+    if selected_id:
+        selected_goat = get_object_or_404(Goat, pk=selected_id)
+        tree_data = _build_pedigree_tree(selected_goat, depth=3)
+
+    # Build lineage data for the full herd view
+    nodes = []
+    edges = []
+    for goat in all_goats:
+        nodes.append({
+            'id': goat.id,
+            'name': goat.name,
+            'gender': goat.gender,
+            'breed': goat.breed,
+            'is_external': goat.is_external,
+            'status': goat.status,
+            'image': goat.image.url if goat.image else '',
+            'registration': goat.registration_number,
+        })
+        if goat.dam_id:
+            edges.append({'from': goat.dam_id, 'to': goat.id, 'type': 'dam'})
+        if goat.sire_id:
+            edges.append({'from': goat.sire_id, 'to': goat.id, 'type': 'sire'})
+
+    context = get_common_context()
+    context.update({
+        'goats': goats,
+        'all_goats': all_goats,
+        'selected_goat': selected_goat,
+        'tree_data': json.dumps(tree_data) if tree_data else 'null',
+        'nodes': json.dumps(nodes),
+        'edges': json.dumps(edges),
+    })
+    return render(request, 'farm/pedigree.html', context)
+
+
+def _build_pedigree_tree(goat, depth=3):
+    """Recursively build pedigree tree data."""
+    if not goat or depth <= 0:
+        return None
+    node = {
+        'id': goat.id,
+        'name': goat.name,
+        'gender': goat.gender,
+        'breed': goat.breed,
+        'is_external': goat.is_external,
+        'registration': goat.registration_number,
+        'image': goat.image.url if goat.image else '',
+        'dam': _build_pedigree_tree(goat.dam, depth - 1),
+        'sire': _build_pedigree_tree(goat.sire, depth - 1),
+    }
+    # Add offspring
+    kids = list(Goat.objects.filter(Q(dam=goat) | Q(sire=goat)).values_list('id', 'name', 'gender'))
+    node['kids'] = [{'id': k[0], 'name': k[1], 'gender': k[2]} for k in kids]
+    return node
+
+
+def pedigree_api(request, goat_id):
+    """API endpoint to get pedigree tree data for a goat."""
+    goat = get_object_or_404(Goat, pk=goat_id)
+    tree_data = _build_pedigree_tree(goat, depth=4)
+    return JsonResponse(tree_data, safe=False)
+
+
+# =====================================================
+# FEATURE 12: ALERTS & NOTIFICATIONS PAGE
+# =====================================================
+
+def alerts_dashboard(request):
+    """Consolidated alerts page with all farm notifications."""
+    today = date.today()
+
+    # Kidding alerts - does due within 21 days or overdue
+    kidding_alerts = []
+    pregnant_does = BreedingLog.objects.filter(
+        due_date__isnull=False,
+        due_date__gte=today - timedelta(days=14),
+        due_date__lte=today + timedelta(days=21),
+    ).select_related('goat').order_by('due_date')
+    for log in pregnant_does:
+        days_until = (log.due_date - today).days
+        kidding_alerts.append({
+            'goat': log.goat,
+            'due_date': log.due_date,
+            'days_until': days_until,
+            'severity': 'danger' if days_until < 0 else 'warning' if days_until <= 7 else 'info',
+            'message': f'Overdue by {abs(days_until)} days' if days_until < 0 else f'Due today' if days_until == 0 else f'Due in {days_until} days',
+        })
+
+    # Medical alerts - treatments due within 14 days
+    medical_alerts = []
+    due_records = MedicalRecord.objects.filter(
+        next_due_date__isnull=False,
+        next_due_date__lte=today + timedelta(days=14),
+    ).select_related('goat').order_by('next_due_date')
+    for rec in due_records:
+        days_until = (rec.next_due_date - today).days
+        medical_alerts.append({
+            'goat': rec.goat,
+            'record_type': rec.get_record_type_display(),
+            'due_date': rec.next_due_date,
+            'days_until': days_until,
+            'severity': 'danger' if days_until < 0 else 'warning' if days_until <= 3 else 'info',
+            'message': f'Overdue by {abs(days_until)} days' if days_until < 0 else f'Due today' if days_until == 0 else f'Due in {days_until} days',
+        })
+
+    # Schedule alerts
+    schedule_alerts = []
+    for s in MedicalSchedule.objects.select_related('goat').all():
+        if s.is_due_soon:
+            days_until = (s.next_due - today).days
+            schedule_alerts.append({
+                'goat': s.goat,
+                'schedule': s,
+                'record_type': s.get_record_type_display(),
+                'due_date': s.next_due,
+                'days_until': days_until,
+                'severity': 'danger' if days_until < 0 else 'warning' if days_until <= 3 else 'info',
+                'message': f'Overdue by {abs(days_until)} days' if days_until < 0 else f'Due today' if days_until == 0 else f'Due in {days_until} days',
+                'target': s.goat.name if s.goat else 'Entire Herd',
+            })
+
+    # FAMACHA alerts - score >= 4
+    famacha_alerts = []
+    for goat in Goat.objects.filter(status='Healthy', is_external=False):
+        latest = goat.health_scores.first()
+        if latest and latest.famacha_score and latest.famacha_score >= 4:
+            famacha_alerts.append({
+                'goat': goat,
+                'score': latest.famacha_score,
+                'date': latest.date,
+                'severity': 'danger' if latest.famacha_score == 5 else 'warning',
+                'message': f'FAMACHA score {latest.famacha_score} - {"Critical anemia" if latest.famacha_score == 5 else "Needs deworming"}',
+            })
+
+    # Heat predictions - within 3 days
+    heat_alerts = []
+    three_days = today + timedelta(days=3)
+    for goat in Goat.objects.filter(gender__in=['Doe', 'Doeling'], status='Healthy', is_external=False):
+        latest_heat = goat.heat_observations.first()
+        if latest_heat and today <= latest_heat.next_heat_date <= three_days:
+            heat_alerts.append({
+                'goat': goat,
+                'predicted_date': latest_heat.next_heat_date,
+                'severity': 'info',
+                'message': f'Predicted heat on {latest_heat.next_heat_date.strftime("%b %d")}',
+            })
+
+    # Low feed stock
+    low_stock = []
+    for item in FeedItem.objects.filter(quantity__lte=F('low_stock_threshold')):
+        low_stock.append({
+            'item': item,
+            'severity': 'danger' if item.quantity == 0 else 'warning',
+            'message': f'{item.name}: {item.quantity} {item.unit} remaining (threshold: {item.low_stock_threshold})',
+        })
+
+    # Expired medicines
+    expired_meds = []
+    for med in Medicine.objects.filter(expiration_date__lte=today):
+        expired_meds.append({
+            'medicine': med,
+            'severity': 'danger',
+            'message': f'{med.name} expired on {med.expiration_date.strftime("%b %d, %Y")}',
+        })
+
+    # Overcrowded pens
+    overcrowded = []
+    for pen in Pen.objects.all():
+        if pen.is_over_capacity:
+            overcrowded.append({
+                'pen': pen,
+                'severity': 'warning',
+                'message': f'{pen.name}: {pen.occupant_count}/{pen.capacity} capacity',
+            })
+
+    # Sick goats
+    sick_goats = Goat.objects.filter(status='Sick', is_external=False)
+
+    # Count totals
+    total_alerts = (len(kidding_alerts) + len(medical_alerts) + len(schedule_alerts) +
+                    len(famacha_alerts) + len(heat_alerts) + len(low_stock) +
+                    len(expired_meds) + len(overcrowded) + sick_goats.count())
+    danger_count = sum(1 for a in kidding_alerts + medical_alerts + schedule_alerts + famacha_alerts + low_stock + expired_meds if a.get('severity') == 'danger')
+
+    context = get_common_context()
+    context.update({
+        'kidding_alerts': kidding_alerts,
+        'medical_alerts': medical_alerts,
+        'schedule_alerts': schedule_alerts,
+        'famacha_alerts': famacha_alerts,
+        'heat_alerts': heat_alerts,
+        'low_stock': low_stock,
+        'expired_meds': expired_meds,
+        'overcrowded': overcrowded,
+        'sick_goats': sick_goats,
+        'total_alerts': total_alerts,
+        'danger_count': danger_count,
+    })
+    return render(request, 'farm/alerts.html', context)

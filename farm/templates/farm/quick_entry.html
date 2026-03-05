@@ -1,0 +1,291 @@
+{% extends 'farm/base.html' %}
+
+{% block extra_css %}
+<style>
+    .qe-container { max-width: 500px; margin: 0 auto; }
+    .qe-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .qe-tab { flex: 1; min-width: 70px; padding: 12px 8px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; text-align: center; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.2s; }
+    .qe-tab.active { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
+    .qe-tab .tab-icon { font-size: 1.5em; display: block; margin-bottom: 4px; }
+    .qe-form { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .qe-form[hidden] { display: none; }
+    .qe-field { margin-bottom: 16px; }
+    .qe-field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9em; color: #555; }
+    .qe-field input, .qe-field select, .qe-field textarea { width: 100%; padding: 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1em; box-sizing: border-box; }
+    .qe-field input:focus, .qe-field select:focus, .qe-field textarea:focus { border-color: #4caf50; outline: none; box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
+    .qe-field textarea { height: 60px; resize: vertical; }
+    .qe-submit { width: 100%; padding: 14px; background: #4caf50; color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .qe-submit:active { background: #388e3c; transform: scale(0.98); }
+    .qe-ampm { display: flex; gap: 10px; }
+    .qe-ampm label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .qe-ampm input { display: none; }
+    .qe-ampm input:checked + span { color: #2e7d32; }
+    .qe-ampm label:has(input:checked) { border-color: #4caf50; background: #e8f5e9; }
+    .qe-goat-select { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto; padding: 4px; }
+    .qe-goat-btn { padding: 10px 6px; border: 2px solid #e0e0e0; border-radius: 8px; background: #fff; cursor: pointer; text-align: center; font-size: 0.85em; font-weight: 600; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qe-goat-btn.selected { border-color: #4caf50; background: #e8f5e9; }
+    .qe-goat-search { width: 100%; padding: 10px; border: 1.5px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 0.95em; box-sizing: border-box; }
+    .qe-recent { margin-top: 20px; background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .qe-recent h3 { margin: 0 0 10px; font-size: 1em; color: #888; }
+    .qe-recent-item { padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9em; display: flex; justify-content: space-between; }
+    .qe-recent-item:last-child { border-bottom: none; }
+
+    /* Dark mode */
+    body.dark-mode .qe-tab { background: #2d2d2d; border-color: #444; color: #ccc; }
+    body.dark-mode .qe-tab.active { border-color: #4caf50; background: #1b3a1b; color: #69f0ae; }
+    body.dark-mode .qe-form, body.dark-mode .qe-recent { background: #1e1e1e; }
+    body.dark-mode .qe-field input, body.dark-mode .qe-field select, body.dark-mode .qe-field textarea, body.dark-mode .qe-goat-search { background: #2d2d2d; border-color: #444; color: #e0e0e0; }
+    body.dark-mode .qe-goat-btn { background: #2d2d2d; border-color: #444; color: #ccc; }
+    body.dark-mode .qe-goat-btn.selected { border-color: #4caf50; background: #1b3a1b; }
+    body.dark-mode .qe-ampm label { border-color: #444; color: #ccc; }
+    body.dark-mode .qe-ampm label:has(input:checked) { border-color: #4caf50; background: #1b3a1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qe-container">
+    <h2 style="text-align:center; margin-bottom:20px;">Quick Entry</h2>
+
+    <!-- Tabs -->
+    <div class="qe-tabs">
+        <div class="qe-tab active" data-tab="milk"><span class="tab-icon">🥛</span>Milk</div>
+        <div class="qe-tab" data-tab="weight"><span class="tab-icon">⚖️</span>Weight</div>
+        <div class="qe-tab" data-tab="feeding"><span class="tab-icon">🌾</span>Feed</div>
+        <div class="qe-tab" data-tab="health"><span class="tab-icon">🩺</span>Health</div>
+        <div class="qe-tab" data-tab="medical"><span class="tab-icon">💊</span>Medical</div>
+    </div>
+
+    <!-- MILK FORM -->
+    <form class="qe-form" id="form-milk" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="milk">
+        <div class="qe-field">
+            <label>Goat</label>
+            <input type="text" class="qe-goat-search" placeholder="Search goats..." data-target="milk">
+            <div class="qe-goat-select" id="goats-milk">
+                {% for goat in does %}
+                <div class="qe-goat-btn" data-id="{{ goat.id }}">{{ goat.name }}</div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="goat_id" id="goat-milk" required>
+        </div>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>AM / PM</label>
+            <div class="qe-ampm">
+                <label><input type="radio" name="time" value="AM" checked><span>☀️ AM</span></label>
+                <label><input type="radio" name="time" value="PM"><span>🌙 PM</span></label>
+            </div>
+        </div>
+        <div class="qe-field">
+            <label>Amount (lbs)</label>
+            <input type="number" name="amount" step="0.01" min="0" required placeholder="e.g. 2.5" inputmode="decimal">
+        </div>
+        <div class="qe-field">
+            <label>Notes (optional)</label>
+            <textarea name="notes" placeholder="Any notes..."></textarea>
+        </div>
+        <button type="submit" class="qe-submit">Log Milk</button>
+    </form>
+
+    <!-- WEIGHT FORM -->
+    <form class="qe-form" id="form-weight" method="POST" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="weight">
+        <div class="qe-field">
+            <label>Goat</label>
+            <input type="text" class="qe-goat-search" placeholder="Search goats..." data-target="weight">
+            <div class="qe-goat-select" id="goats-weight">
+                {% for goat in goats %}
+                <div class="qe-goat-btn" data-id="{{ goat.id }}">{{ goat.name }}</div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="goat_id" id="goat-weight" required>
+        </div>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>Weight (lbs)</label>
+            <input type="number" name="weight" step="0.1" min="0" required placeholder="e.g. 85.5" inputmode="decimal">
+        </div>
+        <div class="qe-field">
+            <label>Notes (optional)</label>
+            <textarea name="notes" placeholder="Any notes..."></textarea>
+        </div>
+        <button type="submit" class="qe-submit">Log Weight</button>
+    </form>
+
+    <!-- FEEDING FORM -->
+    <form class="qe-form" id="form-feeding" method="POST" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="feeding">
+        <div class="qe-field">
+            <label>Goat</label>
+            <input type="text" class="qe-goat-search" placeholder="Search goats..." data-target="feeding">
+            <div class="qe-goat-select" id="goats-feeding">
+                {% for goat in goats %}
+                <div class="qe-goat-btn" data-id="{{ goat.id }}">{{ goat.name }}</div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="goat_id" id="goat-feeding" required>
+        </div>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>Feed Type</label>
+            <select name="feed_type">
+                <option value="Hay">Hay</option>
+                <option value="Grain">Grain</option>
+                <option value="Minerals">Minerals</option>
+                <option value="Treats">Treats</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="qe-field">
+            <label>Amount</label>
+            <input type="text" name="amount" required placeholder="e.g. 2 Flakes, 1 Scoop">
+        </div>
+        <div class="qe-field">
+            <label>Notes (optional)</label>
+            <textarea name="notes" placeholder="Any notes..."></textarea>
+        </div>
+        <button type="submit" class="qe-submit">Log Feeding</button>
+    </form>
+
+    <!-- HEALTH SCORE FORM -->
+    <form class="qe-form" id="form-health" method="POST" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="health">
+        <div class="qe-field">
+            <label>Goat</label>
+            <input type="text" class="qe-goat-search" placeholder="Search goats..." data-target="health">
+            <div class="qe-goat-select" id="goats-health">
+                {% for goat in goats %}
+                <div class="qe-goat-btn" data-id="{{ goat.id }}">{{ goat.name }}</div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="goat_id" id="goat-health" required>
+        </div>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>FAMACHA Score (1-5)</label>
+            <select name="famacha_score">
+                <option value="">-- Skip --</option>
+                <option value="1">1 - Red (Healthy)</option>
+                <option value="2">2 - Red-Pink</option>
+                <option value="3">3 - Pink</option>
+                <option value="4">4 - Pink-White</option>
+                <option value="5">5 - White (Anemic)</option>
+            </select>
+        </div>
+        <div class="qe-field">
+            <label>Body Condition Score (1-5)</label>
+            <select name="body_condition_score">
+                <option value="">-- Skip --</option>
+                <option value="1.0">1.0 - Emaciated</option>
+                <option value="1.5">1.5</option>
+                <option value="2.0">2.0 - Thin</option>
+                <option value="2.5">2.5</option>
+                <option value="3.0">3.0 - Ideal</option>
+                <option value="3.5">3.5</option>
+                <option value="4.0">4.0 - Fat</option>
+                <option value="4.5">4.5</option>
+                <option value="5.0">5.0 - Obese</option>
+            </select>
+        </div>
+        <div class="qe-field">
+            <label>Notes (optional)</label>
+            <textarea name="notes" placeholder="Any notes..."></textarea>
+        </div>
+        <button type="submit" class="qe-submit">Log Health Score</button>
+    </form>
+
+    <!-- MEDICAL RECORD FORM -->
+    <form class="qe-form" id="form-medical" method="POST" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="medical">
+        <div class="qe-field">
+            <label>Goat</label>
+            <input type="text" class="qe-goat-search" placeholder="Search goats..." data-target="medical">
+            <div class="qe-goat-select" id="goats-medical">
+                {% for goat in goats %}
+                <div class="qe-goat-btn" data-id="{{ goat.id }}">{{ goat.name }}</div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="goat_id" id="goat-medical" required>
+        </div>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>Type</label>
+            <select name="record_type">
+                <option value="Vaccine">Vaccination</option>
+                <option value="Deworm">Deworming</option>
+                <option value="Hoof">Hoof Trim</option>
+                <option value="Checkup">General Checkup</option>
+                <option value="Illness">Illness/Injury</option>
+            </select>
+        </div>
+        <div class="qe-field">
+            <label>Notes</label>
+            <textarea name="notes" placeholder="Treatment details..."></textarea>
+        </div>
+        <div class="qe-field">
+            <label>Next Due Date (optional)</label>
+            <input type="date" name="next_due_date">
+        </div>
+        <button type="submit" class="qe-submit">Log Medical Record</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    document.querySelectorAll('.qe-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.qe-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.qe-form').forEach(function(f) { f.hidden = true; });
+            tab.classList.add('active');
+            document.getElementById('form-' + tab.dataset.tab).hidden = false;
+        });
+    });
+
+    // Goat selection buttons
+    document.querySelectorAll('.qe-goat-select').forEach(function(container) {
+        container.addEventListener('click', function(e) {
+            var btn = e.target.closest('.qe-goat-btn');
+            if (!btn) return;
+            container.querySelectorAll('.qe-goat-btn').forEach(function(b) { b.classList.remove('selected'); });
+            btn.classList.add('selected');
+            var type = container.id.replace('goats-', '');
+            document.getElementById('goat-' + type).value = btn.dataset.id;
+        });
+    });
+
+    // Goat search filter
+    document.querySelectorAll('.qe-goat-search').forEach(function(input) {
+        input.addEventListener('input', function() {
+            var query = this.value.toLowerCase();
+            var target = this.dataset.target;
+            document.querySelectorAll('#goats-' + target + ' .qe-goat-btn').forEach(function(btn) {
+                btn.style.display = btn.textContent.toLowerCase().includes(query) ? '' : 'none';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
