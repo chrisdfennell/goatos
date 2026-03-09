@@ -1,4 +1,5 @@
 {% extends 'farm/base.html' %}
+{% load farm_filters %}
 
 {% block content %}
 <style>
@@ -28,7 +29,9 @@
     
     /* Timelines & Forms */
     .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px solid #e0e0e0; }
-    .log-entry { position: relative; margin-bottom: 20px; padding-left: 20px; }
+    .log-entry { position: relative; margin-bottom: 20px; padding-left: 20px; animation: slideIn .3s ease-out both; }
+    .log-entry:nth-child(1) { animation-delay: 0s; } .log-entry:nth-child(2) { animation-delay: .05s; } .log-entry:nth-child(3) { animation-delay: .1s; } .log-entry:nth-child(4) { animation-delay: .15s; } .log-entry:nth-child(5) { animation-delay: .2s; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .log-entry::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ccc; }
     .log-date { font-size: 0.85em; color: #888; margin-bottom: 5px; display: block; }
     .log-content { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ccc; }
@@ -221,7 +224,7 @@
         <div class="profile-body">
             <div class="stats-grid">
                 <div class="stat-box"><div class="stat-label">Breed</div><div class="stat-value">{{ goat.breed }}</div></div>
-                {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.get_gender_display }}</div></div>{% endif %}
+                {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.gender|gender_icon }} {{ goat.get_gender_display }}</div></div>{% endif %}
                 <div class="stat-box"><div class="stat-label">Age</div><div class="stat-value">{{ goat.display_age }}{% if goat.birthdate %}<div style="font-size: 0.6em; font-weight: normal; color: #666; margin-top: 5px;">Born: {{ goat.birthdate|date:"M j, Y" }}</div>{% endif %}</div></div>
             </div>
 
@@ -312,7 +315,7 @@
                         <div class="offspring-meta">
                             {{ kid.breed }}
                             {% if kid.birthdate %} &bull; {{ kid.display_age }}{% endif %}
-                            {% if kid.gender %} &bull; {{ kid.get_gender_display }}{% endif %}
+                            {% if kid.gender %} &bull; {{ kid.gender|gender_icon }} {{ kid.get_gender_display }}{% endif %}
                         </div>
                     </a>
                 </div>

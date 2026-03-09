@@ -1,4 +1,5 @@
 {% extends 'farm/base.html' %}
+{% load farm_filters %}
 
 {% block extra_css %}
 <style>
@@ -30,7 +31,8 @@
     .goat-grid.list-view .btn-view { display: none; }
     .goat-grid.list-view .card-actions { border-top: none; padding-top: 0; margin-left: 20px; }
 
-    .goat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); overflow: hidden; transition: transform .2s, box-shadow .2s, background-color .3s; display: flex; flex-direction: column; }
+    @keyframes cardEntrance { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .goat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); overflow: hidden; transition: transform .2s, box-shadow .2s, background-color .3s; display: flex; flex-direction: column; animation: cardEntrance .4s ease-out both; }
     .goat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,.1); }
     .card-header { background: #4caf50; height: 80px; position: relative; }
     .goat-card[data-status=Sick] .card-header { background: #e53935; }
@@ -41,11 +43,6 @@
     .card-name { font-size: 1.4em; margin: 10px 0 15px; color: #333; font-weight: 700; }
     .card-name a { text-decoration: none; color: inherit; }
     .badge { background: #ff5252; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: .4em; vertical-align: middle; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; position: relative; top: -3px; margin-left: 5px; }
-    .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: .85em; text-transform: uppercase; display: inline-block; }
-    .status-badge.Healthy { background: #e8f5e9; color: #2e7d32; }
-    .status-badge.Sick { background: #ffebee; color: #c62828; }
-    .status-badge.Vet { background: #fff3e0; color: #ef6c00; }
-    .status-badge.Deceased { background: #eee; color: #666; }
     .card-details { color: #666; margin-bottom: 25px; font-size: .95em; flex: 1; }
     .detail-row { margin: 5px 0; }
     .btn-view { display: inline-block; background-color: #f0f2f5; color: #333; padding: 8px 25px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: background .2s, color .2s; border: 1px solid #e1e4e8; margin-bottom: 10px; }
@@ -167,7 +164,7 @@
                 </div>
                 <div class="card-details">
                     <div class="detail-row"><strong>Breed:</strong> {{ goat.breed }}</div>
-                    {% if goat.gender %}<div class="detail-row"><strong>Sex:</strong> {{ goat.gender }}</div>{% endif %}
+                    {% if goat.gender %}<div class="detail-row"><strong>Sex:</strong> {{ goat.gender|gender_icon }} {{ goat.get_gender_display }}</div>{% endif %}
                     <div class="detail-row"><strong>Age:</strong> {{ goat.display_age }}</div>
                     <div class="detail-row">
                         <strong>Status:</strong> 
@@ -555,6 +552,11 @@
     {{ grazing_areas|json_script:"grazing-data" }}
     {{ map_markers|json_script:"marker-data" }}
     <script>
+        // Stagger card entrance animations
+        document.querySelectorAll('.goat-card').forEach(function(card, i) {
+            card.style.animationDelay = (i * 0.05) + 's';
+        });
+
         // GLOBALS
         let map;
         let mapPickMode = false;
