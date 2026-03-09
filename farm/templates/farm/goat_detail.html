@@ -213,6 +213,7 @@
             </form>
             <div style="opacity: 0.9; margin-top: 5px;">ID: #{{ goat.id }}</div>
             {% if goat.registration_number %}<div style="opacity: 0.9; margin-top: 3px; font-size: .9em;">Reg: {{ goat.registration_number }}</div>{% endif %}
+            {% if goat.microchip %}<div style="opacity: 0.9; margin-top: 3px; font-size: .9em;">Microchip: {{ goat.microchip }}</div>{% endif %}
             {% if goat.is_external %}<span style="display:inline-block; background:#ff9800; color:#fff; padding:3px 10px; border-radius:12px; font-size:.75em; font-weight:700; margin-top:6px;">EXTERNAL</span>{% endif %}
             {% if goat.external_owner %}<div style="opacity: 0.8; margin-top: 3px; font-size: .85em;">Owner: {{ goat.external_owner }}</div>{% endif %}
         </div>
@@ -377,6 +378,7 @@
             {% endif %}
 
             <!-- 2. MILK TRACKER SECTION -->
+            {% if goat.gender != 'Buck' and goat.gender != 'Wether' and goat.gender != 'Buckling' %}
             <div class="section-header"><h3 class="section-title">🥛 Milk Production</h3></div>
             
             <div style="height: 300px; width: 100%; margin-bottom: 20px; position: relative;">
@@ -398,13 +400,15 @@
                     <p id="no-milk-msg" style="color: #999; font-style: italic; margin-left: 20px;">No recent milk records.</p>
                 {% endfor %}
             </div>
+            {% endif %}
 
             <!-- 3. BREEDING SECTION -->
+            {% if goat.gender != 'Wether' %}
             <div class="section-header"><h3 class="section-title">🧬 Breeding Tracker</h3></div>
             <form action="{% url 'add_breeding_record' goat.id %}" method="post" class="breed-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="text" name="mate_name" placeholder="Buck Name" required title="Mate name">
+                    <input type="text" name="mate_name" placeholder="{% if goat.gender == 'Buck' or goat.gender == 'Buckling' %}Doe Name{% else %}Buck Name{% endif %}" required title="Mate name">
                     <input type="date" name="breeding_date" required title="Breeding Date">
                 </div>
                 <textarea name="notes" rows="1" placeholder="Notes..." title="Breeding notes"></textarea>
@@ -426,6 +430,7 @@
                 {% endfor %}
             </div>
             {% endif %}
+            {% endif %}
 
             <!-- 4. MEDICAL SECTION & DOSAGE CALCULATOR -->
             <div class="section-header" style="display:flex; justify-content:space-between;">
@@ -435,7 +440,7 @@
             <form action="{% url 'add_medical_record' goat.id %}" method="post" class="med-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <select name="record_type" title="Record type"><option value="Vaccine">Vaccination</option><option value="Deworm">Deworming</option><option value="Hoof">Hoof Trim</option><option value="Checkup">Checkup</option><option value="Illness">Illness/Injury</option></select>
+                    <select name="record_type" title="Record type"><option value="Vaccine">Vaccination</option><option value="Deworm">Deworming</option><option value="Hoof">Hoof Trim</option><option value="Checkup">Checkup</option><option value="Illness">Illness/Injury</option><option value="Procedure">Procedure</option><option value="Vitamins">Vitamins</option></select>
                     <input type="date" name="date" required title="Medical date">
                 </div>
                 <textarea name="notes" rows="2" placeholder="Details..." title="Medical notes"></textarea>
@@ -696,7 +701,7 @@
         resultBox.style.display = 'block';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         // WEIGHT CHART
         const dataElement = document.getElementById('weight-data');
         if (dataElement) {
@@ -787,8 +792,8 @@
                     '<div class="empty-chart-msg">No milk records found.</div>';
             }
         }
-    });
-    
+    })();
+
     window.onclick = function(event) {
         const modal = document.getElementById('dosageModal');
         if (event.target == modal) {

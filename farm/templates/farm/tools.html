@@ -211,10 +211,10 @@
     }
 
     // --- SCRATCHPAD ---
-    document.addEventListener('DOMContentLoaded', () => {
+    (function() {
         const saved = localStorage.getItem('farm_scratchpad');
         if(saved) document.getElementById('scratchpad').value = saved;
-    });
+    })();
 
     function saveNotes() {
         const text = document.getElementById('scratchpad').value;

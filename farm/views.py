@@ -227,7 +227,7 @@ def breeding_dashboard(request):
     all_breeding_logs = BreedingLog.objects.all().order_by('due_date')
     active_pregnancies = [log for log in all_breeding_logs if log.due_date and log.due_date >= today]
     kidding_records = KiddingRecord.objects.select_related('dam', 'breeding_log').order_by('-kidding_date')[:30]
-    does = Goat.objects.filter(gender__in=['Doe', 'Doeling']).order_by('name')
+    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'], is_external=False).order_by('name')
     breeding_logs_for_form = BreedingLog.objects.filter(due_date__isnull=False).select_related('goat').order_by('-due_date')[:20]
     context = get_common_context()
     context.update({
@@ -1654,7 +1654,7 @@ def kidding_season_dashboard(request):
             log.urgency = 'later'
 
     recent_kiddings = KiddingRecord.objects.select_related('dam', 'breeding_log').order_by('-kidding_date')[:20]
-    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'])
+    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'], is_external=False)
     breeding_logs = BreedingLog.objects.filter(due_date__gte=today - timedelta(days=30)).select_related('goat')
 
     context = get_common_context()
@@ -1697,7 +1697,7 @@ def delete_health_score(request, score_id):
 
 def health_scores_dashboard(request):
     """Herd-wide FAMACHA & BCS overview"""
-    goats = Goat.objects.filter(status='Healthy').order_by('name')
+    goats = Goat.objects.filter(status='Healthy', is_external=False).order_by('name')
     scores_data = []
     for goat in goats:
         latest = goat.health_scores.first()
@@ -2008,7 +2008,7 @@ def barn_dashboard(request):
         return redirect('barn_dashboard')
 
     pens = Pen.objects.all().order_by('name')
-    goats = Goat.objects.filter(status__in=['Healthy', 'Sick']).order_by('name')
+    goats = Goat.objects.filter(status__in=['Healthy', 'Sick'], is_external=False).order_by('name')
     # Get goats currently not assigned to any pen
     assigned_goat_ids = PenAssignment.objects.filter(date_out__isnull=True).values_list('goat_id', flat=True)
     unassigned_goats = goats.exclude(id__in=assigned_goat_ids)

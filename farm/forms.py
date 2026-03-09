@@ -27,7 +27,7 @@ class PinForm(forms.Form):
 class GoatForm(forms.ModelForm):
     class Meta:
         model = Goat
-        fields = ['name', 'breed', 'gender', 'birthdate', 'age', 'is_fainting', 'status', 'bio', 'image', 'dam', 'sire', 'registration_number', 'is_external', 'external_owner']
+        fields = ['name', 'breed', 'gender', 'birthdate', 'age', 'is_fainting', 'status', 'bio', 'image', 'dam', 'sire', 'registration_number', 'microchip', 'is_external', 'external_owner']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Goat name'}),
@@ -41,6 +41,7 @@ class GoatForm(forms.ModelForm):
             'sire': forms.Select(attrs={'class': 'form-select'}),
             'is_fainting': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'registration_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. ADGA-12345'}),
+            'microchip': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Microchip ID number'}),
             'is_external': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'external_owner': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Breeder / owner name'}),
         }

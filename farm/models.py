@@ -46,6 +46,7 @@ class Goat(models.Model):
     # External / Registration Fields
     is_external = models.BooleanField(default=False)
     registration_number = models.CharField(max_length=100, blank=True)
+    microchip = models.CharField(max_length=100, blank=True, help_text="Microchip ID number")
     external_owner = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
@@ -213,6 +214,8 @@ class MedicalRecord(models.Model):
         ('Hoof', 'Hoof Trim'),
         ('Checkup', 'General Checkup'),
         ('Illness', 'Illness/Injury'),
+        ('Procedure', 'Procedure'),
+        ('Vitamins', 'Vitamins'),
     ]
     goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='medical_records')
     date = models.DateField(default=timezone.now)

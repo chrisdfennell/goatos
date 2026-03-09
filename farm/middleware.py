@@ -1,5 +1,20 @@
 from django.shortcuts import redirect
 from django.conf import settings
+from django.http import JsonResponse
+
+
+class AjaxFormMiddleware:
+    """Convert redirect responses to JSON for AJAX form submissions."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                and response.status_code in (301, 302)):
+            return JsonResponse({'success': True, 'redirect': response.url})
+        return response
 
 
 class PinGateMiddleware:

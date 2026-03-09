@@ -347,7 +347,7 @@
     const MARKER_ICONS = { 'Barn': '🛖', 'Shelter': '⛺', 'Water': '💧', 'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍' };
 
     // ===== ON LOAD =====
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         // Panel toggle
         var panelToggle = document.getElementById('panelToggle');
         var sidePanel = document.getElementById('sidePanel');
@@ -395,7 +395,7 @@
 
         // Build rotation timeline
         buildRotationTimeline();
-    });
+    })();
 
     // ===== MARKER MODE =====
     function toggleMarkerMode() {

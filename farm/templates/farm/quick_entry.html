@@ -253,7 +253,7 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // Tab switching
     document.querySelectorAll('.qe-tab').forEach(function(tab) {
         tab.addEventListener('click', function() {
@@ -286,6 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-});
+})();
 </script>
 {% endblock %}

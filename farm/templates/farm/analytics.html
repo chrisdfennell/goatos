@@ -85,7 +85,7 @@ function parseJSON(id) {
     return d;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // Breed
     const breedData = parseJSON('breed-data');
     if (breedData.length) {
@@ -180,6 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+})();
 </script>
 {% endblock %}

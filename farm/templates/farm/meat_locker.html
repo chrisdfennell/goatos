@@ -219,9 +219,9 @@
     }
     
     // Add Bootstrap classes to Django form widgets automatically
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         const inputs = document.querySelectorAll('.action-panel input, .action-panel select, .action-panel textarea');
         inputs.forEach(input => input.classList.add('form-control'));
-    });
+    })();
 </script>
 {% endblock %}

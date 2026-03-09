@@ -357,7 +357,148 @@
                 console.log('SW registration failed:', err);
             });
         }
+
+        // --- AJAX FORM SUBMISSION ---
+        // Skip forms that navigate away or need full reload
+        const AJAX_SKIP = ['[action*="delete_goat"]', '[action*="pin"]', '[action*="restore_database"]'];
+
+        function shouldSkipAjax(form) {
+            return AJAX_SKIP.some(sel => form.matches(sel) || form.closest(sel));
+        }
+
+        function isDeleteForm(form) {
+            const action = form.getAttribute('action') || '';
+            return action.includes('delete');
+        }
+
+        document.addEventListener('submit', async function(e) {
+            const form = e.target;
+            if (form.method.toLowerCase() !== 'post' || shouldSkipAjax(form)) return;
+
+            // For delete forms, still confirm first
+            if (isDeleteForm(form) && !form.dataset.confirmed) return;
+
+            e.preventDefault();
+            const action = form.getAttribute('action') || window.location.href;
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.textContent; submitBtn.textContent = '...'; }
+
+            try {
+                const formData = new FormData(form);
+                const resp = await fetch(action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData,
+                    redirect: 'manual'
+                });
+
+                // If middleware converted redirect to JSON (200), parse it
+                // If we got an opaque redirect (type=opaqueredirect), treat as success
+                const isRedirect = resp.type === 'opaqueredirect' || resp.status === 0;
+                let success = false;
+
+                if (isRedirect) {
+                    success = true;
+                } else if (resp.ok) {
+                    const contentType = resp.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await resp.json();
+                        success = data.success;
+                    } else {
+                        // Got HTML back - middleware may not have caught it, treat as success
+                        success = true;
+                    }
+                } else {
+                    throw new Error('Server error: ' + resp.status);
+                }
+
+                if (success) {
+                    if (isDeleteForm(form)) {
+                        const entry = form.closest('.log-entry, tr, .card, .timeline-item');
+                        if (entry) {
+                            entry.style.transition = 'opacity 0.3s, transform 0.3s';
+                            entry.style.opacity = '0';
+                            entry.style.transform = 'translateX(30px)';
+                            setTimeout(() => entry.remove(), 300);
+                        }
+                        showToast('Deleted successfully.');
+                    } else {
+                        showToast('Saved!');
+                        form.reset();
+                        await softReload();
+                    }
+                }
+            } catch (err) {
+                showToast('Something went wrong. Please try again.', 'error');
+                console.error('AJAX form error:', err);
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+            }
+        });
+
+        // Override native confirm-based delete forms to work with AJAX
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[type="submit"]');
+            if (!btn) return;
+            const form = btn.closest('form');
+            if (!form || !isDeleteForm(form) || shouldSkipAjax(form)) return;
+            if (form.dataset.confirmed) return;
+            const confirmMsg = form.getAttribute('onsubmit');
+            if (confirmMsg) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Extract message from onsubmit="return confirm('...')"
+                const match = confirmMsg.match(/confirm\(['"](.*?)['"]\)/);
+                const msg = match ? match[1] : 'Are you sure?';
+                if (confirm(msg)) {
+                    form.removeAttribute('onsubmit');
+                    form.dataset.confirmed = 'true';
+                    form.requestSubmit(btn);
+                }
+            }
+        });
+
+        // Soft-reload: fetch current page and swap the full document seamlessly
+        async function softReload() {
+            try {
+                const scrollY = window.scrollY;
+
+                // Destroy any existing Chart.js instances to prevent memory leaks
+                if (typeof Chart !== 'undefined') {
+                    Object.values(Chart.instances || {}).forEach(c => c.destroy());
+                }
+                const resp = await fetch(window.location.href);
+                const html = await resp.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Replace main content
+                const newContent = doc.querySelector('.container-custom');
+                const oldContent = document.querySelector('.container-custom');
+                if (newContent && oldContent) {
+                    oldContent.innerHTML = newContent.innerHTML;
+                }
+
+                // Replace and re-execute extra_js scripts
+                const oldExtraJs = document.getElementById('extra-js-block');
+                const newExtraJs = doc.getElementById('extra-js-block');
+                if (oldExtraJs && newExtraJs) {
+                    oldExtraJs.innerHTML = '';
+                    newExtraJs.querySelectorAll('script').forEach(srcScript => {
+                        const s = document.createElement('script');
+                        if (srcScript.src) { s.src = srcScript.src; }
+                        else { s.textContent = srcScript.textContent; }
+                        oldExtraJs.appendChild(s);
+                    });
+                }
+
+                window.scrollTo(0, scrollY);
+            } catch (err) {
+                // Fallback: full reload
+                window.location.reload();
+            }
+        }
     </script>
-    {% block extra_js %}{% endblock %}
+    <div id="extra-js-block">{% block extra_js %}{% endblock %}</div>
 </body>
 </html>

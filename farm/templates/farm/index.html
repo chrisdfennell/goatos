@@ -570,7 +570,7 @@
         };
 
         // --- ON LOAD: RESTORE PREFERENCES ---
-        document.addEventListener('DOMContentLoaded', () => {
+        (function() {
             const savedView = localStorage.getItem('goatOS_view') || 'grid';
             toggleView(savedView);
             const savedSort = localStorage.getItem('goatOS_sort') || 'name';
@@ -611,7 +611,7 @@
                     if (!confirm(this.dataset.confirm)) e.preventDefault();
                 });
             });
-        });
+        })();
 
         // --- WEATHER FUNCTION ---
         async function fetchWeather() {
