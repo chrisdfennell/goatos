@@ -1,0 +1,286 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Milking & Dairy</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Everything you need to know about milking your goats, handling fresh milk, and producing quality dairy products at home.</p>
+        </section>
+        <div class="space-y-8">
+
+            <!-- Getting Started with Milking -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Getting Started with Milking</h2>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Dairy Goat Breeds</h3>
+                <p class="text-slate-600 mb-4">Not all goats are created equal when it comes to milk production. While any doe that kids will produce some milk, certain breeds have been developed specifically for dairy production. Here are the most popular dairy breeds:</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Breed</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Avg. Daily Production</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Butterfat %</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Nigerian Dwarf</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-2 quarts</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">6-10%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Small size, highest butterfat, great for cheese</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Nubian</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-2 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">4-5%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Long floppy ears, rich milk, vocal personality</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Alpine</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-2 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">3-4%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Hardy, high volume, variety of coat colors</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Saanen</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-3 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">3-4%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Highest volume producer, calm temperament, white coat</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">LaMancha</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-2 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">4-5%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Tiny ears, gentle disposition, persistent milker</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Oberhasli</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-1.5 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">3-4%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Bay color with black markings, sweet mild milk</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Toggenburg</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">1-1.5 gallons</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">3-4%</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Oldest known dairy breed, strong and robust</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="font-semibold text-slate-800 mb-2">When Does Freshen</h3>
+                <p class="text-slate-600 mb-4">"Freshening" is the term used when a doe begins producing milk after giving birth (kidding). A doe must be bred and carry kids to term before she will produce milk. Most does are bred in the fall and kid in the spring, with milk production beginning immediately after birth. Some dairy breeds, like Nigerian Dwarfs, can breed year-round, giving you more flexibility in scheduling your milk supply.</p>
+                <p class="text-slate-600 mb-4">A first freshener (a doe kidding for the first time) will typically produce less milk than a mature doe. Most does hit peak production during their third to fifth lactation. A standard lactation lasts about 305 days (10 months), though many does will milk longer if you continue to milk them consistently.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Milking Schedule</h3>
+                <p class="text-slate-600 mb-4">For best production, milk your does twice a day, roughly 12 hours apart. Many small-herd owners milk at 6:00 AM and 6:00 PM, or 7:00 AM and 7:00 PM. Consistency is key. Your does will adjust their production to match your schedule, so try to milk at the same times every day.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Tip:</strong> If twice-a-day milking does not fit your lifestyle, you can milk once a day and let the kids nurse the rest. This will reduce your overall yield but is a perfectly workable approach, especially for homesteaders who are not trying to maximize production. Some experienced owners also milk once a day later in the lactation cycle when production naturally decreases.</p>
+                </div>
+            </section>
+
+            <!-- Milking Equipment -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Milking Equipment</h2>
+                <p class="text-slate-600 mb-4">You do not need a lot of expensive equipment to get started milking goats. Here is a rundown of the essentials:</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Milk Stand</h3>
+                <p class="text-slate-600 mb-4">A milk stand raises the goat to a comfortable working height and has a head stanchion to hold the doe in place while she eats grain during milking. You can buy a ready-made stand or build one yourself from wood. The stand should be sturdy, easy to clean, and sized appropriately for your breed. Nigerian Dwarfs need a smaller stand than full-sized breeds like Saanens or Nubians.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Stainless Steel Milk Pail</h3>
+                <p class="text-slate-600 mb-4">A seamless stainless steel pail is the gold standard for milking. Stainless steel is easy to sanitize and will not absorb odors or bacteria the way plastic can. A small, narrow-topped pail helps keep debris and stray hairs out of the milk. A half-gallon or one-gallon pail is usually sufficient for hand milking.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Strip Cup</h3>
+                <p class="text-slate-600 mb-4">A strip cup is a small cup with a fine mesh screen on top. You squirt the first few streams of milk from each teat into the strip cup before milking into your pail. This lets you check for any clumps, strings, or blood that could indicate mastitis. It also flushes out bacteria that may have accumulated at the teat opening.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Teat Dip or Spray</h3>
+                <p class="text-slate-600 mb-4">Teat dip is an iodine-based or other antiseptic solution applied to the teats before and after milking. Pre-dip helps sanitize the teat before milking. Post-dip is essential for preventing bacteria from entering the teat canal while the orifice is still open after milking. You can use a teat dip cup or a spray bottle.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Milk Filters</h3>
+                <p class="text-slate-600 mb-4">Disposable milk filters (also called milk strainer pads) fit inside a stainless steel strainer funnel. You pour milk through the filter as you transfer it from the pail into storage jars. This catches any hair, dust, or debris that made it into the milk. Always use a fresh filter for each milking session.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Storage Containers</h3>
+                <p class="text-slate-600 mb-4">Glass mason jars (quart or half-gallon size) are the best option for storing goat milk. Glass does not absorb odors, is easy to sterilize, and keeps milk tasting fresh longer than plastic. If you use plastic, make sure it is food-grade and replace containers regularly. Have enough jars on hand so you can rotate them through use, washing, and drying.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Tip:</strong> Keep all your milking supplies in a dedicated clean area. Wash equipment immediately after each milking with hot soapy water, rinse well, and allow to air dry. Some milkers also use a dairy-specific sanitizer or a diluted bleach rinse before each use.</p>
+                </div>
+            </section>
+
+            <!-- Milking Procedure Step-by-Step -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Milking Procedure Step-by-Step</h2>
+                <p class="text-slate-600 mb-4">Once your doe is on the stand and happily munching grain, follow these steps for a clean, efficient milking:</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 1: Prepare the Udder</h3>
+                <p class="text-slate-600 mb-4">Using a warm, damp cloth or unscented baby wipe, clean the entire udder and both teats. This removes dirt, bedding, and bacteria from the skin. Some milkers apply a pre-dip of teat sanitizer, let it sit for 30 seconds, then wipe clean with a dry paper towel. Each teat should be wiped with a separate towel or a clean side of the cloth.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 2: Strip the First Squirts</h3>
+                <p class="text-slate-600 mb-4">Squirt the first two or three streams from each teat into your strip cup. Examine the milk on the screen. Healthy milk should look smooth, white, and consistent. If you see clumps, strings, flakes, or blood, that teat may have mastitis and should be investigated further. Do not add that milk to your clean pail.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 3: Milk with Proper Technique</h3>
+                <p class="text-slate-600 mb-4">Position your stainless steel pail under the udder. To milk by hand:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700 mb-4">
+                    <li>Wrap your thumb and index finger around the base of the teat where it meets the udder. Squeeze these two fingers together to trap the milk in the teat (this prevents milk from flowing back up into the udder).</li>
+                    <li>Then sequentially close your middle finger, ring finger, and pinky to push the milk down and out of the teat opening.</li>
+                    <li>Release all fingers to allow the teat to refill, then repeat.</li>
+                    <li>Alternate between teats or milk both simultaneously once you are comfortable with the rhythm.</li>
+                </ul>
+                <p class="text-slate-600 mb-4">Avoid pulling or yanking on the teats. The motion should be a gentle squeeze, not a tug. With practice, you will develop a smooth rhythm that is comfortable for both you and the goat.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 4: Milk Out Completely</h3>
+                <p class="text-slate-600 mb-4">Continue milking until the udder feels soft and deflated. You can gently bump the udder upward (the way a kid head-butts while nursing) to encourage letdown of the last bit of milk. Getting a thorough milk-out is important for maintaining production and preventing mastitis.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 5: Apply Post-Dip</h3>
+                <p class="text-slate-600 mb-4">Immediately after milking, dip or spray both teats with teat dip solution. The teat orifice remains open for 20 to 30 minutes after milking, making it vulnerable to bacterial infection. The post-dip creates a protective barrier. Let the dip air dry on the teats; do not wipe it off.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Step 6: Filter and Chill Immediately</h3>
+                <p class="text-slate-600 mb-4">Take the milk inside as quickly as possible. Pour it through a stainless steel strainer with a disposable milk filter into clean glass jars. Get the jars into the refrigerator or into an ice water bath immediately. Rapid chilling is the single most important step for great-tasting, long-lasting goat milk.</p>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Important:</strong> The entire process from the last squirt of milk to getting the jar chilled should take no more than a few minutes. The faster you cool the milk, the better it will taste and the longer it will keep. Warm milk is a breeding ground for bacteria.</p>
+                </div>
+            </section>
+
+            <!-- Milk Handling & Storage -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Milk Handling & Storage</h2>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Rapid Chilling</h3>
+                <p class="text-slate-600 mb-4">Getting the temperature of your milk down quickly is critical. Ideally, milk should go from body temperature (about 101-103 degrees F in goats) to below 40 degrees F within one hour. The fastest method is to place your sealed jar in an ice water bath in the refrigerator. The ice water transfers cold much faster than refrigerator air alone. Some dairy owners keep a dedicated small freezer or use frozen water bottles to create an instant ice bath.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Glass vs. Plastic</h3>
+                <p class="text-slate-600 mb-4">Glass jars are strongly preferred over plastic for storing goat milk. Glass is non-porous, so it will not absorb flavors or odors from previous batches. It is easier to sterilize completely and keeps milk tasting cleaner and fresher. Plastic containers, even food-grade ones, can develop micro-scratches over time where bacteria hide. If you must use plastic, replace containers frequently and sanitize them thoroughly.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Shelf Life</h3>
+                <p class="text-slate-600 mb-4">Properly handled and rapidly chilled raw goat milk will stay fresh for 7 to 10 days in the refrigerator. The keys to long shelf life are clean milking practices, prompt filtering, and fast chilling. If your milk is developing off-flavors or going bad before a week, examine your sanitation routine and chilling speed. Always smell and taste milk before using it if it has been stored for more than a few days.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Pasteurization</h3>
+                <p class="text-slate-600 mb-4">If you choose to pasteurize your goat milk, there are two common methods:</p>
+
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Method</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Temperature</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Duration</th>
+                                <th class="px-4 py-2 border border-slate-200 font-semibold text-slate-800">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Batch (Low-Temp)</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">145&deg;F (63&deg;C)</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">30 minutes</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Gentler on flavor, best for home use with a double boiler</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Flash (High-Temp)</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">161&deg;F (72&deg;C)</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">15 seconds</td>
+                                <td class="px-4 py-2 border border-slate-200 text-slate-700">Faster but can affect flavor slightly, requires precise temperature control</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-slate-600 mb-4">After pasteurizing, cool the milk rapidly in an ice water bath. Use a reliable dairy thermometer and monitor the temperature carefully. Under-heating will not fully pasteurize, while overheating will give the milk a cooked taste.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Tip:</strong> Whether you drink your milk raw or pasteurized is a personal choice. Many small-herd owners drink their milk raw because they know their animals are healthy and their sanitation practices are excellent. Check your local regulations, as laws about raw milk sales and distribution vary by state and country.</p>
+                </div>
+            </section>
+
+            <!-- Common Milking Problems -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Common Milking Problems</h2>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Mastitis</h3>
+                <p class="text-slate-600 mb-4">Mastitis is an infection of the udder and is one of the most common health issues in dairy goats. Catching it early is important for the health of the doe and the quality of your milk.</p>
+
+                <p class="text-slate-700 mb-2"><strong>Signs of mastitis include:</strong></p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700 mb-4">
+                    <li>Hot, swollen, or hard udder (one or both sides)</li>
+                    <li>Pain when the udder is touched; the doe may kick or resist milking</li>
+                    <li>Clumps, strings, flakes, or blood in the milk</li>
+                    <li>Watery or discolored milk</li>
+                    <li>Decreased milk production</li>
+                    <li>Fever, loss of appetite, or general lethargy in the doe</li>
+                </ul>
+
+                <p class="text-slate-700 mb-2"><strong>The CMT (California Mastitis Test):</strong></p>
+                <p class="text-slate-600 mb-4">The CMT is an inexpensive, easy-to-use screening tool. You squirt a small amount of milk into a CMT paddle and add the reagent solution. Swirl the paddle gently. If the mixture thickens or forms a gel, that indicates a high somatic cell count and likely infection. Keep CMT kits on hand and test whenever you suspect a problem, or do routine monthly tests on all does.</p>
+
+                <p class="text-slate-700 mb-2"><strong>Treatment:</strong></p>
+                <p class="text-slate-600 mb-4">Mild cases may respond to frequent milking (three to four times daily to flush the udder), warm compresses, and udder massage. More serious cases require antibiotics, either infused directly into the teat or given as injections. Always consult with your veterinarian for proper diagnosis and treatment. Milk from a doe being treated with antibiotics must be discarded for the duration of treatment plus the withdrawal period specified for the medication.</p>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg mb-6">
+                    <p class="text-slate-700"><strong>Warning:</strong> Do not ignore mastitis. Untreated mastitis can become systemic (gangrenous mastitis), which is life-threatening. If a doe's udder turns dark purple or black, or she becomes severely ill, contact your vet immediately. This is an emergency.</p>
+                </div>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Off-Flavors in Milk</h3>
+                <p class="text-slate-600 mb-4">Goat milk, when handled properly, should taste clean, sweet, and very similar to cow milk. If your milk has an unpleasant taste, here are common causes:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700 mb-4">
+                    <li><strong>Bucky or "goaty" taste:</strong> This is the most common complaint. It is caused by keeping a buck (male goat) near your does. Bucks produce strong-smelling pheromones, especially during rut, that can transfer to the milk. House bucks well away from your milking does and milking area.</li>
+                    <li><strong>Strong-flavored feeds:</strong> Certain plants and feeds can affect milk flavor. Wild onion, garlic, cabbage, and some weeds can produce off-flavors. Feed grain and hay before milking rather than after, so the flavors have time to pass through the system.</li>
+                    <li><strong>Slow chilling:</strong> Milk that sits warm too long develops an enzyme-driven "goaty" flavor. Chill immediately after milking.</li>
+                    <li><strong>Dirty equipment:</strong> Residual milk proteins and fats in equipment can go rancid and contaminate fresh milk. Sanitize all equipment thoroughly after every use.</li>
+                    <li><strong>Late lactation:</strong> Milk toward the very end of lactation can sometimes develop a saltier or stronger flavor. This is normal and is a sign it may be time to dry the doe off.</li>
+                </ul>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Low Production</h3>
+                <p class="text-slate-600 mb-4">If a doe is not producing as much milk as expected, consider these common causes:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Inadequate nutrition:</strong> A milking doe needs significantly more calories, protein, and minerals than a dry doe. Make sure she has access to quality hay, appropriate grain ration, fresh water, and free-choice loose minerals.</li>
+                    <li><strong>Inconsistent milking schedule:</strong> Milk at the same times every day. Skipped or late milkings signal the body to reduce production.</li>
+                    <li><strong>Incomplete milk-out:</strong> Always milk the udder completely. Leaving milk behind tells the body to produce less.</li>
+                    <li><strong>Stress:</strong> Changes in environment, herd dynamics, extreme weather, or predator threats can suppress production.</li>
+                    <li><strong>Health issues:</strong> Internal parasites, subclinical mastitis, and other illnesses will reduce output. Keep up with routine health care.</li>
+                    <li><strong>Age and stage of lactation:</strong> First fresheners produce less than experienced does. Production naturally declines as the doe moves further from her kidding date.</li>
+                </ul>
+            </section>
+
+            <!-- Drying Off -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Drying Off</h2>
+                <p class="text-slate-600 mb-4">Drying off is the process of stopping milk production in a doe, usually in preparation for her next breeding and kidding cycle. A doe needs at least two months of dry time before her next kidding to rest her body and allow her udder tissue to regenerate. This rest period is essential for her health and for strong production in her next lactation.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">When to Dry Off</h3>
+                <p class="text-slate-600 mb-4">If your doe is bred, plan to dry her off about two months (60 days) before her expected kidding date. If she is not bred and you simply want to end her lactation, you can dry off at any time once production has naturally declined. Most does are ready to dry off around 10 months into their lactation, though some persistent milkers will continue much longer if you keep milking them.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">How to Dry Off Gradually</h3>
+                <p class="text-slate-600 mb-4">Abruptly stopping milking on a doe in full production is uncomfortable for her and increases the risk of mastitis. Instead, follow a gradual approach:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700 mb-4">
+                    <li><strong>Week 1:</strong> Reduce milking from twice daily to once daily. Reduce or eliminate grain ration to help slow production.</li>
+                    <li><strong>Week 2:</strong> Milk once every other day. Continue withholding grain. Make sure she still has access to good hay and water.</li>
+                    <li><strong>Week 3:</strong> Milk once every three days, or only if her udder looks uncomfortably tight.</li>
+                    <li><strong>Final step:</strong> Stop milking entirely. Her body should have slowed production enough that she reabsorbs the remaining milk over the next few days.</li>
+                </ul>
+                <p class="text-slate-600 mb-4">Some does with lower production at the end of their lactation can be dried off more quickly. If a doe is only giving a cup or two per milking, you may be able to go directly to once a day for a few days and then stop.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Watching for Mastitis During Dry-Off</h3>
+                <p class="text-slate-600 mb-4">The dry-off period is a higher-risk time for mastitis because milk is sitting in the udder longer and the teat orifice may still be partially open. Monitor the udder closely during the drying-off process:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700 mb-4">
+                    <li>Check the udder daily by feel. It should gradually become softer and smaller.</li>
+                    <li>Watch for heat, hardness, swelling, or redness, which could indicate infection.</li>
+                    <li>If you suspect mastitis, milk the affected side out and test with a CMT kit. Contact your vet if needed.</li>
+                    <li>Some owners apply a teat sealant (a special paste infused into the teat canal) at the final milking to create a physical barrier against bacteria during the dry period. Ask your vet about whether this is appropriate for your herd.</li>
+                </ul>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Important:</strong> Keep dry does in a clean, dry environment with good bedding. A dirty, wet living area significantly increases the risk of mastitis during the dry period. Continue to observe the udder regularly until kidding, even after the doe has fully dried off.</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+{% endblock %}

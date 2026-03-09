@@ -1,0 +1,111 @@
+{% extends "farm/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { corePlugins: { preflight: false } }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'guide/css/theme.css' %}">
+<style>
+    .guide-sidebar{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #eee;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto}
+    .guide-sidebar a{display:block;padding:8px 12px;border-radius:6px;color:#555;font-size:.9em;text-decoration:none;transition:all .15s}
+    .guide-sidebar a:hover{background:#f0f2f5;color:#2c3e50}
+    .guide-sidebar a.active{background:#e8f5e9;color:#2e7d32;font-weight:600}
+    .guide-sidebar .sidebar-label{padding:10px 12px 4px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999}
+    .guide-sidebar .sidebar-label:first-child{padding-top:0}
+    .guide-layout{display:grid;grid-template-columns:240px 1fr;gap:24px;align-items:start}
+    .guide-toggle-btn{display:none;background:#2c3e50;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:.9em;cursor:pointer;margin-bottom:16px;width:100%}
+    @media(max-width:992px){
+        .guide-layout{grid-template-columns:1fr}
+        .guide-sidebar{position:static;max-height:none;display:none}
+        .guide-sidebar.open{display:block}
+        .guide-toggle-btn{display:block}
+    }
+    body.dark-mode .guide-sidebar{background:#1e1e1e;border-color:#333;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    body.dark-mode .guide-sidebar a{color:#b0b0b0}
+    body.dark-mode .guide-sidebar a:hover{background:#333;color:#fff}
+    body.dark-mode .guide-sidebar a.active{background:#1b5e20;color:#a5d6a7}
+    body.dark-mode .guide-sidebar .sidebar-label{color:#666}
+    body.dark-mode .guide-toggle-btn{background:#333}
+</style>
+{% endblock %}
+
+{% block header_subtitle %}
+<span class="system-status">Care Guide</span>
+{% endblock %}
+
+{% block content %}
+<div class="guide-content">
+    <button class="guide-toggle-btn" id="guideNavToggle" type="button">📖 Guide Navigation ▾</button>
+    <div class="guide-layout">
+        <nav class="guide-sidebar" id="guideSidebar">
+            <div class="sidebar-label">Getting Started</div>
+            <a href="{% url 'guide_index' %}" data-slug="index">📖 Guide Home</a>
+            <a href="{% url 'guide_page' 'getting-started' %}" data-slug="getting-started">🚀 Getting Started</a>
+            <a href="{% url 'guide_page' 'housing-fencing' %}" data-slug="housing-fencing">🏠 Housing & Fencing</a>
+            <a href="{% url 'guide_page' 'breeds' %}" data-slug="breeds">📋 Breeds & Choosing</a>
+            <a href="{% url 'guide_page' 'nutrition-minerals' %}" data-slug="nutrition-minerals">🌾 Nutrition & Minerals</a>
+            <a href="{% url 'guide_page' 'legal-zoning' %}" data-slug="legal-zoning">⚖️ Legal & Zoning</a>
+
+            <div class="sidebar-label">Health & Care</div>
+            <a href="{% url 'guide_page' 'health-vaccines-parasites' %}" data-slug="health-vaccines-parasites">💉 Vaccines & Parasites</a>
+            <a href="{% url 'guide_page' 'hoof-care-grooming' %}" data-slug="hoof-care-grooming">🦶 Hoof Care & Grooming</a>
+            <a href="{% url 'guide_page' 'common-problems-triage' %}" data-slug="common-problems-triage">🚑 Common Problems</a>
+            <a href="{% url 'guide_page' 'symptom-checker' %}" data-slug="symptom-checker">🩺 Symptom Checker</a>
+            <a href="{% url 'guide_page' 'poisonous-plants' %}" data-slug="poisonous-plants">☠️ Poisonous Plants</a>
+
+            <div class="sidebar-label">Breeding & Young Stock</div>
+            <a href="{% url 'guide_page' 'breeding-kidding' %}" data-slug="breeding-kidding">🧬 Breeding & Kidding</a>
+            <a href="{% url 'guide_page' 'bottle-feeding-kid-care' %}" data-slug="bottle-feeding-kid-care">🍼 Bottle Feeding & Kid Care</a>
+
+            <div class="sidebar-label">Daily Management</div>
+            <a href="{% url 'guide_page' 'behavior-training-enrichment' %}" data-slug="behavior-training-enrichment">🧠 Behavior & Enrichment</a>
+            <a href="{% url 'guide_page' 'security-predator-proofing' %}" data-slug="security-predator-proofing">🛡️ Security & Predators</a>
+            <a href="{% url 'guide_page' 'seasonal-care' %}" data-slug="seasonal-care">🌦️ Seasonal Care</a>
+
+            <div class="sidebar-label">Production</div>
+            <a href="{% url 'guide_page' 'milking-dairy' %}" data-slug="milking-dairy">🥛 Milking & Dairy</a>
+            <a href="{% url 'guide_page' 'meat-goats' %}" data-slug="meat-goats">🥩 Meat Goats</a>
+            <a href="{% url 'guide_page' 'fiber-goats' %}" data-slug="fiber-goats">🧶 Fiber Goats</a>
+            <a href="{% url 'guide_page' 'goat-milk-recipes' %}" data-slug="goat-milk-recipes">🧀 Goat Milk Recipes</a>
+
+            <div class="sidebar-label">Reference & Tools</div>
+            <a href="{% url 'guide_page' 'checklists' %}" data-slug="checklists">✅ Checklists</a>
+            <a href="{% url 'guide_page' 'calculators' %}" data-slug="calculators">🔢 Calculators</a>
+            <a href="{% url 'guide_page' 'recordkeeping-forms' %}" data-slug="recordkeeping-forms">📝 Record Keeping</a>
+            <a href="{% url 'guide_page' 'barn-pack' %}" data-slug="barn-pack">🎒 Barn Pack</a>
+            <a href="{% url 'guide_page' 'glossary-resources' %}" data-slug="glossary-resources">📚 Glossary & Resources</a>
+            <a href="{% url 'guide_page' 'search' %}" data-slug="search">🔍 Search</a>
+        </nav>
+
+        <div class="guide-main">
+            {% block guide_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Highlight active sidebar link
+(function() {
+    var path = window.location.pathname.replace(/\/$/, '');
+    var slug = path.split('/').pop() || 'index';
+    document.querySelectorAll('.guide-sidebar a[data-slug]').forEach(function(a) {
+        if (a.dataset.slug === slug) a.classList.add('active');
+    });
+    // Mobile toggle
+    var btn = document.getElementById('guideNavToggle');
+    var nav = document.getElementById('guideSidebar');
+    if (btn && nav) {
+        btn.addEventListener('click', function() {
+            nav.classList.toggle('open');
+            btn.textContent = nav.classList.contains('open') ? '📖 Guide Navigation ▴' : '📖 Guide Navigation ▾';
+        });
+    }
+})();
+</script>
+{% block guide_js %}{% endblock %}
+{% endblock %}

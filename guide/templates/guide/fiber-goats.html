@@ -1,0 +1,189 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Fiber Goats</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Fiber goats produce some of the most luxurious natural fibers in the world. Whether you are raising Angoras for mohair or harvesting cashmere from your herd, understanding the unique needs of fiber-producing goats is essential for both animal welfare and fiber quality.</p>
+        </section>
+        <div class="space-y-8">
+
+            <!-- Fiber Breeds -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Fiber Breeds</h2>
+                <p class="text-slate-600 mb-4">Several goat breeds are prized for their fiber production. Each produces a distinct type of fleece with different characteristics, care requirements, and market value.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Angora Goats</h3>
+                <p class="text-slate-600 mb-4">Angora goats produce mohair, a lustrous, strong, and resilient fiber that takes dye beautifully. They are sheared twice a year, typically in spring and fall, and a healthy adult Angora can produce between 8 and 16 pounds of mohair per year. Angoras are medium-sized goats with gentle temperaments, but they are more delicate than many other breeds and require attentive management, especially around shearing time and during harsh weather.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Cashmere Goats</h3>
+                <p class="text-slate-600 mb-4">Cashmere is not produced by a single breed but rather refers to the fine, downy undercoat that grows beneath the outer guard hair of many goat breeds. Technically, any goat can produce some cashmere, but certain breeds and bloodlines have been selectively bred for higher yields and finer fiber. The undercoat is typically combed out or collected in spring when the goat naturally begins to shed. Cashmere production per goat is modest compared to mohair, often just a few ounces per animal, but the fiber commands a premium price.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Pygora Goats</h3>
+                <p class="text-slate-600 mb-4">Pygoras are a cross between Pygmy goats and Angora goats, developed to produce fine fiber on a smaller, easier-to-manage animal. They produce three distinct fiber types: Type A (Angora-like mohair, long and lustrous), Type B (a blend of mohair and cashmere-like fiber, often curly), and Type C (a fine cashmere-like fiber). Their smaller size makes them popular with hobby farmers and hand spinners.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Nigora Goats</h3>
+                <p class="text-slate-600 mb-4">Nigora goats are a cross between Nigerian Dwarf goats and Angora goats. Like Pygoras, they are a smaller fiber breed that produces similar fiber types (A, B, and C classifications). Nigoras offer the added benefit of the Nigerian Dwarf's higher butterfat milk production, making them appealing as dual-purpose animals for small farms interested in both fiber and dairy.</p>
+            </section>
+
+            <!-- Understanding Fiber Types -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Understanding Fiber Types</h2>
+                <p class="text-slate-600 mb-4">The two primary goat fibers, mohair and cashmere, differ significantly in their structure, feel, and end use. Understanding these differences helps you evaluate quality and market your fiber effectively.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Mohair vs. Cashmere</h3>
+                <p class="text-slate-600 mb-4">Mohair is a smooth, lustrous fiber produced by the outer coat of Angora goats. It is strong, elastic, and has a characteristic sheen. Cashmere, by contrast, is the ultra-fine, soft undercoat found beneath the coarser guard hairs. Cashmere is prized for its warmth-to-weight ratio and softness against the skin, while mohair is valued for its durability, luster, and ability to accept vibrant dyes.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Micron Counts and Staple Length</h3>
+                <p class="text-slate-600 mb-4">Fiber quality is often measured by micron count, which indicates the diameter of individual fibers. Finer fibers have lower micron counts and are generally more valuable. Kid mohair typically measures 24 to 28 microns, young goat mohair around 28 to 32 microns, and adult mohair 32 to 40 microns or more. True cashmere must be under 19 microns to meet industry standards, with the finest grades falling below 15 microns. Staple length, the length of a lock of fiber, also matters. Mohair staple length at shearing is typically 4 to 6 inches for a six-month growth, while cashmere staple length ranges from 1.5 to 3 inches.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Mohair Grades</h3>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Kid mohair</strong> &mdash; From the first and second shearings (under 12 months old). The finest, softest, and most valuable grade. Ideal for garments worn next to the skin.</li>
+                    <li><strong>Young goat mohair</strong> &mdash; From goats between 12 and 24 months. Slightly coarser than kid mohair but still fine and desirable for knitwear and weaving.</li>
+                    <li><strong>Adult mohair</strong> &mdash; From mature goats. Stronger and coarser, well suited for outerwear, upholstery, and rugs. Less valuable per pound but produced in greater volume.</li>
+                </ul>
+
+                <h3 class="font-semibold text-slate-800 mt-4 mb-2">Cashmere Quality Factors</h3>
+                <p class="text-slate-600 mb-4">The value of cashmere depends on fineness (micron count), length, color (white commands the highest price as it can be dyed any shade), and the ratio of fine undercoat to coarse guard hair. Minimal guard hair contamination is critical. Climate plays a role as well; goats in colder regions tend to produce more and finer cashmere as a natural response to harsh winters.</p>
+            </section>
+
+            <!-- Shearing & Fiber Harvest -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Shearing & Fiber Harvest</h2>
+                <p class="text-slate-600 mb-4">Proper harvesting technique directly affects fiber quality and the comfort of your goats. Plan your shearing schedule carefully and prepare both your equipment and your animals in advance.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">When to Shear</h3>
+                <p class="text-slate-600 mb-4">Angora goats are sheared twice a year, typically in early spring (before kidding season and warm weather) and early fall (before winter coats grow in). Timing is important: shearing too early in spring exposes goats to cold, while waiting too long in fall means fiber may become matted or sun-damaged. Cashmere goats are not sheared in the traditional sense; their fine undercoat is combed out or collected in late winter to early spring as it naturally loosens and sheds.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Equipment</h3>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Electric shears</strong> &mdash; Preferred for Angora goats. Use shearing equipment designed for goats or fine-wooled sheep. Keep blades sharp and well-oiled to prevent pulling and second cuts.</li>
+                    <li><strong>Hand shears (blade shears)</strong> &mdash; Useful for small herds, touch-up work, or areas around legs and face where electric shears can be difficult to maneuver.</li>
+                    <li><strong>Cashmere combs</strong> &mdash; Specialized combs with fine, closely spaced teeth are used to comb out the cashmere undercoat while leaving the guard hairs in place. Some producers also use de-hairing machines after collection.</li>
+                </ul>
+
+                <h3 class="font-semibold text-slate-800 mt-4 mb-2">Shearing Technique</h3>
+                <p class="text-slate-600 mb-4">Shear on a clean, dry surface such as a plywood platform covered with a clean tarp or canvas. Work methodically from one area to the next, keeping the fleece in as large a piece as possible. Avoid making second cuts (going over the same area twice), which creates short fiber bits that reduce fleece quality. Keep the goat calm and restrained gently. Many producers use a shearing stand or milk stand to keep the goat secure and at a comfortable working height.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Coat Care Before Shearing</h3>
+                <p class="text-slate-600 mb-4">To produce the cleanest, most valuable fleece, keep your fiber goats coated with fitted goat blankets or tubes. Coats prevent contamination from hay, bedding, burrs, and sun bleaching. Remove coats a day or two before shearing to allow any trapped moisture to dry. Avoid feeding dusty or leafy hay overhead, and keep bedding areas clean. Some producers blow out fleeces with a livestock blower before shearing to remove loose debris.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Skirting the Fleece</h3>
+                <p class="text-slate-600 mb-4">After shearing, lay the fleece out on a skirting table (a large frame with mesh or slats) and remove the less desirable edges. Discard fiber from the legs, belly, and around the tail, as these areas tend to be shorter, coarser, and more contaminated. Skirting dramatically improves the overall quality and marketability of your fleece.</p>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg mt-4">
+                    <p class="text-amber-800 font-semibold">Important</p>
+                    <p class="text-amber-700 text-sm mt-1">Never shear a wet goat. Wet fiber is difficult to cut cleanly, increases the risk of second cuts, and damp fleece stored in bags can develop mold and mildew, ruining the entire clip.</p>
+                </div>
+            </section>
+
+            <!-- Fiber Care & Preparation -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Fiber Care & Preparation</h2>
+                <p class="text-slate-600 mb-4">How you handle fiber after harvest determines whether it reaches the spinner or mill in top condition. Proper washing, sorting, and storage protect your investment of time and effort.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Washing and Scouring</h3>
+                <p class="text-slate-600 mb-4">Raw mohair and cashmere contain lanolin, dirt, and natural oils that must be removed before processing. Soak fiber in hot (not boiling) water with a gentle detergent or specialized fiber wash. Avoid agitating the fiber, which causes felting. Use multiple rinse baths, gradually reducing water temperature. Lay fiber flat on screens or towels to dry in a well-ventilated area. Some hand spinners prefer to spin "in the grease" and wash the finished yarn instead.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Carding</h3>
+                <p class="text-slate-600 mb-4">Carding aligns the fibers and prepares them for spinning. You can card by hand using hand carders or a drum carder, or send fiber to a mill for commercial processing into roving, batts, or top. Mohair can be carded on its own or blended with wool, silk, or other fibers for unique yarn characteristics.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Sorting by Quality</h3>
+                <p class="text-slate-600 mb-4">Sort fiber by fineness, length, color, and cleanliness. Keep kid mohair separate from adult mohair, as they command different prices and suit different end products. Separate any stained, felted, or unusually coarse fiber. Consistent, well-sorted lots are far more attractive to buyers and mills than mixed batches.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Storage</h3>
+                <p class="text-slate-600 mb-4">Store clean, dry fiber in breathable cotton or muslin bags, or in cardboard boxes. Never use sealed plastic bags for long-term storage, as trapped moisture promotes mold. Include cedar blocks or lavender sachets to deter moths. Keep stored fiber in a cool, dry location away from direct sunlight.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Avoiding Contamination</h3>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Vegetable matter (VM)</strong> &mdash; Hay chaff, seeds, and burrs are the most common contaminants. They are extremely difficult to remove once embedded in fleece. Use hay feeders that minimize contact with the coat, and coat your goats when possible.</li>
+                    <li><strong>Colored fibers</strong> &mdash; Even a single dark fiber in a white fleece can ruin its value for light-colored yarn. If you raise both colored and white fiber goats, house and shear them separately, and clean all equipment between animals.</li>
+                    <li><strong>Synthetic fibers</strong> &mdash; Polypropylene baling twine and synthetic bedding materials shed fibers that do not accept dye and are nearly impossible to remove. Use natural-fiber twine and avoid synthetic materials in fiber goat housing.</li>
+                </ul>
+            </section>
+
+            <!-- Special Nutritional Needs -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Special Nutritional Needs</h2>
+                <p class="text-slate-600 mb-4">Fiber production places significant nutritional demands on goats. Growing a full fleece requires substantial protein and energy, and deficiencies show up directly in the quality of the fiber.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Higher Protein Requirements</h3>
+                <p class="text-slate-600 mb-4">Mohair and cashmere are composed primarily of keratin, a protein. Fiber goats need a diet higher in protein than meat or dairy breeds to sustain quality fiber growth. Angora goats typically require 12 to 16 percent crude protein in their diet, depending on age, production stage, and whether they are pregnant or lactating. Quality alfalfa hay, supplemented with a grain ration formulated for fiber goats, is a common feeding program. Inadequate protein leads to thinner, weaker fibers and reduced fleece weight.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Energy Needs</h3>
+                <p class="text-slate-600 mb-4">Angora goats in particular are known for being more metabolically delicate than other goat breeds. They have a higher metabolic rate due to continuous fiber growth and can lose condition quickly during cold weather, illness, or feed shortages. Maintain body condition scores carefully and increase energy supplementation during late pregnancy, lactation, and cold weather.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Copper Considerations</h3>
+                <p class="text-slate-600 mb-4">Copper is an essential mineral for all goats, but Angoras appear to be somewhat more sensitive to copper toxicity than other goat breeds, though not as sensitive as sheep. Work with your veterinarian to determine appropriate copper supplementation levels for your herd. Too little copper can cause faded coat color, rough fiber, and immune suppression, while too much can cause fatal liver damage. Regular liver testing can help you fine-tune supplementation.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Stress and Fiber Breaks</h3>
+                <p class="text-slate-600 mb-4">Any significant stress event, whether illness, extreme weather, transport, kidding, or sudden feed changes, can cause a "break" in the fiber. A break is a weak point along the fiber shaft where it thins and may snap. Broken fiber has dramatically less value because it cannot be processed into long, strong yarn. Minimizing stress through consistent management, gradual feed transitions, and good preventive health care is essential for producing premium fiber.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mt-4">
+                    <p class="text-blue-800 font-semibold">Tip</p>
+                    <p class="text-blue-700 text-sm mt-1">You can test for fiber breaks by holding a lock of mohair at both ends and snapping it gently. If it breaks in the middle rather than pulling apart gradually, stress-related fiber breaks are present. Check multiple locks from different areas of the fleece to assess the overall clip.</p>
+                </div>
+            </section>
+
+            <!-- Selling Fiber -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Selling Fiber</h2>
+                <p class="text-slate-600 mb-4">There are multiple avenues for marketing goat fiber, from selling raw fleece straight off the animal to offering fully processed, ready-to-spin roving. The more preparation you do, the higher the price you can command, but processing also adds cost and labor.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Raw Fleece</h3>
+                <p class="text-slate-600 mb-4">Selling raw, skirted fleece is the simplest option. Hand spinners and small-scale fiber artists often seek out quality raw fleece at fiber festivals, farm stores, and online marketplaces. Price raw mohair based on grade: kid mohair commands the highest price, often two to three times the price of adult mohair. Well-skirted, clean, coated fleece always brings a premium over unskirted or contaminated clips.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Processed Roving and Yarn</h3>
+                <p class="text-slate-600 mb-4">Sending your fiber to a fiber mill for washing, carding, and processing into roving, batts, or yarn adds significant value. Processed roving typically sells for several times the price of raw fleece. You can also create custom blends (mohair and merino, mohair and silk) that appeal to hand spinners and knitters. Factor in mill processing fees and turnaround times when planning your fiber business.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Fiber Cooperatives</h3>
+                <p class="text-slate-600 mb-4">Joining a fiber cooperative allows small producers to pool their clips for bulk sale or processing. Cooperatives can negotiate better mill rates, share marketing costs, and provide a consistent supply to buyers. The Mohair Council of America and various regional fiber cooperatives are good starting points for connecting with other producers.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Fiber Festivals and Shows</h3>
+                <p class="text-slate-600 mb-4">Fiber festivals are excellent venues for selling directly to spinners, weavers, and fiber enthusiasts. Many festivals include fleece shows and competitions that can build your reputation. Attending festivals also provides opportunities to network with other producers, learn about market trends, and connect with potential wholesale buyers.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Pricing Guidelines</h3>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li>Research current market prices through fiber cooperatives, online fiber marketplaces, and festival sales.</li>
+                    <li>Price based on quality: fineness, cleanliness, color, and consistency all affect value.</li>
+                    <li>Factor in all costs including feed, veterinary care, equipment, coats, and your labor when setting prices.</li>
+                    <li>Build relationships with repeat buyers. A loyal customer base of hand spinners is often more profitable than bulk commodity sales.</li>
+                    <li>Consider offering sample packs or small quantities to attract new customers who want to try your fiber before committing to a full fleece.</li>
+                </ul>
+            </section>
+
+            <!-- Health Considerations -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Health Considerations</h2>
+                <p class="text-slate-600 mb-4">Fiber goats, especially Angoras, have some unique health vulnerabilities that require proactive management. Staying ahead of potential problems protects both your animals and your fiber crop.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Cold and Rain Sensitivity After Shearing</h3>
+                <p class="text-slate-600 mb-4">Freshly shorn Angora goats are extremely vulnerable to hypothermia. Without their fleece, they have almost no insulation and can die from exposure to cold rain or wind within hours. Always provide enclosed, draft-free shelter for at least two to three weeks after shearing. Monitor weather forecasts and avoid shearing if cold, wet weather is expected. Some producers keep a supply of goat coats or covers on hand to protect freshly shorn animals during unexpected weather changes.</p>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg mb-4">
+                    <p class="text-amber-800 font-semibold">Critical Warning</p>
+                    <p class="text-amber-700 text-sm mt-1">Freshly shorn Angora goats can die of hypothermia in temperatures that would be perfectly comfortable for unshorn goats. A wet, newly shorn Angora can perish in temperatures as mild as 50 degrees Fahrenheit (10 degrees Celsius) if exposed to wind and rain. Always have shelter ready before you begin shearing.</p>
+                </div>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Pregnancy Toxemia</h3>
+                <p class="text-slate-600 mb-4">Angora does are particularly susceptible to pregnancy toxemia (ketosis), especially when carrying multiple kids. The combined metabolic demands of fiber growth and late-stage pregnancy can overwhelm their energy reserves. Symptoms include lethargy, loss of appetite, unsteady gait, and sweet-smelling breath. Prevention is far more effective than treatment: increase energy-dense feed during the last six weeks of pregnancy, avoid sudden feed changes, and minimize stress. Does carrying twins or triplets need extra monitoring and supplementation.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">External Parasites and Fiber Quality</h3>
+                <p class="text-slate-600 mb-4">Lice, mites, and other external parasites cause itching and rubbing that damages fiber, creating matted, broken, and stained areas in the fleece. Fiber goats should be inspected regularly for signs of external parasites, particularly during winter when lice populations tend to increase. Treat infestations promptly with products approved for use on goats. Timing treatments after shearing is often most effective, as it allows better product contact with the skin. Maintain good biosecurity practices when introducing new animals to prevent bringing parasites into your herd.</p>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Internal Parasites</h3>
+                <p class="text-slate-600 mb-4">Like all goats, fiber breeds are susceptible to internal parasites, particularly the barber pole worm (Haemonchus contortus). Angoras may be somewhat less resistant to parasite loads than hardier meat breeds, making regular FAMACHA scoring, fecal egg counts, and strategic deworming especially important. A heavy parasite burden not only threatens the goat's health but also causes poor fiber growth, rough texture, and fiber breaks.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-blue-800 font-semibold">Tip</p>
+                    <p class="text-blue-700 text-sm mt-1">Keep detailed health and production records for each fiber goat. Track fleece weights, fiber quality grades, parasite counts, and any health events. Over time, these records help you identify your best producers, cull animals that consistently underperform, and refine your breeding and management program for optimal fiber production.</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+{% endblock %}

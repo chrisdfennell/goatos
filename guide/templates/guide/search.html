@@ -1,0 +1,27 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-8 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Search</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Find what you need across all our goat care guides.</p>
+        </section>
+
+        <div class="mb-8">
+            <div class="relative">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" class="w-full pl-12 pr-4 py-4 text-lg border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white" placeholder="Search for topics, symptoms, breeds..." autofocus>
+            </div>
+            <p class="mt-2 text-sm text-slate-500" id="search-status"></p>
+        </div>
+
+        <div id="search-results" class="space-y-4"></div>
+    </div>
+</main>
+{% endblock %}
+
+{% block guide_js %}
+<script src="{% static 'guide/js/search.js' %}"></script>
+{% endblock %}

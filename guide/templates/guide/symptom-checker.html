@@ -1,0 +1,402 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Goat Symptom Checker</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Select the symptoms you're observing to get guidance on possible causes and recommended actions. This tool is for educational purposes only &mdash; always consult a veterinarian for diagnosis and treatment.</p>
+        </section>
+
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mb-8">
+            <p class="text-red-800 font-semibold">Important Disclaimer</p>
+            <p class="text-red-700 text-sm mt-1">This symptom checker is NOT a substitute for veterinary care. If your goat is in distress, not breathing normally, down and unable to stand, or bleeding heavily, contact your veterinarian or emergency animal services immediately.</p>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Step 1: Select Symptoms -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200" id="symptom-selector">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Step 1: Select Symptoms</h2>
+                <p class="text-slate-600 mb-6">Check all symptoms that apply to your goat. The more symptoms you select, the more accurate the results.</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Appetite & Digestion</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="not-eating"><span class="text-slate-700">Not eating / Off feed</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="bloated"><span class="text-slate-700">Bloated / Distended belly</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="diarrhea"><span class="text-slate-700">Diarrhea / Loose stool</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="constipation"><span class="text-slate-700">No stool / Constipation</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="teeth-grinding"><span class="text-slate-700">Teeth grinding</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="no-cud"><span class="text-slate-700">Not chewing cud</span></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Energy & Movement</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="lethargic"><span class="text-slate-700">Lethargic / Weak</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="down"><span class="text-slate-700">Down / Can't stand</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="limping"><span class="text-slate-700">Limping / Lameness</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="stiff"><span class="text-slate-700">Stiff movement</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="circling"><span class="text-slate-700">Circling / Head tilt</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="staggering"><span class="text-slate-700">Staggering / Uncoordinated</span></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Eyes, Nose & Mouth</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="nasal-discharge"><span class="text-slate-700">Nasal discharge</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="cough"><span class="text-slate-700">Coughing</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="drooling"><span class="text-slate-700">Drooling / Excessive salivation</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="pale-gums"><span class="text-slate-700">Pale gums / eyelids (FAMACHA)</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="eye-discharge"><span class="text-slate-700">Eye discharge / Cloudy eyes</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="mouth-sores"><span class="text-slate-700">Mouth sores / Blisters</span></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Coat & Skin</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="hair-loss"><span class="text-slate-700">Hair loss / Patchy coat</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="itching"><span class="text-slate-700">Excessive itching / Scratching</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="rough-coat"><span class="text-slate-700">Rough / Dull coat</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="lumps"><span class="text-slate-700">Lumps / Abscesses</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="scabs"><span class="text-slate-700">Scabs / Crusty skin</span></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Temperature & General</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="fever"><span class="text-slate-700">Fever (over 103.5&deg;F)</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="low-temp"><span class="text-slate-700">Low temperature (under 101&deg;F)</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="weight-loss"><span class="text-slate-700">Weight loss</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="bottle-jaw"><span class="text-slate-700">Bottle jaw (swelling under jaw)</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="rapid-breathing"><span class="text-slate-700">Rapid or labored breathing</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="crying"><span class="text-slate-700">Crying / Vocalizing in pain</span></label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-slate-800 mb-3">Urinary & Reproductive</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="straining-urinate"><span class="text-slate-700">Straining to urinate</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="discharge-vulva"><span class="text-slate-700">Vulvar discharge (not in labor)</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="udder-hot"><span class="text-slate-700">Hot / Hard udder</span></label>
+                            <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="symptom-check mt-1 accent-emerald-600" value="milk-clots"><span class="text-slate-700">Clots or blood in milk</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <button onclick="checkSymptoms()" class="btn-primary px-6 py-3 text-white font-semibold rounded-lg">Check Symptoms</button>
+                    <button onclick="clearSymptoms()" class="px-6 py-3 text-slate-600 font-semibold rounded-lg border border-slate-300 hover:bg-slate-50 transition-all">Clear All</button>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <section class="hidden bg-white p-6 rounded-lg shadow-md border border-slate-200" id="symptom-results">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Possible Conditions</h2>
+                <p class="text-slate-600 mb-6">Based on the symptoms you selected, here are possible conditions ranked by likelihood. <strong>This is not a diagnosis</strong> &mdash; always consult a veterinarian.</p>
+                <div id="results-container" class="space-y-4"></div>
+            </section>
+
+            <!-- Quick Reference -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">When to Call the Vet Immediately</h2>
+                <p class="text-slate-600 mb-4">Some situations require urgent veterinary attention. Do not wait if your goat shows any of the following:</p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Down and unable to stand</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Severe bloat (tight left side)</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Straining to urinate (UC emergency)</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Labored kidding (over 30 min pushing)</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Temperature over 105&deg;F or under 100&deg;F</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Seizures or severe staggering</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Suspected poisoning</span>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg flex items-start gap-2">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-red-800 text-sm">Heavy bleeding or deep wounds</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block guide_js %}
+<script>
+const CONDITIONS = [
+    {
+        name: "Barber Pole Worm (Haemonchus)",
+        severity: "high",
+        symptoms: ["pale-gums", "bottle-jaw", "lethargic", "weight-loss", "rough-coat", "diarrhea", "not-eating"],
+        minMatch: 2,
+        description: "Heavy internal parasite load, especially Haemonchus contortus. This blood-sucking worm causes severe anemia.",
+        action: "Do a FAMACHA check. If eyelids are pale pink or white (score 4-5), deworm immediately. Run a fecal egg count. Consult vet for severe cases — may need iron supplements or blood transfusion.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Bloat (Ruminal Tympany)",
+        severity: "high",
+        symptoms: ["bloated", "not-eating", "crying", "rapid-breathing", "teeth-grinding", "no-cud"],
+        minMatch: 2,
+        description: "Gas trapped in the rumen causing dangerous distension. Left side will be tight like a drum. Can be frothy (from grain/lush pasture) or free gas (obstruction).",
+        action: "URGENT: Walk the goat, massage left side, give simethicone (Gas-X) orally. For frothy bloat, drench with vegetable oil (60-120ml). If no improvement in 15 minutes, call vet — may need trocar.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Pneumonia",
+        severity: "high",
+        symptoms: ["cough", "nasal-discharge", "fever", "rapid-breathing", "not-eating", "lethargic"],
+        minMatch: 3,
+        description: "Respiratory infection, common in damp/cold conditions or after stress. Can be bacterial, viral, or mycoplasma.",
+        action: "Take temperature. If over 104°F with cough and nasal discharge, likely bacterial pneumonia. Start antibiotics (consult vet for appropriate choice — often oxytetracycline or Nuflor). Isolate from herd. Keep in dry, well-ventilated area.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Urinary Calculi (UC)",
+        severity: "high",
+        symptoms: ["straining-urinate", "crying", "teeth-grinding", "not-eating", "bloated", "lethargic"],
+        minMatch: 2,
+        description: "Urinary stones blocking urine flow, most common in wethers and bucks. A life-threatening emergency if complete blockage.",
+        action: "EMERGENCY: If goat cannot urinate at all, this is critical — bladder can rupture. Give ammonium chloride drench. Call vet immediately. May require surgical intervention. Prevention: proper calcium:phosphorus ratio (2:1), adequate water, ammonium chloride in feed.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Enterotoxemia (Overeating Disease)",
+        severity: "high",
+        symptoms: ["down", "bloated", "diarrhea", "crying", "teeth-grinding", "staggering", "not-eating"],
+        minMatch: 3,
+        description: "Caused by Clostridium perfringens types C & D. Occurs when goat overeats grain or lush feed, causing rapid bacterial overgrowth in the gut.",
+        action: "EMERGENCY: Give CD Antitoxin immediately if available. Contact vet. Prevention is key — vaccinate with CDT vaccine, avoid sudden feed changes, limit grain access.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Listeriosis (Circling Disease)",
+        severity: "high",
+        symptoms: ["circling", "staggering", "drooling", "not-eating", "fever", "down"],
+        minMatch: 2,
+        description: "Bacterial brain infection usually from spoiled/moldy silage or hay. Causes one-sided facial paralysis and circling.",
+        action: "EMERGENCY: High-dose penicillin (procaine penicillin G) every 6 hours for minimum 7-14 days. Must start treatment early for best prognosis. Remove any moldy feed immediately. Call vet.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Coccidiosis",
+        severity: "medium",
+        symptoms: ["diarrhea", "weight-loss", "not-eating", "lethargic", "rough-coat", "fever"],
+        minMatch: 2,
+        description: "Protozoal infection most common in kids 3 weeks to 6 months old. Causes damage to intestinal lining. Can be fatal in young kids.",
+        action: "Run a fecal test to confirm. Treat with Corid (amprolium) — 5-day drench at treatment dose. Ensure kids have clean, dry bedding. Prevention: Corid in water during stress periods, good sanitation.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Mastitis",
+        severity: "medium",
+        symptoms: ["udder-hot", "milk-clots", "fever", "not-eating", "lethargic"],
+        minMatch: 2,
+        description: "Udder infection. Can be clinical (visible signs) or subclinical. Hot, hard, painful udder with abnormal milk.",
+        action: "Milk out affected side completely and frequently. Perform CMT test. Start appropriate antibiotic treatment (intramammary or systemic based on severity). Cold compresses for swelling. Consult vet for culture and sensitivity testing.",
+        link: "/milking-dairy"
+    },
+    {
+        name: "Foot Rot / Foot Scald",
+        severity: "medium",
+        symptoms: ["limping", "not-eating", "fever"],
+        minMatch: 1,
+        description: "Bacterial infection of the hoof, common in wet conditions. Causes foul smell, separation of hoof wall, and severe lameness.",
+        action: "Trim affected hooves. Clean thoroughly. Treat with zinc sulfate or copper sulfate foot bath. Apply topical treatment. Keep in dry area. May need systemic antibiotics for severe cases. Consult vet if not improving.",
+        link: "/hoof-care-grooming"
+    },
+    {
+        name: "Copper Deficiency",
+        severity: "medium",
+        symptoms: ["rough-coat", "hair-loss", "weight-loss", "lethargic", "diarrhea"],
+        minMatch: 2,
+        description: "Common deficiency. Signs include faded/rough coat (especially around eyes — 'fish tail'), poor growth, and susceptibility to parasites.",
+        action: "Administer copper bolus (COWP) at appropriate dose for weight. Ensure loose minerals are goat-specific (not sheep minerals). Have liver tested to confirm deficiency if unsure.",
+        link: "/nutrition-minerals"
+    },
+    {
+        name: "Polio (Polioencephalomalacia)",
+        severity: "high",
+        symptoms: ["staggering", "circling", "down", "stiff", "not-eating", "teeth-grinding"],
+        minMatch: 2,
+        description: "Thiamine (Vitamin B1) deficiency causing brain swelling. Often triggered by high-grain diets, stress, or corid (amprolium) treatment.",
+        action: "EMERGENCY: Give thiamine (Vitamin B1) injection immediately — 500mg for adult goats. Repeat every 6 hours for 3 days. If no thiamine available, give Fortified B Complex (but it has much less B1). Early treatment is critical. Call vet.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Pregnancy Toxemia (Ketosis)",
+        severity: "high",
+        symptoms: ["not-eating", "lethargic", "down", "teeth-grinding", "staggering", "low-temp"],
+        minMatch: 3,
+        description: "Occurs in late pregnancy (last 4-6 weeks), especially with multiple kids. Goat can't eat enough to meet energy demands. Sweet/fruity breath is a hallmark sign.",
+        action: "EMERGENCY: Drench with propylene glycol (60ml twice daily). Offer high-energy feeds. Check for ketones in urine with test strips. May need IV dextrose from vet. Can be fatal if untreated. Prevention: proper nutrition in late pregnancy.",
+        link: "/breeding-kidding"
+    },
+    {
+        name: "External Parasites (Lice/Mites)",
+        severity: "low",
+        symptoms: ["itching", "hair-loss", "rough-coat", "scabs"],
+        minMatch: 2,
+        description: "Lice (sucking or biting) and mites cause intense itching, hair loss, and skin irritation. Most common in winter months.",
+        action: "Identify type: lice are visible on skin/hair, mites may need skin scraping. Treat with permethrin dust/spray or injectable ivermectin for sucking lice/mites. Treat all herd members. Clean bedding. Repeat treatment in 10-14 days to catch hatching eggs.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "CL (Caseous Lymphadenitis)",
+        severity: "medium",
+        symptoms: ["lumps", "weight-loss", "lethargic"],
+        minMatch: 1,
+        description: "Chronic bacterial infection causing abscesses at lymph node sites. Highly contagious. Abscesses contain thick, greenish-white pus.",
+        action: "Do NOT lance abscesses where pus can contaminate environment — this spreads it to other goats. Isolate affected goat. Have vet confirm with culture. Consider lancing into a container or Formalin injection. Some choose to cull affected animals. Vaccine available.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Soremouth (Orf)",
+        severity: "medium",
+        symptoms: ["mouth-sores", "not-eating", "drooling", "scabs"],
+        minMatch: 2,
+        description: "Viral infection causing crusty scabs around mouth, nostrils, and sometimes udder. Highly contagious. Zoonotic — can spread to humans!",
+        action: "Usually self-limiting (resolves in 1-4 weeks). Keep affected goat eating — soften feed if needed. Apply topical antiseptic. WEAR GLOVES when handling. Vaccine available but introduces live virus to farm. Kids may need bottle feeding if dam's udder is affected.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Pinkeye (Infectious Keratoconjunctivitis)",
+        severity: "medium",
+        symptoms: ["eye-discharge", "lethargic", "not-eating"],
+        minMatch: 1,
+        description: "Bacterial eye infection causing watery then thick discharge, redness, and potentially corneal ulcers. Spread by flies and close contact.",
+        action: "Apply ophthalmic antibiotic ointment (terramycin or similar) 2-3 times daily. Keep out of bright sunlight. Isolate from herd. Usually resolves in 1-2 weeks with treatment. See vet if cornea becomes cloudy/ulcerated.",
+        link: "/common-problems-triage"
+    },
+    {
+        name: "Tetanus",
+        severity: "high",
+        symptoms: ["stiff", "down", "not-eating", "teeth-grinding", "fever"],
+        minMatch: 2,
+        description: "Caused by Clostridium tetani entering through wounds. Causes progressive muscle stiffness, 'sawhorse' stance, locked jaw. Often fatal.",
+        action: "EMERGENCY: Give tetanus antitoxin. High-dose penicillin. Muscle relaxants. Dark, quiet environment. Prognosis is guarded. Prevention: CDT vaccine and antitoxin at time of any wound, castration, or disbudding.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "White Muscle Disease (Selenium Deficiency)",
+        severity: "medium",
+        symptoms: ["stiff", "down", "lethargic", "weight-loss"],
+        minMatch: 2,
+        description: "Selenium/Vitamin E deficiency causing muscle degeneration. Common in selenium-deficient areas. Often seen in kids — weak at birth, stiff legs.",
+        action: "Give BoSe (prescription selenium/vitamin E injection) or over-the-counter vitamin E/selenium gel. Ensure loose minerals contain selenium. In deficient areas, supplement does in late pregnancy. Have soil/hay tested.",
+        link: "/nutrition-minerals"
+    },
+    {
+        name: "Johne's Disease",
+        severity: "high",
+        symptoms: ["diarrhea", "weight-loss", "rough-coat", "not-eating", "bottle-jaw"],
+        minMatch: 3,
+        description: "Chronic, progressive wasting disease caused by Mycobacterium paratuberculosis. No cure. Goats are often infected as kids but don't show signs until adults.",
+        action: "No treatment available. Test and cull positive animals. Do not keep kids from positive does. Extremely contagious through feces. Test new additions to the herd. Consult vet for herd management plan.",
+        link: "/health-vaccines-parasites"
+    },
+    {
+        name: "Poisoning (Toxic Plant Ingestion)",
+        severity: "high",
+        symptoms: ["drooling", "staggering", "diarrhea", "down", "rapid-breathing", "crying", "teeth-grinding"],
+        minMatch: 3,
+        description: "Various toxic plants can cause a range of symptoms depending on the plant consumed. Azalea, rhododendron, yew, and cherry leaves (wilted) are common culprits.",
+        action: "EMERGENCY: Identify the plant if possible. Give activated charcoal (1g/kg body weight mixed with water as drench). Call vet immediately. Bring a sample of the suspected plant. Remove herd from the area.",
+        link: "/poisonous-plants"
+    },
+    {
+        name: "CAE (Caprine Arthritis Encephalitis)",
+        severity: "medium",
+        symptoms: ["stiff", "limping", "weight-loss", "lethargic", "udder-hot"],
+        minMatch: 2,
+        description: "Viral disease causing chronic arthritis (adults) or encephalitis (kids). Spread through colostrum/milk. No cure.",
+        action: "Blood test to confirm. No treatment — manage symptoms with anti-inflammatories. Prevent spread: heat-treat colostrum, separate kids at birth if dam is positive, test herd annually. Consider CAE-free herd certification.",
+        link: "/health-vaccines-parasites"
+    }
+];
+
+function checkSymptoms() {
+    const checked = Array.from(document.querySelectorAll('.symptom-check:checked')).map(cb => cb.value);
+    if (checked.length === 0) {
+        alert('Please select at least one symptom.');
+        return;
+    }
+
+    const results = CONDITIONS.map(condition => {
+        const matched = condition.symptoms.filter(s => checked.includes(s));
+        const score = matched.length / condition.symptoms.length;
+        return { ...condition, matched, score, matchCount: matched.length };
+    })
+    .filter(r => r.matchCount >= r.minMatch)
+    .sort((a, b) => {
+        const severityOrder = { high: 3, medium: 2, low: 1 };
+        if (b.score !== a.score) return b.score - a.score;
+        return severityOrder[b.severity] - severityOrder[a.severity];
+    });
+
+    const container = document.getElementById('results-container');
+    const resultsSection = document.getElementById('symptom-results');
+
+    if (results.length === 0) {
+        container.innerHTML = '<div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg"><p class="text-blue-800">No strong matches found for the selected symptoms. If your goat seems unwell, please consult a veterinarian. Try selecting additional symptoms for more accurate results.</p></div>';
+    } else {
+        container.innerHTML = results.map(r => {
+            const severityColors = {
+                high: { bg: 'bg-red-50', border: 'border-red-400', badge: 'bg-red-100 text-red-800', text: 'text-red-800' },
+                medium: { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-100 text-amber-800', text: 'text-amber-800' },
+                low: { bg: 'bg-blue-50', border: 'border-blue-400', badge: 'bg-blue-100 text-blue-800', text: 'text-blue-800' }
+            };
+            const c = severityColors[r.severity];
+            const pct = Math.round(r.score * 100);
+            return `
+                <div class="${c.bg} border-l-4 ${c.border} p-4 rounded-r-lg">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 class="font-bold ${c.text} text-lg">${r.name}</h3>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${c.badge}">${r.severity.toUpperCase()} SEVERITY</span>
+                        <span class="text-xs text-slate-500">${r.matchCount}/${r.symptoms.length} symptoms match (${pct}%)</span>
+                    </div>
+                    <p class="text-slate-700 text-sm mb-2">${r.description}</p>
+                    <p class="text-slate-800 text-sm font-semibold mb-2">Recommended Action:</p>
+                    <p class="text-slate-700 text-sm mb-2">${r.action}</p>
+                    ${r.link ? `<a href="${r.link}" class="text-emerald-600 hover:underline text-sm font-semibold">Learn more &rarr;</a>` : ''}
+                </div>`;
+        }).join('');
+    }
+
+    resultsSection.classList.remove('hidden');
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearSymptoms() {
+    document.querySelectorAll('.symptom-check').forEach(cb => cb.checked = false);
+    document.getElementById('symptom-results').classList.add('hidden');
+}
+</script>
+{% endblock %}

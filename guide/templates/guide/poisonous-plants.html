@@ -1,0 +1,286 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<!-- Main Content -->
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Poisonous Plants for Goats</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Goats are natural browsers and are generally good at avoiding toxic plants &mdash; but not always. Knowing which plants are dangerous, recognizing the signs of poisoning, and acting quickly can save your goat's life.</p>
+        </section>
+        <div class="space-y-8">
+
+            <!-- Understanding Plant Toxicity -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Understanding Plant Toxicity</h2>
+                <p class="text-slate-600 mb-4">Goats have a natural instinct to avoid many harmful plants, but that instinct is not foolproof. Several situations increase the risk of toxic plant ingestion:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Hungry or bored goats</strong> &mdash; Goats with limited forage options or inadequate browse will sample plants they would normally ignore.</li>
+                    <li><strong>Goats new to an area</strong> &mdash; Animals relocated to unfamiliar pastures have not learned which local plants to avoid.</li>
+                    <li><strong>Wilted or dried plants can be MORE toxic</strong> &mdash; Many plants become more dangerous after a storm, frost, or when mixed into hay. Wilted cherry leaves, for example, release cyanide.</li>
+                    <li><strong>Amount matters</strong> &mdash; Some plants are lethal in tiny quantities, while others only cause harm when consumed in large amounts over time. A nibble of yew can kill; a few oak leaves will not.</li>
+                    <li><strong>Individual variation</strong> &mdash; Young kids, pregnant does, and sick goats are more vulnerable to toxins than healthy adults.</li>
+                </ul>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mt-4">
+                    <p class="text-slate-700"><strong>Rule of thumb:</strong> If you cannot positively identify a plant as safe, remove it from your pasture or fence your goats away from it. When in doubt, keep it out.</p>
+                </div>
+            </section>
+
+            <!-- Highly Toxic / Potentially Fatal -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Highly Toxic / Potentially Fatal</h2>
+                <p class="text-slate-600 mb-4">These plants can cause serious illness or death, sometimes from very small amounts. Remove them from your property immediately if found within reach of your goats.</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-red-100 text-slate-800">
+                                <th class="px-4 py-3 font-semibold border border-red-200">Plant</th>
+                                <th class="px-4 py-3 font-semibold border border-red-200">Toxic Part</th>
+                                <th class="px-4 py-3 font-semibold border border-red-200">Toxin / Severity</th>
+                                <th class="px-4 py-3 font-semibold border border-red-200">Symptoms</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Rhododendron / Azalea</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially leaves</td>
+                                <td class="px-4 py-3 border border-slate-200">Grayanotoxin &mdash; even small amounts can be deadly</td>
+                                <td class="px-4 py-3 border border-slate-200">Excessive drooling, vomiting, weakness, cardiac arrhythmia, collapse</td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Yew</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts (bark, leaves, seeds)</td>
+                                <td class="px-4 py-3 border border-slate-200">Taxine alkaloids &mdash; sudden death possible</td>
+                                <td class="px-4 py-3 border border-slate-200">Trembling, difficulty breathing, sudden collapse and death (often no warning signs)</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Cherry (Wilted Leaves)</td>
+                                <td class="px-4 py-3 border border-slate-200">Wilted leaves, bark, seeds</td>
+                                <td class="px-4 py-3 border border-slate-200">Cyanogenic glycosides (release cyanide) &mdash; wilted leaves especially dangerous after storms</td>
+                                <td class="px-4 py-3 border border-slate-200">Rapid breathing, bright red mucous membranes, staggering, convulsions</td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Mountain Laurel</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially leaves</td>
+                                <td class="px-4 py-3 border border-slate-200">Grayanotoxin &mdash; similar to rhododendron</td>
+                                <td class="px-4 py-3 border border-slate-200">Drooling, nausea, weakness, cardiac issues, coma</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Water Hemlock</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially roots</td>
+                                <td class="px-4 py-3 border border-slate-200">Cicutoxin &mdash; most toxic plant in North America</td>
+                                <td class="px-4 py-3 border border-slate-200">Violent seizures, excessive salivation, rapid death</td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Oleander</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, even dried</td>
+                                <td class="px-4 py-3 border border-slate-200">Cardiac glycosides &mdash; extremely toxic, even in small quantities or when dried</td>
+                                <td class="px-4 py-3 border border-slate-200">Diarrhea, colic, irregular heartbeat, tremors, death</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Nightshade</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts (leaves, berries, stems)</td>
+                                <td class="px-4 py-3 border border-slate-200">Solanine and related alkaloids</td>
+                                <td class="px-4 py-3 border border-slate-200">Drooling, diarrhea, dilated pupils, weakness, paralysis</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Critical warning:</strong> If you suspect your goat has eaten any of these plants, contact your veterinarian immediately. With yew and water hemlock, death can occur within minutes to hours. Do not wait for symptoms to appear before calling for help.</p>
+                </div>
+            </section>
+
+            <!-- Moderately Toxic -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Moderately Toxic Plants</h2>
+                <p class="text-slate-600 mb-4">These plants typically require larger quantities or repeated exposure to cause serious harm, but they should still be managed carefully. Cumulative exposure is a real danger with several of these species.</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-amber-100 text-slate-800">
+                                <th class="px-4 py-3 font-semibold border border-amber-200">Plant</th>
+                                <th class="px-4 py-3 font-semibold border border-amber-200">Toxic Part</th>
+                                <th class="px-4 py-3 font-semibold border border-amber-200">Toxin / Severity</th>
+                                <th class="px-4 py-3 font-semibold border border-amber-200">Symptoms</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Oak (Acorns &amp; Leaves)</td>
+                                <td class="px-4 py-3 border border-slate-200">Acorns, young leaves, bark</td>
+                                <td class="px-4 py-3 border border-slate-200">Tannins &mdash; kidney damage in large quantities</td>
+                                <td class="px-4 py-3 border border-slate-200">Loss of appetite, constipation followed by dark diarrhea, rough coat, kidney failure</td>
+                            </tr>
+                            <tr class="bg-amber-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Bracken Fern</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially young fronds</td>
+                                <td class="px-4 py-3 border border-slate-200">Thiaminase &mdash; cumulative toxicity over weeks</td>
+                                <td class="px-4 py-3 border border-slate-200">Weight loss, weakness, incoordination, thiamine deficiency symptoms</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">St. John's Wort</td>
+                                <td class="px-4 py-3 border border-slate-200">Leaves and flowers</td>
+                                <td class="px-4 py-3 border border-slate-200">Hypericin &mdash; causes photosensitization</td>
+                                <td class="px-4 py-3 border border-slate-200">Sunburn on light-skinned areas, swelling, skin peeling, restlessness</td>
+                            </tr>
+                            <tr class="bg-amber-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Pokeweed</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially roots and mature stems</td>
+                                <td class="px-4 py-3 border border-slate-200">Phytolaccatoxin &mdash; increasingly toxic as plant matures</td>
+                                <td class="px-4 py-3 border border-slate-200">Drooling, diarrhea, colic, decreased milk production</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Pigweed / Amaranth</td>
+                                <td class="px-4 py-3 border border-slate-200">Leaves and stems</td>
+                                <td class="px-4 py-3 border border-slate-200">Nitrate accumulation &mdash; kidney damage</td>
+                                <td class="px-4 py-3 border border-slate-200">Weakness, trembling, difficulty breathing, kidney failure with prolonged exposure</td>
+                            </tr>
+                            <tr class="bg-amber-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Lantana</td>
+                                <td class="px-4 py-3 border border-slate-200">Leaves and berries (especially unripe)</td>
+                                <td class="px-4 py-3 border border-slate-200">Lantadene A &mdash; liver damage</td>
+                                <td class="px-4 py-3 border border-slate-200">Photosensitization, jaundice, loss of appetite, constipation, liver failure</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Note:</strong> "Moderate" does not mean safe. Bracken fern and pigweed are especially dangerous because their toxicity is cumulative &mdash; a goat eating small amounts over days or weeks can suddenly become seriously ill. Monitor pastures for these plants regularly.</p>
+                </div>
+            </section>
+
+            <!-- Mildly Toxic / Conditional -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Mildly Toxic / Conditional</h2>
+                <p class="text-slate-600 mb-4">These plants are generally only a concern in large quantities or under specific conditions. Most healthy adult goats will not eat enough to cause problems, but it pays to be aware.</p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-blue-100 text-slate-800">
+                                <th class="px-4 py-3 font-semibold border border-blue-200">Plant</th>
+                                <th class="px-4 py-3 font-semibold border border-blue-200">Toxic Part</th>
+                                <th class="px-4 py-3 font-semibold border border-blue-200">Toxin / Severity</th>
+                                <th class="px-4 py-3 font-semibold border border-blue-200">Symptoms</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Wild Onions / Garlic</td>
+                                <td class="px-4 py-3 border border-slate-200">All parts, especially bulbs</td>
+                                <td class="px-4 py-3 border border-slate-200">Organosulfoxides &mdash; hemolytic anemia in large amounts</td>
+                                <td class="px-4 py-3 border border-slate-200">Dark-colored urine, pale gums, weakness, off-flavored milk</td>
+                            </tr>
+                            <tr class="bg-blue-50">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Raw Potatoes (Green)</td>
+                                <td class="px-4 py-3 border border-slate-200">Green skin, sprouts, leaves</td>
+                                <td class="px-4 py-3 border border-slate-200">Solanine &mdash; mild to moderate depending on amount</td>
+                                <td class="px-4 py-3 border border-slate-200">Digestive upset, diarrhea, drooling</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 border border-slate-200 font-semibold">Rhubarb Leaves</td>
+                                <td class="px-4 py-3 border border-slate-200">Leaves only (stalks are less toxic)</td>
+                                <td class="px-4 py-3 border border-slate-200">Oxalic acid &mdash; kidney damage in large amounts</td>
+                                <td class="px-4 py-3 border border-slate-200">Drooling, staggering, tremors, kidney issues with large consumption</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Tip:</strong> These plants are low-risk in a well-managed pasture with plenty of forage. Goats with access to good hay, browse, and minerals are far less likely to eat enough of these plants to cause harm.</p>
+                </div>
+            </section>
+
+            <!-- Safe Plants Goats Love -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Safe Plants Goats Love</h2>
+                <p class="text-slate-600 mb-4">Not everything in the pasture is a threat. Goats thrive on a wide variety of browse and forage plants. Here are some favorites that are both safe and nutritious:</p>
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-slate-800 mb-2">Browse &amp; Shrubs</h3>
+                        <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                            <li><strong>Blackberry / Raspberry bushes</strong> &mdash; An all-time goat favorite, thorns and all</li>
+                            <li><strong>Rose bushes</strong> &mdash; Leaves, stems, and flowers are all safe</li>
+                            <li><strong>Honeysuckle</strong> &mdash; Excellent browse, highly palatable</li>
+                            <li><strong>Mulberry</strong> &mdash; Leaves and fruit are both enjoyed</li>
+                        </ul>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-slate-800 mb-2">Trees &amp; Forbs</h3>
+                        <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                            <li><strong>Pine / Cedar browse</strong> &mdash; Natural dewormer properties, great winter forage</li>
+                            <li><strong>Plantain</strong> (the herb, not the banana) &mdash; Nutritious pasture weed</li>
+                            <li><strong>Dandelion</strong> &mdash; Entire plant is safe and nutrient-rich</li>
+                            <li><strong>Clover</strong> &mdash; Good protein source (feed in moderation to avoid bloat)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mt-4">
+                    <p class="text-slate-700"><strong>Enrichment idea:</strong> Goats love variety. Offering fresh-cut browse from safe trees and shrubs is an excellent form of enrichment, especially for confined goats. Rotate browse species to keep things interesting and nutritionally diverse.</p>
+                </div>
+            </section>
+
+            <!-- What to Do If Your Goat Eats a Toxic Plant -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">What to Do If Your Goat Eats a Toxic Plant</h2>
+                <p class="text-slate-600 mb-4">Speed matters. If you suspect your goat has ingested a poisonous plant, take action immediately.</p>
+
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mb-4">
+                    <h3 class="font-semibold text-slate-800 mb-2">Signs of Poisoning</h3>
+                    <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                        <li>Excessive drooling or foaming at the mouth</li>
+                        <li>Staggering, incoordination, or inability to stand</li>
+                        <li>Bloating or abdominal distension</li>
+                        <li>Diarrhea (may be bloody)</li>
+                        <li>Rapid or labored breathing</li>
+                        <li>Tremors, twitching, or seizures</li>
+                        <li>Dilated pupils or unusual eye movement</li>
+                        <li>Sudden lethargy, weakness, or collapse</li>
+                        <li>Refusal to eat or drink</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-semibold text-slate-800 mb-2">Emergency Steps</h3>
+                <ol class="space-y-3 mt-2 list-decimal list-inside text-slate-700 mb-4">
+                    <li><strong>Call your veterinarian immediately.</strong> Do not wait to see if the goat "gets better." Time is critical with highly toxic plants.</li>
+                    <li><strong>Bring a plant sample.</strong> Collect a piece of the suspected plant (or take a clear photo) so your vet can identify it and choose the right treatment.</li>
+                    <li><strong>Remove the goat from the area</strong> to prevent further consumption, and separate other goats as well.</li>
+                    <li><strong>Administer activated charcoal</strong> if directed by your vet. A common dose is 1&ndash;3 grams per kilogram of body weight, mixed with water into a slurry and given orally via drench syringe. Activated charcoal binds toxins in the gut and reduces absorption.</li>
+                    <li><strong>Keep the goat calm and hydrated.</strong> Offer fresh water but do not force feed.</li>
+                    <li><strong>Monitor vital signs:</strong> temperature, heart rate, breathing rate, and rumen activity.</li>
+                </ol>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <p class="text-slate-700"><strong>Keep activated charcoal in your barn kit.</strong> It is inexpensive and available at most feed stores or online. Having it on hand can buy your goat critical time while you wait for the vet. Store it in a sealed container away from moisture.</p>
+                </div>
+            </section>
+
+            <!-- Prevention -->
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Prevention</h2>
+                <p class="text-slate-600 mb-4">The best treatment for plant poisoning is prevention. A few regular habits can dramatically reduce the risk to your herd:</p>
+                <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                    <li><strong>Walk your pasture regularly.</strong> At least once a season (and after storms), survey your pasture and fence lines for toxic plants. Learn to identify the dangerous species common in your region.</li>
+                    <li><strong>Fence off landscaping.</strong> Ornamental plants like rhododendron, azalea, yew, and oleander are common in yards. Keep goats well away from landscaped areas, driveways, and property borders where neighbors may have planted toxic species.</li>
+                    <li><strong>Never dump yard clippings into goat pastures.</strong> Well-meaning neighbors or family members may toss hedge trimmings, garden waste, or lawn clippings over the fence. This is one of the most common causes of goat poisoning. Make it very clear to everyone: nothing goes into the goat pen without your approval.</li>
+                    <li><strong>Check your hay for contamination.</strong> Toxic weeds like bracken fern, nightshade, or pokeweed can end up baled into hay. Inspect each bale before feeding, and buy hay from a trusted source.</li>
+                    <li><strong>Provide adequate forage at all times.</strong> A well-fed goat with plenty of hay, browse, and minerals is far less likely to experiment with unfamiliar plants.</li>
+                    <li><strong>Be extra cautious with new goats.</strong> Animals from a different region will not know which local plants to avoid. Supervise them closely for the first few weeks and limit their access to areas you have not fully surveyed.</li>
+                    <li><strong>Educate your family and visitors.</strong> Make sure everyone who interacts with your goats knows not to feed them random plants, leaves, or garden scraps.</li>
+                </ul>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mt-4">
+                    <p class="text-slate-700"><strong>Seasonal reminder:</strong> Spring growth and fall storms are the highest-risk times. New shoots of toxic plants appear in spring before goats recognize them, and fallen branches with wilted leaves after autumn storms (especially cherry) can be lethal. Do a thorough pasture walk at both times of year.</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+{% endblock %}

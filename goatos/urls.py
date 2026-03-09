@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
@@ -184,6 +184,9 @@ urlpatterns = [
 
     # Alerts Dashboard (Feature 12)
     path('alerts/', views.alerts_dashboard, name='alerts_dashboard'),
+
+    # Care Guide
+    path('guide/', include('guide.urls')),
 
 ]
 

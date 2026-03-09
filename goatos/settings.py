@@ -29,13 +29,23 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-CSRF_TRUSTED_ORIGINS = [f'https://{h}:4321' for h in ALLOWED_HOSTS if h]
+CSRF_TRUSTED_ORIGINS = []
+for h in ALLOWED_HOSTS:
+    if not h:
+        continue
+    for port in ['4321', '8080']:
+        CSRF_TRUSTED_ORIGINS.append(f'http://{h}:{port}')
+        CSRF_TRUSTED_ORIGINS.append(f'https://{h}:{port}')
+    # Also allow without port (behind reverse proxy)
+    CSRF_TRUSTED_ORIGINS.append(f'http://{h}')
+    CSRF_TRUSTED_ORIGINS.append(f'https://{h}')
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'farm',
+    'guide',
     'sslserver',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -121,7 +131,8 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

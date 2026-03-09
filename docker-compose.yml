@@ -1,12 +1,10 @@
-version: "3.8"
-
 services:
   goatos:
     image: fennch/goatos:latest
     build: .
     container_name: goatos_app
     ports:
-      - "4321:4321"
+      - "4321:8080"
     volumes:
       - ./db.sqlite3:/app/db.sqlite3
       - ./media:/app/media

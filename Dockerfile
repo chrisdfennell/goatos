@@ -1,35 +1,42 @@
-# Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
-# Added gcc here just in case other packages need compilation, 
-# along with your requested libjpeg/zlib for Pillow.
-RUN apt-get update && apt-get install -y \
+# Install system dependencies (Pillow + nginx + supervisor)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libjpeg-dev \
     zlib1g-dev \
+    nginx \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . /app/
 
-# Expose the port Django runs on
-EXPOSE 4321
+# Collect static files at build time
+RUN SECRET_KEY=build-placeholder python manage.py collectstatic --noinput
 
-# Run the application
-# FIX: Using "sh -c" allows us to run multiple commands.
-# 1. migrate --fake-initial: Skips table creation if tables already exist (prevents crashes).
-# 2. runsslserver: Starts your server on port 4321.
-CMD ["sh", "-c", "python manage.py migrate --fake-initial && python manage.py runsslserver 0.0.0.0:4321"]
+# Configure nginx — run as root so it can read volume-mounted media files
+RUN rm -f /etc/nginx/sites-enabled/default && \
+    sed -i 's/^user .*/user root;/' /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/goatos.conf
+
+# Configure supervisor
+COPY supervisord.conf /etc/supervisord.conf
+
+# Fix line endings (Windows CRLF -> Unix LF) and make entrypoint executable
+RUN sed -i 's/\r$//' /app/entrypoint.sh /etc/supervisord.conf /etc/nginx/conf.d/goatos.conf && \
+    chmod +x /app/entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/entrypoint.sh"]

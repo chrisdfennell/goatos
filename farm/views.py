@@ -112,7 +112,7 @@ def index(request):
 
     # Active pasture assignments
     active_assignments = PastureAssignment.objects.filter(
-        Q(end_date__isnull=True) | Q(end_date__gte=today)
+        Q(end_date__isnull=True) | Q(end_date__gt=today)
     ).select_related('grazing_area').prefetch_related('goats')
 
     # Medical schedule alerts
@@ -1338,7 +1338,7 @@ def map_dashboard(request):
 
     markers_list = list(MapMarker.objects.all().values('id', 'name', 'marker_type', 'latitude', 'longitude', 'notes'))
     active_assignments = PastureAssignment.objects.filter(
-        Q(end_date__isnull=True) | Q(end_date__gte=today)
+        Q(end_date__isnull=True) | Q(end_date__gt=today)
     ).select_related('grazing_area').prefetch_related('goats')
 
     ninety_days_ago = today - timedelta(days=90)

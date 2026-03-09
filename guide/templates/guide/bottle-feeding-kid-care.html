@@ -1,0 +1,140 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<!-- Main Content -->
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Bottle-Feeding &amp; Kid Care</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Raising kids is incredibly rewarding. Whether dam-raising or bottle-feeding, the first few weeks are critical for a healthy start.</p>
+        </section>
+        <div class="space-y-12">
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">The Golden Rule: Colostrum is Life</h2>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <p class="text-slate-600 mb-4"><a href="{% url 'guide_page' 'glossary-resources' %}#colostrum" class="text-emerald-600 hover:underline font-semibold">Colostrum</a>, the doe's first milk, is packed with essential antibodies that a kid's immune system cannot produce on its own. It is absolutely vital for their survival.</p>
+                        <ul class="space-y-3 list-disc list-inside text-slate-700">
+                            <li><strong>Timing is Everything:</strong> A kid's gut can only absorb these large antibody molecules for the first 12-24 hours of life. They need to get colostrum as soon as possible after birth, ideally within the first hour.</li>
+                            <li><strong>How Much:</strong> Aim for 10-12% of the kid's body weight in colostrum within the first 24 hours, divided into 3-4 feedings. (e.g., a 5lb kid needs about 8oz total).</li>
+                            <li><strong>Backup Plan:</strong> Always have a backup supply. You can freeze colostrum from a healthy doe for up to a year. Thaw it gently in a warm water bath—never microwave it, as that will destroy the antibodies. If you don't have any, a high-quality powdered colostrum replacer is the next best thing.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img alt="A newborn goat kid taking its first bottle of colostrum." class="rounded-lg shadow-sm" src="{% static 'guide/images/first-feeding.jpg' %}" />
+                    </div>
+                </div>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Bottle Feeding Technique &amp; Schedule</h2>
+                <p class="text-slate-600 mb-4">Consistency is key to preventing digestive upset (scours). Stick to a schedule and be meticulous about hygiene.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left mt-4">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold text-slate-600">Age</th>
+                                <th class="p-3 text-sm font-semibold text-slate-600">Feeds per Day</th>
+                                <th class="p-3 text-sm font-semibold text-slate-600">Amount per Feed</th>
+                                <th class="p-3 text-sm font-semibold text-slate-600">Tips</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                            <tr>
+                                <td class="p-3 font-medium">Week 1</td>
+                                <td class="p-3">4-5</td>
+                                <td class="p-3">6-10 oz</td>
+                                <td class="p-3 text-slate-600">Warm milk to 102°F. Use Pritchard or similar nipples. Sanitize bottles after every use.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-medium">Weeks 2-3</td>
+                                <td class="p-3">4</td>
+                                <td class="p-3">12-16 oz</td>
+                                <td class="p-3 text-slate-600">Introduce high-quality hay and fresh water in a separate, clean area.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-medium">Weeks 4-8</td>
+                                <td class="p-3">3</td>
+                                <td class="p-3">16-20 oz</td>
+                                <td class="p-3 text-slate-600">Kid should be actively nibbling hay and may start on a small amount of "creep feed" (kid starter grain).</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-medium">Weeks 9-12</td>
+                                <td class="p-3">2</td>
+                                <td class="p-3">16 oz</td>
+                                <td class="p-3 text-slate-600">Gradually reduce milk to encourage more intake of solid food, preparing for weaning.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Other Early Kid Care</h2>
+
+                <h3 class="text-xl font-semibold text-slate-800 mb-3"><a href="{% url 'guide_page' 'glossary-resources' %}#disbudding" class="text-emerald-600 hover:underline font-semibold">Disbudding</a> (Horn Prevention)</h3>
+                <p class="text-slate-600 mb-3">Horns can get caught in fences, injure other goats, and injure handlers. For these reasons, most dairy goats are disbudded. Some meat and fiber breed owners prefer to leave their goats horned, and that is a valid choice depending on your setup and goals.</p>
+                <ul class="space-y-3 list-disc list-inside text-slate-600 mb-6">
+                    <li><strong>Polled Genetics:</strong> Some goats are naturally hornless (polled). However, breeding two polled goats together can result in reproductive problems, including hermaphroditism in does. Experienced breeders often breed polled to horned to avoid this.</li>
+                    <li><strong>Timing:</strong> Disbudding must be done between 3-14 days old. Bucks develop horn buds faster than does, so they often need to be done sooner. If you wait too long, scurs (partial horn regrowth) are much more likely.</li>
+                    <li><strong>Method:</strong> A disbudding iron heated to cherry-red is applied to each horn bud for 5-8 seconds, creating a copper-colored ring. This destroys the horn-producing cells around the bud.</li>
+                    <li><strong>Pain Management:</strong> Give the kid a dose of banamine (flunixin) or meloxicam before the procedure for pain relief. Consult your vet for proper dosing.</li>
+                    <li><strong>Aftercare:</strong> Apply an aluminum-based wound spray to the burn sites. Watch for excessive swelling, discharge, or signs of brain injury (rare but possible), such as head pressing or blindness. Some swelling around the sites is normal and will go down in a few days.</li>
+                    <li><strong>Tetanus:</strong> Ensure the kid has had tetanus antitoxin if it is not yet covered by the CDT vaccine series.</li>
+                    <li><strong>Consider a Vet:</strong> Some owners prefer to have a veterinarian perform disbudding, especially for their first few times. There is no shame in this—it is a sensitive procedure and getting it right matters.</li>
+                </ul>
+
+                <ul class="space-y-3 list-disc list-inside text-slate-600">
+                    <li><strong>Vaccinations:</strong> Begin the CDT vaccine series around 4-6 weeks of age, following your veterinarian's schedule.</li>
+                    <li><strong>Coccidiosis Prevention:</strong> Kids are very susceptible to <a href="{% url 'guide_page' 'glossary-resources' %}#coccidiosis" class="text-emerald-600 hover:underline font-semibold">coccidiosis</a>, an internal parasite that causes diarrhea (scours). Keep their environment scrupulously clean and dry. Many people use a medicated feed (coccidiostat) as a preventative measure.</li>
+                </ul>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Castration Methods for Buck Kids</h2>
+                <p class="text-slate-600 mb-4">Unless a buck kid is specifically being kept as a breeding buck, castration is strongly recommended. Intact bucks can breed does as young as 7-8 weeks old, and they become increasingly aggressive and smelly as they mature. Castrated males, called wethers, make excellent pets and companions.</p>
+
+                <h3 class="text-xl font-semibold text-slate-800 mb-3">Timing</h3>
+                <p class="text-slate-600 mb-4">Castration is generally done between 8-12 weeks of age. Castrating too early (before 8 weeks) can result in a narrow urethra, which significantly increases the risk of urinary calculi (kidney stones that block the urinary tract) later in life. Many experienced owners wait until 10-12 weeks to allow the urinary tract to develop more fully.</p>
+
+                <h3 class="text-xl font-semibold text-slate-800 mb-3">Methods</h3>
+                <ul class="space-y-3 list-disc list-inside text-slate-600 mb-6">
+                    <li><strong>Banding (Elastrator):</strong> An elastrator tool places a tight rubber band around the scrotum above the testicles, cutting off blood flow. The scrotum and testicles shrink and fall off in 2-3 weeks. This is the least invasive method and the most common one used by goat owners. It can be painful initially, but the area goes numb fairly quickly.</li>
+                    <li><strong>Burdizzo (Bloodless Castration):</strong> A heavy clamp is used to crush the spermatic cords without breaking the skin. This carries less risk of infection than banding but requires proper technique to ensure both cords are fully crushed. This method should be done by an experienced person, as incomplete crushing can leave a buck partially fertile.</li>
+                    <li><strong>Surgical Castration:</strong> Performed by a veterinarian under anesthesia. This is the most precise method but also the most expensive and invasive. It is a good option if the other methods are not suitable or if complications arise.</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-slate-800 mb-3">Important Considerations</h3>
+                <ul class="space-y-3 list-disc list-inside text-slate-600">
+                    <li><strong>Tetanus Protection:</strong> ALWAYS ensure the kid has received tetanus antitoxin or has an up-to-date CDT vaccination before castrating. Tetanus is a serious risk with any open or tissue-damaging wound.</li>
+                    <li><strong>Pain Management:</strong> Provide pain relief such as banamine (flunixin) or meloxicam. Castration is painful regardless of the method used, and managing that pain is the responsible thing to do. Consult your vet for proper dosing.</li>
+                    <li><strong>Watch For:</strong> Excessive swelling, discharge or foul smell, fly strike (flies laying eggs in the wound), and inability to urinate. Any of these signs warrant immediate veterinary attention.</li>
+                </ul>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Understanding Milk Goiter</h2>
+                <p class="text-slate-600 mb-4">New goat owners are often alarmed to find a squishy lump under the throat of a fast-growing, healthy kid. In most cases, this is a harmless condition known as milk goiter.</p>
+                <div class="prose prose-slate max-w-none">
+                    <ul class="space-y-2">
+                        <li>It is NOT a true goiter, which is caused by an iodine deficiency. Do not supplement with iodine unless directed by a vet, as you can cause iodine toxicity.</li>
+                        <li>It is thought to be an inflammation of the thymus gland, which is part of the immune system. It appears in kids between 2 weeks and 4 months of age who are growing very quickly.</li>
+                        <li>The lump feels soft and fluid-filled and will eventually disappear on its own as the kid matures. As long as the kid is otherwise healthy, active, and eating well, a milk goiter is not a cause for concern.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+        <div class="flex justify-between items-center pt-12">
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-sm font-medium text-slate-700 rounded-md shadow-sm hover:bg-slate-50 transition-colors" href="{% url 'guide_page' 'breeding-kidding' %}">
+                <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+                Previous
+            </a>
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 border border-transparent text-sm font-medium text-white rounded-md shadow-sm hover:bg-emerald-700 transition-colors" href="{% url 'guide_page' 'security-predator-proofing' %}">
+                Next
+                <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

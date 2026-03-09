@@ -1,0 +1,162 @@
+{% extends "guide/guide_base.html" %}
+{% load static %}
+
+{% block guide_content %}
+<!-- Main Content -->
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto">
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-4">Preventive Health &amp; Parasites</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Proactive health management is the key to a thriving herd. Learn to spot problems early and build a strong relationship with a goat-savvy veterinarian.</p>
+        </section>
+        <div class="space-y-8">
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">The Daily Health Check</h2>
+                <p class="text-slate-600 mb-4">Spend a few minutes observing your herd every day, especially at feeding time. This is the fastest way to spot an issue. A healthy goat is bright, alert, and has a good appetite.</p>
+                <ul class="space-y-2 list-disc list-inside text-slate-700">
+                    <li><strong>Eyes:</strong> Bright and clear, not cloudy or runny.</li>
+                    <li><strong>Nose:</strong> Clean and dry, no thick or colored discharge.</li>
+                    <li><strong>Coat:</strong> Smooth and shiny. A rough, dull coat can be a sign of parasites or mineral deficiency.</li>
+                    <li><strong>Manure:</strong> Should be firm pellets. Clumpy or watery stool (scours) indicates a problem.</li>
+                    <li><strong>Movement:</strong> Moves easily without limping or stiffness. Stays with the herd.</li>
+                    <li><strong><a href="{% url 'guide_page' 'glossary-resources' %}#rumen" class="text-emerald-600 hover:underline font-semibold">Rumen</a>:</strong> The left side should feel full but soft, not tight like a drum (bloat). You should hear gurgling sounds every 20-30 seconds.</li>
+                </ul>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Normal Vitals Reference</h2>
+                <p class="text-slate-600 mb-4">Knowing what's normal is the first step to spotting what's not. Keep these baseline ranges handy so you can quickly assess whether a goat needs attention.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="px-4 py-2 text-sm font-semibold text-slate-800 border border-slate-200">Vital</th>
+                                <th class="px-4 py-2 text-sm font-semibold text-slate-800 border border-slate-200">Normal Range</th>
+                                <th class="px-4 py-2 text-sm font-semibold text-slate-800 border border-slate-200">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700 text-sm">
+                            <tr>
+                                <td class="px-4 py-2 border border-slate-200 font-medium">Temperature</td>
+                                <td class="px-4 py-2 border border-slate-200">101.5&deg;F &ndash; 103.5&deg;F (adults)</td>
+                                <td class="px-4 py-2 border border-slate-200"><a href="{% url 'guide_page' 'glossary-resources' %}#kid" class="text-emerald-600 hover:underline font-semibold">Kids</a> may run slightly higher</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 font-medium">Heart Rate</td>
+                                <td class="px-4 py-2 border border-slate-200">70&ndash;90 bpm (adults)</td>
+                                <td class="px-4 py-2 border border-slate-200">80&ndash;120 bpm for kids</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border border-slate-200 font-medium">Respiration</td>
+                                <td class="px-4 py-2 border border-slate-200">15&ndash;30 breaths per minute</td>
+                                <td class="px-4 py-2 border border-slate-200">&mdash;</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="px-4 py-2 border border-slate-200 font-medium">Rumen Contractions</td>
+                                <td class="px-4 py-2 border border-slate-200">1&ndash;2 per minute</td>
+                                <td class="px-4 py-2 border border-slate-200">Feel on the left side</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border border-slate-200 font-medium">Capillary Refill Time</td>
+                                <td class="px-4 py-2 border border-slate-200">Under 2 seconds</td>
+                                <td class="px-4 py-2 border border-slate-200">Press the gum and watch the color return</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-4 rounded-r-lg text-sm">
+                    <strong>Tip:</strong> Always take baseline vitals on your healthy goats so you know what's normal for YOUR herd. Individual animals can vary, and knowing their personal baseline makes it much easier to spot a problem early.
+                </div>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Core Vaccinations: CDT</h2>
+                <p class="text-slate-600 mb-4">The most important vaccine for nearly all goats is <a href="{% url 'guide_page' 'glossary-resources' %}#cdt" class="text-emerald-600 hover:underline font-semibold">CDT</a>, which protects against Clostridium perfringens types C &amp; D (enterotoxemia or "overeating disease") and Tetanus.</p>
+                <ul class="space-y-3 list-disc list-inside text-slate-600">
+                    <li><strong><a href="{% url 'guide_page' 'glossary-resources' %}#kid" class="text-emerald-600 hover:underline font-semibold">Kids</a>:</strong> Typically receive their first shot at 4-6 weeks of age, with a booster 3-4 weeks later.</li>
+                    <li><strong>Adults:</strong> Receive an annual booster shot.</li>
+                    <li><strong>Pregnant <a href="{% url 'guide_page' 'glossary-resources' %}#doe" class="text-emerald-600 hover:underline font-semibold">Does</a>:</strong> Get a booster 4-6 weeks before their due date. This passes immunity to the kids through the colostrum.</li>
+                </ul>
+                <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-4 rounded-r-lg text-sm">
+                    <strong>Note:</strong> Always consult your veterinarian for the vaccination schedule appropriate for your area and herd. Other vaccines (like for rabies or CL) may be recommended.
+                </div>
+            </section>
+             <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Understanding Tetanus Prevention</h2>
+                <p class="text-slate-600 mb-4">Tetanus is a deadly disease caused by bacteria found in soil. It's crucial to understand the difference between the two types of protection available.</p>
+                <ul class="space-y-3 list-disc list-inside text-slate-700">
+                    <li><strong>Tetanus Toxoid (Preventative):</strong> This is the vaccine included in the CDT shot. It stimulates the goat's body to create its own long-lasting immunity. It is given annually for prevention but takes about two weeks to become effective after a booster.</li>
+                    <li><strong>Tetanus Antitoxin (Emergency):</strong> This provides immediate, short-term protection by giving the goat pre-made antibodies. It is used in emergencies, such as after a deep wound, castration, or disbudding on a goat that is not up-to-date on its toxoid vaccine. The protection only lasts for about 7-10 days.</li>
+                </ul>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Smart Parasite Management</h2>
+                <p class="text-slate-600 mb-4">The old method of deworming on a fixed schedule is no longer recommended, as it leads to parasite resistance. Modern strategy focuses on treating only the animals that need it.</p>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <img alt="Checking a goat's eyelid color against a FAMACHA chart to assess for anemia" class="rounded-lg shadow-sm" src="{% static 'guide/images/famacha-scoring-chart.png' %}" />
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-800">Your Toolkit:</h3>
+                        <ul class="space-y-2 mt-2 list-disc list-inside text-slate-700">
+                            <li><strong><a href="{% url 'guide_page' 'glossary-resources' %}#famacha" class="text-emerald-600 hover:underline font-semibold">FAMACHA</a> Scoring:</strong> This chart helps you identify anemia (a key sign of the deadly barber pole worm) by checking the color of the goat's lower eyelid mucous membranes. Only deworm animals with pale scores (4s and 5s).</li>
+                            <li><strong>Fecal Exams:</strong> Your vet can run a fecal test to identify what types of worms are present and in what quantity, helping you choose the right dewormer.</li>
+                            <li><strong>Pasture Management:</strong> Rotating pastures, avoiding overgrazing, and keeping feed off the ground are the best ways to prevent parasite problems in the first place.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Common Dewormers &amp; Rotation</h2>
+                <p class="text-slate-600 mb-4">There are three classes of dewormers available for use in goats. Understanding the classes (not just brand names) is essential for managing resistance effectively.</p>
+                <h3 class="font-semibold text-slate-800 mb-2">The Three Dewormer Classes</h3>
+                <ul class="space-y-3 list-disc list-inside text-slate-700 mb-4">
+                    <li><strong>Benzimidazoles:</strong> Fenbendazole (SafeGuard) and albendazole (Valbazen). These are often called "white dewormers" and work by disrupting the worm's metabolism.</li>
+                    <li><strong>Macrocyclic Lactones:</strong> Ivermectin (Ivomec) and moxidectin (Cydectin). These paralyze the worms by affecting their nervous system.</li>
+                    <li><strong>Nicotinic Agonists:</strong> Levamisole (Prohibit) and morantel (Rumatel). These also cause paralysis in worms but through a different mechanism than the macrocyclic lactones.</li>
+                </ul>
+                <h3 class="font-semibold text-slate-800 mb-2">Key Deworming Guidelines</h3>
+                <ul class="space-y-2 list-disc list-inside text-slate-700">
+                    <li><strong>Give orally:</strong> For most dewormers, oral dosing is the most effective route in goats. Topical (pour-on) and injectable forms are generally less effective for internal parasites.</li>
+                    <li><strong>Follow up with fecals:</strong> Do a fecal egg count 10&ndash;14 days after deworming to confirm the product actually worked. This is how you detect resistance early.</li>
+                    <li><strong>Rotate classes wisely:</strong> Rotate dewormer <em>classes</em> (not just brands) only when resistance develops&mdash;not on a routine schedule. Switching too often can speed up resistance.</li>
+                    <li><strong>Protect moxidectin:</strong> Moxidectin (Cydectin) is often considered the "last resort" dewormer because resistance to the other classes is already widespread. Use it judiciously.</li>
+                </ul>
+                <div class="mt-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-4 rounded-r-lg text-sm">
+                    <strong>Critical:</strong> Most dewormers are used "off-label" in goats, meaning the label dose is for cattle or sheep. Goat doses are typically 2&ndash;3x higher. <strong>ALWAYS consult your veterinarian for proper dosing.</strong> Under-dosing is a major driver of resistance.
+                </div>
+            </section>
+            <section class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Medication Withdrawal Periods</h2>
+                <p class="text-slate-600 mb-4">A withdrawal period is the amount of time that must pass after a medication is given before the animal's milk or meat is considered safe for human consumption. Even if you don't sell milk or meat, following withdrawal periods is good practice&mdash;and it becomes essential if you ever sell animals to others.</p>
+                <h3 class="font-semibold text-slate-800 mb-2">Common Examples</h3>
+                <ul class="space-y-2 list-disc list-inside text-slate-700 mb-4">
+                    <li><strong>Fenbendazole (SafeGuard):</strong> No established withdrawal period in goats due to off-label use. Consult your vet.</li>
+                    <li><strong>Ivermectin:</strong> Typically 35 days for meat withdrawal.</li>
+                    <li><strong>Albendazole (Valbazen):</strong> Should <strong>not</strong> be used in the first 30 days of pregnancy due to risk of birth defects.</li>
+                </ul>
+                <h3 class="font-semibold text-slate-800 mb-2">Staying Current</h3>
+                <ul class="space-y-2 list-disc list-inside text-slate-700">
+                    <li>Always check with <strong>FARAD</strong> (Food Animal Residue Avoidance Databank) or ask your veterinarian for the most current withdrawal times. Rules and recommendations can change.</li>
+                    <li>Keep detailed records of all medications given to every animal, including the drug name, dose, date, and route of administration. See our <a href="{% url 'guide_page' 'recordkeeping-forms' %}" class="text-emerald-600 hover:underline font-semibold">recordkeeping &amp; forms page</a> for printable templates.</li>
+                </ul>
+                <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-4 rounded-r-lg text-sm">
+                    <strong>Note:</strong> Because most goat medications are used off-label, official withdrawal periods may not exist. Your vet and FARAD are your best resources for making safe, informed decisions.
+                </div>
+            </section>
+        </div>
+        <div class="flex justify-between items-center pt-12">
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-sm font-medium text-slate-700 rounded-md shadow-sm hover:bg-slate-50 transition-colors" href="{% url 'guide_page' 'nutrition-minerals' %}">
+                <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+                Previous
+            </a>
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 border border-transparent text-sm font-medium text-white rounded-md shadow-sm hover:bg-emerald-700 transition-colors" href="{% url 'guide_page' 'hoof-care-grooming' %}">
+                Next
+                <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

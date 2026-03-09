@@ -12,5 +12,8 @@ build/
 .venv/
 venv/
 env/
+staticfiles/
+convert_guide.py
 thumbs.db
 .DS_Store
+.claude/

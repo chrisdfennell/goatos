@@ -104,7 +104,7 @@ class GrazingArea(models.Model):
     @property
     def active_assignment(self):
         return self.assignments.filter(
-            models.Q(end_date__isnull=True) | models.Q(end_date__gte=date.today())
+            models.Q(end_date__isnull=True) | models.Q(end_date__gt=date.today())
         ).first()
 
     @property
@@ -127,7 +127,7 @@ class PastureAssignment(models.Model):
 
     @property
     def is_active(self):
-        return self.end_date is None or self.end_date >= date.today()
+        return self.end_date is None or self.end_date > date.today()
 
 
 class MapMarker(models.Model):
