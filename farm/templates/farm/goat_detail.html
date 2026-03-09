@@ -24,8 +24,13 @@
     .stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
     .stat-value { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
     
-    .section-header { border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .section-header { border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; -webkit-user-select: none; user-select: none; transition: opacity .2s; }
+    .section-header:hover { opacity: .8; }
     .section-title { font-size: 1.4em; color: #2c3e50; margin: 0; }
+    .section-toggle { font-size: .75em; color: #999; transition: transform .3s; margin-left: 8px; }
+    .section-body { transition: max-height .3s ease, opacity .2s ease; overflow: hidden; }
+    .section-body.collapsed { max-height: 0 !important; opacity: 0; margin: 0; padding: 0; }
+    .section-header.collapsed .section-toggle { transform: rotate(-90deg); }
     
     /* Timelines & Forms */
     .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px solid #e0e0e0; }
@@ -173,6 +178,24 @@
     body.dark-mode .offspring-card { background-color: #2d2d2d; border-color: #444; }
     body.dark-mode .offspring-name { color: #e0e0e0; }
     body.dark-mode .offspring-meta { color: #aaa; }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .profile-header { padding: 20px 15px; }
+        .goat-name { font-size: 1.8em; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .profile-body { padding: 20px 15px; }
+        .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+        .offspring-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    }
+    @media (max-width: 480px) {
+        .goat-name { font-size: 1.5em; }
+        .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat-box { padding: 12px 8px; }
+        .stat-box .stat-value { font-size: 1.3em; }
+        .profile-body { padding: 15px 10px; }
+        .section-title { font-size: 1.1em; }
+    }
 </style>
 
 <div class="container-custom">
@@ -227,6 +250,10 @@
                 {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.gender|gender_icon }} {{ goat.get_gender_display }}</div></div>{% endif %}
                 <div class="stat-box"><div class="stat-label">Age</div><div class="stat-value">{{ goat.display_age }}{% if goat.birthdate %}<div style="font-size: 0.6em; font-weight: normal; color: #666; margin-top: 5px;">Born: {{ goat.birthdate|date:"M j, Y" }}</div>{% endif %}</div></div>
             </div>
+
+            {% if last_activity %}
+            <div style="text-align:center; font-size:.85em; color:#999; margin-bottom:15px;">Last activity: <strong style="color:#555;">{{ last_activity|date:"M j, Y" }}</strong></div>
+            {% endif %}
 
             <h3>Bio</h3>
             <p style="line-height: 1.6; color: #555;" class="text-muted">{{ goat.bio|default:"No bio." }}</p>
@@ -845,5 +872,50 @@
         if (e.key === 'ArrowLeft') navLightbox(-1);
         if (e.key === 'ArrowRight') navLightbox(1);
     });
+
+    // --- COLLAPSIBLE SECTIONS ---
+    (function() {
+        var headers = document.querySelectorAll('.section-header');
+        var saved = {};
+        try { saved = JSON.parse(localStorage.getItem('goatOS_collapsed') || '{}'); } catch(e) {}
+
+        headers.forEach(function(header, i) {
+            var toggle = document.createElement('span');
+            toggle.className = 'section-toggle';
+            toggle.textContent = '\u25BC';
+            header.querySelector('.section-title').appendChild(toggle);
+
+            var body = document.createElement('div');
+            body.className = 'section-body';
+            var sibling = header.nextElementSibling;
+            var collected = [];
+            while (sibling && !sibling.classList.contains('section-header')) {
+                collected.push(sibling);
+                sibling = sibling.nextElementSibling;
+            }
+            if (collected.length > 0) {
+                header.parentNode.insertBefore(body, collected[0]);
+                collected.forEach(function(el) { body.appendChild(el); });
+            }
+
+            var key = 'sec-' + i;
+            if (saved[key]) {
+                body.classList.add('collapsed');
+                header.classList.add('collapsed');
+            }
+
+            header.addEventListener('click', function(e) {
+                if (e.target.closest('a, button, select, input')) return;
+                body.classList.toggle('collapsed');
+                header.classList.toggle('collapsed');
+                try {
+                    var s = JSON.parse(localStorage.getItem('goatOS_collapsed') || '{}');
+                    if (body.classList.contains('collapsed')) s[key] = true;
+                    else delete s[key];
+                    localStorage.setItem('goatOS_collapsed', JSON.stringify(s));
+                } catch(e) {}
+            });
+        });
+    })();
 </script>
 {% endblock %}

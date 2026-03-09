@@ -15,6 +15,11 @@
         }
         
         .header { border-bottom: 3px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header.doe-header { border-bottom-color: #e91e63; }
+        .header.buck-header { border-bottom-color: #2196f3; }
+        .gender-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1em; font-weight: 700; margin-left: 8px; vertical-align: middle; }
+        .gender-badge.female { background: #fce4ec; color: #e91e63; border: 2px solid #f48fb1; }
+        .gender-badge.male { background: #e3f2fd; color: #1976d2; border: 2px solid #90caf9; }
         .name { font-size: 3em; margin: 0; font-weight: bold; color: #2c3e50; line-height: 1; }
         .breed { font-size: 1.5em; color: #666; margin-top: 5px; }
         
@@ -51,9 +56,9 @@
             <div class="scan-text">Scan for Full Profile</div>
         </div>
 
-        <div class="header">
+        <div class="header {% if goat.gender == 'Doe' or goat.gender == 'Doeling' %}doe-header{% else %}buck-header{% endif %}">
             <div>
-                <h1 class="name">{{ goat.name }}</h1>
+                <h1 class="name">{{ goat.name }}{% if goat.gender %}<span class="gender-badge {% if goat.gender == 'Doe' or goat.gender == 'Doeling' %}female{% else %}male{% endif %}">{% if goat.gender == 'Doe' or goat.gender == 'Doeling' %}♀{% else %}♂{% endif %}</span>{% endif %}</h1>
                 <div class="breed">{{ goat.breed }}</div>
             </div>
         </div>
@@ -64,6 +69,10 @@
                 <div class="value">{{ goat.birthdate|date:"F j, Y" }} ({{ goat.display_age }})</div>
             </div>
             <div>
+                <span class="label">Gender</span>
+                <div class="value">{{ goat.get_gender_display }}</div>
+            </div>
+            <div>
                 <span class="label">Status</span>
                 <div class="value">{{ goat.status }}</div>
             </div>
@@ -71,6 +80,12 @@
             <div>
                 <span class="label">Registration #</span>
                 <div class="value">{{ goat.registration_number }}</div>
+            </div>
+            {% endif %}
+            {% if goat.microchip %}
+            <div>
+                <span class="label">Microchip</span>
+                <div class="value" style="font-family: monospace;">{{ goat.microchip }}</div>
             </div>
             {% endif %}
         </div>

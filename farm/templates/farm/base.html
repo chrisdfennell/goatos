@@ -34,6 +34,21 @@
         body.dark-mode .gender-icon.female{background:#4a1428;color:#f48fb1;border-color:#e91e63}body.dark-mode .gender-icon.male{background:#0d2744;color:#90caf9;border-color:#1976d2}
         /* MOBILE MENU */
         .mobile-menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1100}.mobile-menu{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:1200;transition:right .3s ease;padding:20px;overflow-y:auto;box-shadow:-5px 0 15px rgba(0,0,0,.1)}.mobile-menu.open{right:0}.mobile-menu-overlay.open{display:block}.mobile-menu a{display:block;padding:12px 15px;color:#333;text-decoration:none;font-size:1.05em;border-bottom:1px solid #eee}.mobile-menu a:hover{background-color:#f0f2f5}.mobile-group-label{padding:12px 15px 4px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;border-bottom:none}
+        /* ACTIVE NAV */
+        .nav-link.active,.dropdown-item-custom.active{background:#e3f2fd;color:#1565c0;border-radius:6px}
+        body.dark-mode .nav-link.active,body.dark-mode .dropdown-item-custom.active{background:#0d2744;color:#90caf9}
+        .mobile-menu a.active{background:#e3f2fd;color:#1565c0;font-weight:700;border-left:3px solid #1565c0}
+        body.dark-mode .mobile-menu a.active{background:#0d2744;color:#90caf9;border-left-color:#90caf9}
+        /* LOADING OVERLAY */
+        #ajax-loader{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.4);z-index:9999;align-items:center;justify-content:center}
+        #ajax-loader.active{display:flex}
+        .loader-spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#2196f3;border-radius:50%;animation:spin .6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        body.dark-mode #ajax-loader{background:rgba(0,0,0,.4)}
+        body.dark-mode .loader-spinner{border-color:#444;border-top-color:#90caf9}
+        /* MOBILE RESPONSIVE */
+        @media(max-width:768px){.container-custom{padding:10px}.header{padding:10px 14px;border-radius:8px;margin-bottom:12px}.dashboard-title{font-size:1.3em}.system-status{font-size:.75em}#toast-container{left:10px;right:10px;transform:none;bottom:15px}.toast-custom{min-width:auto;font-size:.9em;padding:10px 16px}}
+        @media(max-width:480px){.container-custom{padding:8px}.header{padding:8px 10px;top:5px}.dashboard-title{font-size:1.1em;gap:6px}}
         /* DARK MODE */
         body.dark-mode{background-color:#121212;color:#e0e0e0}body.dark-mode .header,body.dark-mode .card,body.dark-mode .goat-card,body.dark-mode .search-container,body.dark-mode .checklist-card,body.dark-mode .dropdown-menu-custom,body.dark-mode .modal-content-custom,body.dark-mode #map-container,body.dark-mode #new-area-form{background-color:#1e1e1e;color:#e0e0e0;box-shadow:0 4px 15px rgba(0,0,0,.4);border-color:#333}body.dark-mode .dashboard-title,body.dark-mode .card-name,body.dark-mode .modal-title,body.dark-mode .checklist-section-title{color:#ecf0f1}body.dark-mode .nav-link,body.dark-mode .dropdown-item-custom{color:#b0b0b0}body.dark-mode .nav-link:hover,body.dark-mode .dropdown-item-custom:hover,body.dark-mode .view-toggle-btn:hover{background-color:#333;color:#fff}body.dark-mode .search-input,body.dark-mode .filter-select,body.dark-mode .form-group input, body.dark-mode .form-control, body.dark-mode .form-select{background-color:#2d2d2d;border-color:#444;color:#fff}body.dark-mode .card-details, body.dark-mode .text-muted{color:#aaa !important}body.dark-mode .view-toggle-btn{background-color:#2d2d2d;border-color:#444;color:#aaa}body.dark-mode .view-toggle-btn.active{background-color:#1565c0;color:#fff;border-color:#1565c0}body.dark-mode .checklist-item{border-bottom-color:#333}body.dark-mode .checklist-section-title{border-bottom-color:#333}body.dark-mode .checklist-card#card-alerts{background-color:#1e1e1e}body.dark-mode .vet-item{border-bottom-color:#333}body.dark-mode .vet-btn{background-color:#333;color:#e0e0e0}body.dark-mode .vet-btn:hover{background-color:#444}body.dark-mode .vet-name{color:#e0e0e0}body.dark-mode .theme-toggle-btn:hover{background-color:rgba(255,255,255,.1)}body.dark-mode .mobile-menu{background:#1e1e1e}body.dark-mode .mobile-menu a{color:#e0e0e0;border-bottom-color:#333}body.dark-mode .mobile-menu a:hover{background-color:#333}body.dark-mode .dropdown-group-label,body.dark-mode .mobile-group-label{color:#666}
         
@@ -120,6 +135,9 @@
 
         {% block content %}{% endblock %}
     </div>
+
+    <!-- AJAX LOADING OVERLAY -->
+    <div id="ajax-loader"><div class="loader-spinner"></div></div>
 
     <!-- GLOBAL TOAST CONTAINER -->
     <div id="toast-container"></div>
@@ -275,6 +293,17 @@
                 form.addEventListener('submit', function(e) {
                     if (!confirm(this.dataset.confirm)) e.preventDefault();
                 });
+            });
+
+            // --- ACTIVE NAV HIGHLIGHTING ---
+            var path = window.location.pathname;
+            document.querySelectorAll('.dropdown-item-custom, .mobile-menu a, .nav-link').forEach(function(link) {
+                var href = link.getAttribute('href');
+                if (href && href !== '/' && path.startsWith(href)) {
+                    link.classList.add('active');
+                } else if (href === '/' && path === '/') {
+                    link.classList.add('active');
+                }
             });
         });
 
@@ -467,6 +496,8 @@
         // Soft-reload: fetch current page and swap the full document seamlessly
         async function softReload() {
             try {
+                const loader = document.getElementById('ajax-loader');
+                if (loader) loader.classList.add('active');
                 const scrollY = window.scrollY;
 
                 // Destroy any existing Chart.js instances to prevent memory leaks
@@ -502,6 +533,9 @@
             } catch (err) {
                 // Fallback: full reload
                 window.location.reload();
+            } finally {
+                const loader = document.getElementById('ajax-loader');
+                if (loader) loader.classList.remove('active');
             }
         }
     </script>

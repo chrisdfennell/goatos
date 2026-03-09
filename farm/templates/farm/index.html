@@ -13,10 +13,15 @@
     
     /* Mobile Adjustments for Search Bar */
     @media (max-width: 768px) {
-        .search-container { gap: 8px; }
-        .search-input { min-width: 100%; order: 1; } /* Full width on mobile, moves to top if wrapped */
-        .filter-select { flex: 1; order: 2; } /* Selects share row below input */
-        .view-toggle-btn { order: 2; }
+        .search-container { gap: 8px; padding: 10px; }
+        .search-input { min-width: 100%; order: 1; }
+        .filter-select { flex: 1; min-width: 45%; order: 2; }
+        .view-toggle-btn { order: 3; width: 38px; height: 38px; }
+    }
+    @media (max-width: 480px) {
+        .search-container { gap: 6px; padding: 8px; }
+        .filter-select { min-width: 100%; }
+        .view-toggle-btn { width: 36px; height: 36px; font-size: 1em; }
     }
 
     .goat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
@@ -74,6 +79,26 @@
     .btn-end-rotation { background: #ff5722; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: .8em; }
     .marker-form { display: none; margin-top: 15px; background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; }
     .condition-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75em; font-weight: 700; color: #fff; }
+    /* InfoWindow Popup Styling */
+    .gm-style .gm-style-iw-c { border-radius: 12px !important; padding: 0 !important; box-shadow: 0 4px 20px rgba(0,0,0,.25) !important; }
+    .gm-style .gm-style-iw-d { overflow: auto !important; padding: 0 !important; }
+    .gm-style .gm-style-iw-tc::after { display: none !important; }
+    .gm-style button.gm-ui-hover-effect { top: 4px !important; right: 4px !important; width: 28px !important; height: 28px !important; background: rgba(0,0,0,.06) !important; border-radius: 50% !important; }
+    .iw-content { padding: 16px 18px; font-family: 'Segoe UI', sans-serif; color: #333; min-width: 200px; max-width: 280px; }
+    .iw-content .iw-title { font-size: 1.15em; font-weight: 700; color: #2c3e50; margin-bottom: 8px; border-bottom: 2px solid #4caf50; padding-bottom: 6px; }
+    .iw-content .iw-row { font-size: .88em; padding: 3px 0; color: #555; }
+    .iw-content .iw-row strong { color: #333; }
+    .iw-content .iw-actions { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 6px; }
+    .iw-content .iw-btn { border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85em; font-weight: 600; transition: opacity .2s; }
+    .iw-content .iw-btn:hover { opacity: .85; }
+    .iw-content .iw-btn-save { background: #2196f3; color: #fff; flex: 1; }
+    .iw-content .iw-btn-delete { background: #d32f2f; color: #fff; }
+    body.dark-mode .iw-content { background: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-title { color: #ecf0f1; border-bottom-color: #4caf50; }
+    body.dark-mode .iw-content .iw-row { color: #bbb; }
+    body.dark-mode .iw-content .iw-row strong { color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-actions { border-top-color: #444; }
+    body.dark-mode .gm-style .gm-style-iw-c { background: #1e1e1e !important; }
     body.dark-mode .rotation-panel { background-color: #1e1e1e; color: #e0e0e0; }
     body.dark-mode .rotation-panel h3 { color: #e0e0e0; }
     body.dark-mode .assignment-table th { color: #aaa; border-bottom-color: #333; }
@@ -81,6 +106,19 @@
     body.dark-mode .marker-form { background-color: #1a237e; border-color: #283593; }
     
     .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 50px; align-items: start; }
+    @media (max-width: 900px) {
+        .dashboard-grid { grid-template-columns: 1fr; margin-top: 25px; gap: 15px; }
+        #map-container { min-height: 350px; }
+        #map { min-height: 280px; }
+        .rotation-panel { order: 2; }
+    }
+    @media (max-width: 600px) {
+        .goat-grid { grid-template-columns: 1fr; gap: 15px; }
+        .dashboard-grid { margin-top: 15px; gap: 12px; }
+        #map-container { min-height: 300px; padding: 12px; }
+        #map { min-height: 250px; }
+        .form-row { flex-direction: column; }
+    }
     .sidebar-stack { display: flex; flex-direction: column; gap: 20px; }
     .checklist-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); width: 100%; box-sizing: border-box; align-self: stretch; transition: all .3s ease; }
     .checklist-card .card-header-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -176,8 +214,10 @@
 
                 <!-- QUICK ACTIONS -->
                 <div class="card-actions">
+                    {% if goat.gender != 'Buck' and goat.gender != 'Wether' and goat.gender != 'Buckling' %}
                     <button class="action-btn milk" data-milk-id="{{ goat.id }}"
                         title="Quick Milk Log">💧</button>
+                    {% endif %}
                     {% if goat.status == 'Sick' %}
                     <form method="POST" action="{% url 'toggle_sick' goat.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="action-btn healthy" title="Mark Healthy">😊</button></form>
                     {% else %}
@@ -188,11 +228,16 @@
         </div>
         {% empty %}
         <div class="empty-herd">
-            <h2>No goats found.</h2>
+            <div style="font-size:4em; margin-bottom:15px;">🐐</div>
+            <h2>Your herd is empty!</h2>
+            <p style="color:#999; margin:10px 0 20px;">Add your first goat to get started with GoatOS.</p>
+            <a href="{% url 'add_goat' %}" style="display:inline-block; background:#2c3e50; color:#fff; padding:12px 24px; border-radius:8px; font-weight:600; text-decoration:none;">+ Add Your First Goat</a>
         </div>
         {% endfor %}
         <div id="no-results" class="empty-herd" style="display: none;">
+            <div style="font-size:3em; margin-bottom:10px;">🔍</div>
             <h3>No goats match your search.</h3>
+            <p style="color:#999;">Try a different search term or filter.</p>
         </div>
     </div>
 
@@ -1011,8 +1056,14 @@
 
                     // Build InfoWindow content
                     const idx = areaPolygons.length - 1;
-                    const infoContent = `<div style="max-width:250px;"><strong style="font-size:1.1em;">${area.name}</strong>${areaSize}${perimeterInfo}${stockingInfo}${condBadge}${restInfo}${goatInfo}` +
-                        `<br><div style="margin-top:8px;"><button data-action="save" data-idx="${idx}" style="background:#2196f3;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;margin-right:4px;">Save Edits</button><button data-action="delete" data-idx="${idx}" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Delete</button></div>` +
+                    const infoContent = `<div class="iw-content"><div class="iw-title">${area.name}</div>` +
+                        `<div class="iw-row">${areaSize.replace('<br>', '')}</div>` +
+                        `<div class="iw-row">${perimeterInfo.replace('<br>', '')}</div>` +
+                        `<div class="iw-row">${stockingInfo.replace('<br>', '')}</div>` +
+                        (condBadge ? `<div class="iw-row">${condBadge.replace('<br>', '')}</div>` : '') +
+                        (restInfo ? `<div class="iw-row">${restInfo.replace('<br>', '')}</div>` : '') +
+                        (goatInfo ? `<div class="iw-row">${goatInfo.replace('<br>', '')}</div>` : '') +
+                        `<div class="iw-actions"><button data-action="save" data-idx="${idx}" class="iw-btn iw-btn-save">Save Edits</button><button data-action="delete" data-idx="${idx}" class="iw-btn iw-btn-delete">Delete</button></div>` +
                         `</div>`;
 
                     polygon.addListener("click", (e) => {
@@ -1072,7 +1123,7 @@
                 const deleteUrl = `/marker/${m.id}/delete/`;
                 marker.addListener('click', () => {
                     new google.maps.InfoWindow({
-                        content: `<strong>${m.name}</strong><br>${m.marker_type}${m.notes ? '<br><em>' + m.notes + '</em>' : ''}<br><form method="POST" action="${deleteUrl}" style="margin-top:6px;"><input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}"><button type="submit" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Remove</button></form>`
+                        content: `<div class="iw-content"><div class="iw-title">${m.name}</div><div class="iw-row">${m.marker_type}</div>${m.notes ? '<div class="iw-row" style="font-style:italic;">' + m.notes + '</div>' : ''}<div class="iw-actions"><form method="POST" action="${deleteUrl}"><input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}"><button type="submit" class="iw-btn iw-btn-delete">Remove</button></form></div></div>`
                     }).open(map, marker);
                 });
             });

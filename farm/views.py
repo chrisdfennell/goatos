@@ -700,6 +700,20 @@ def goat_detail(request, goat_id):
     # Current Pen Assignment
     current_pen = PenAssignment.objects.filter(goat=goat, date_out__isnull=True).select_related('pen').first()
 
+    # Last activity date (most recent entry across all log types)
+    activity_dates = []
+    if medical_records.exists():
+        activity_dates.append(medical_records.first().date)
+    if feeding_logs.exists():
+        activity_dates.append(feeding_logs.first().date)
+    if milk_logs.exists():
+        activity_dates.append(milk_logs.first().date)
+    if weight_logs.exists():
+        activity_dates.append(weight_logs.order_by('-date').first().date)
+    if logs.exists():
+        activity_dates.append(logs.first().date)
+    last_activity = max(activity_dates) if activity_dates else None
+
     context = get_common_context()
     context.update({
         'goat': goat, 'logs': logs, 'medical_records': medical_records,
@@ -716,6 +730,7 @@ def goat_detail(request, goat_id):
         'heat_observations': heat_observations,
         'documents': documents,
         'current_pen': current_pen,
+        'last_activity': last_activity,
     })
     return render(request, 'farm/goat_detail.html', context)
 
