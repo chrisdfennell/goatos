@@ -10,7 +10,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Docker Hub](https://img.shields.io/docker/pulls/fennch/goatos?label=Docker%20Pulls&logo=docker)
 
-GoatOS is an open-source farm management platform designed for goat herds. Optimized for barn use with a mobile-friendly **Dark Mode**, it tracks animal health, pedigrees, weight, milk production, breeding, and finances. Features include medical records with dosage calculators, a sales ledger, satellite grazing maps with advanced tools, real-time weather, and a full-featured CRM. Built on **Python/Django** and **Docker**, GoatOS provides a secure, all-in-one dashboard for modern herd management.
+GoatOS is an open-source farm management platform designed for goat herds. Optimized for barn use with a mobile-friendly **Dark Mode**, it tracks animal health, pedigrees, weight, milk production, breeding, and finances. Features include medical records with dosage calculators, a sales ledger, satellite grazing maps with advanced tools, real-time weather, a full-featured CRM, and an integrated **Care Guide** with 26 educational articles. Built on **Python/Django** with a production-ready **nginx + gunicorn** Docker setup, GoatOS provides a secure, all-in-one dashboard for modern herd management.
 
 ![GoatOS Screenshot](assets/images/screenshot.png)
 
@@ -76,6 +76,13 @@ GoatOS is an open-source farm management platform designed for goat herds. Optim
 - **Map Markers:** Place and categorize landmarks (Barn, Shelter, Water, Feeder, Gate)
 - **KML Export:** Download grazing areas for Google Earth and other GIS tools
 
+### Care Guide (Integrated)
+- **26 Educational Articles:** Comprehensive goat care guides from getting started to advanced topics
+- **Sidebar Navigation:** Browse by category — Health, Breeding, Production, Daily Management, and more
+- **Interactive Tools:** Symptom checker, feed/water calculators, kidding date calculator, weight estimator
+- **Searchable:** Client-side search across all guide content
+- **Dark Mode Support:** Fully styled for both light and dark themes
+
 ### Supplier & Inventory
 - **Supplier Database:** Track feed suppliers, vets, and equipment vendors
 - **Silo & Feed Management:** Monitor feed inventory with low-stock alerts
@@ -97,11 +104,29 @@ GoatOS is an open-source farm management platform designed for goat herds. Optim
 ## Tech Stack
 
 - **Backend:** Python 3.11, Django 5.x
-- **Frontend:** HTML5, CSS3 (Bootstrap 5), Vanilla JavaScript
+- **Frontend:** HTML5, CSS3 (Bootstrap 5 + Tailwind for Care Guide), Vanilla JavaScript
 - **Database:** SQLite (default, swappable for Postgres)
 - **Charts:** Chart.js
 - **Maps:** Google Maps JavaScript API (Drawing + Geometry libraries), OpenStreetMap, OpenTopoMap, CartoDB tile overlays
-- **Containerization:** Docker
+- **Containerization:** Docker (nginx + gunicorn + supervisord)
+
+---
+
+## Architecture
+
+GoatOS runs as a single Docker container with three services managed by supervisord:
+
+| Service | Role |
+|---------|------|
+| **nginx** | Reverse proxy, serves static files and media uploads |
+| **gunicorn** | WSGI application server running Django (2 workers) |
+| **supervisord** | Process manager keeping both services alive |
+
+```
+Client :4321 → nginx :8080 → gunicorn :8000 → Django
+                 ├── /static/  → collected static files
+                 └── /media/   → uploaded photos & documents
+```
 
 ---
 
@@ -111,13 +136,13 @@ Pull and run directly from Docker Hub — no build required:
 
 ```bash
 docker pull fennch/goatos:latest
-docker run -d --name goatos_app -p 4321:4321 \
+docker run -d --name goatos_app -p 4321:8080 \
   -v goatos_db:/app/db.sqlite3 \
   -v goatos_media:/app/media \
   fennch/goatos:latest
 ```
 
-Access at: `https://localhost:4321`
+Access at: `http://localhost:4321`
 
 ---
 
@@ -131,7 +156,7 @@ Access at: `https://localhost:4321`
 ```bash
 git clone https://github.com/chrisdfennell/goatos.git
 cd goatos
-docker-compose up -d
+docker compose up -d
 ```
 
 This builds from source and starts the container.
@@ -140,16 +165,16 @@ This builds from source and starts the container.
 - **Linux/Mac:** `./rebuild.sh`
 - **Windows:** `rebuild.bat`
 
-The application launches on port **4321** with **SSL enabled** (via `django-sslserver`) to support secure features like camera access on mobile devices.
+The application launches on port **4321** (mapped to nginx on port 8080 inside the container).
 
 ### 3) Access
 ```
-https://localhost:4321
+http://localhost:4321
 # OR
-https://YOUR_SERVER_IP:4321
+http://YOUR_SERVER_IP:4321
 ```
 
-> **Note:** The Docker container automatically handles database migrations on startup.
+> **Note:** The Docker container automatically handles database migrations and static file collection on startup.
 > To reset the database, delete the `db.sqlite3` file on your host machine and restart the container.
 
 ---
@@ -160,7 +185,7 @@ https://YOUR_SERVER_IP:4321
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py runsslserver 0.0.0.0:4321
+python manage.py runserver 0.0.0.0:8000
 ```
 
 ---
@@ -168,6 +193,15 @@ python manage.py runsslserver 0.0.0.0:4321
 ## Configuration
 
 Configure via the Admin Panel (`/admin/`) or environment variables.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | fallback key | Django secret key (set a unique value in production) |
+| `DEBUG` | `False` | Enable debug mode |
+| `ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated list of allowed hostnames |
+| `FARM_PIN` | *(empty)* | Set a PIN to enable PIN gate access control |
 
 ### Key Settings
 - **Farm Settings:** Set Farm Name, Latitude, and Longitude in the Admin panel to calibrate the Weather widget and Map center
@@ -189,6 +223,21 @@ The satellite map and grazing tools require a Google Maps API key. Follow these 
 
 ---
 
+## Care Guide
+
+The integrated Care Guide (`/guide/`) provides 26 educational articles covering:
+
+- **Getting Started** — Planning, breeds, housing, nutrition, legal considerations
+- **Health & Care** — Vaccines, parasites, hoof care, common problems, symptom checker, poisonous plants
+- **Breeding & Young Stock** — Breeding cycles, kidding, bottle feeding, kid care
+- **Daily Management** — Behavior, enrichment, predator proofing, seasonal care
+- **Production** — Milking & dairy, meat goats, fiber goats, goat milk recipes
+- **Reference & Tools** — Checklists, calculators, record keeping templates, barn pack, glossary
+
+Each article includes a sidebar navigation for easy browsing between topics.
+
+---
+
 ## Troubleshooting
 
 ### Forgot Admin Password?
@@ -199,6 +248,19 @@ docker exec -it goatos_app python manage.py changepassword admin
 # Or create a new admin user
 docker exec -it goatos_app python manage.py createsuperuser
 ```
+
+### Container Logs
+```bash
+docker logs goatos_app
+```
+
+### 502 Bad Gateway
+If nginx returns a 502, gunicorn may have crashed. Check `docker logs goatos_app` for Python errors. Common causes:
+- Missing environment variables
+- Database migration issues (try `docker exec -it goatos_app python manage.py migrate`)
+
+### Media Files Not Loading (403)
+The Dockerfile configures nginx to run as root to read volume-mounted media directories. If you see 403 errors on images, verify the media volume is mounted correctly in your `docker-compose.yml`.
 
 > Use `docker ps` to find your container name if it differs from `goatos_app`.
 
