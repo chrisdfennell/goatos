@@ -711,8 +711,10 @@ def goat_detail(request, goat_id):
     if weight_logs.exists():
         activity_dates.append(weight_logs.order_by('-date').first().date)
     if logs.exists():
-        d = logs.first().date
-        activity_dates.append(d.date() if hasattr(d, 'hour') else d)
+        activity_dates.append(logs.first().date)
+    # Normalize any datetime objects to date for safe comparison
+    from datetime import datetime as dt
+    activity_dates = [d.date() if isinstance(d, dt) else d for d in activity_dates]
     last_activity = max(activity_dates) if activity_dates else None
 
     context = get_common_context()
