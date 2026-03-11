@@ -657,7 +657,10 @@ def goat_detail(request, goat_id):
 
     logs = goat.logs.all().order_by('-date')
     medical_records = goat.medical_records.all().order_by('-date')
-    feeding_logs = goat.feeding_logs.all().order_by('-date')
+    # Include both this goat's feeding logs AND herd-level (goat=null) entries
+    feeding_logs = FeedingLog.objects.filter(
+        Q(goat=goat) | Q(goat__isnull=True)
+    ).order_by('-date')
     breeding_logs = goat.breeding_logs.all().order_by('-breeding_date')
     milk_logs = goat.milk_logs.all().order_by('-date')
     
@@ -684,7 +687,7 @@ def goat_detail(request, goat_id):
     offspring = Goat.objects.filter(Q(dam=goat) | Q(sire=goat)).distinct()
 
     # Health Scores (FAMACHA & BCS)
-    health_scores = goat.health_scores.all()[:20]
+    health_scores = goat.health_scores.all().order_by('-date')
     health_chart_data = json.dumps({
         'dates': [s.date.strftime('%b %d') for s in reversed(list(health_scores))],
         'famacha': [s.famacha_score for s in reversed(list(health_scores))],
@@ -692,7 +695,7 @@ def goat_detail(request, goat_id):
     })
 
     # Heat Observations
-    heat_observations = goat.heat_observations.all()[:10]
+    heat_observations = goat.heat_observations.all().order_by('-date_observed')
 
     # Documents
     documents = goat.documents.all()
