@@ -388,7 +388,7 @@
             <form action="{% url 'add_feeding_record' goat.id %}" method="post" class="feed-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Treats">Treats</option><option value="Other">Other</option></select>
+                    <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Water">Water</option><option value="Crackers/Cookies">Crackers/Cookies</option><option value="Veggies">Veggies</option><option value="Other">Other</option></select>
                     <input type="text" name="amount" placeholder="Amount (e.g. 1 Flake)" required title="Feed amount">
                 </div>
                 <textarea name="notes" rows="1" placeholder="Details..." title="Feeding notes"></textarea>

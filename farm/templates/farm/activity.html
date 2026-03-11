@@ -63,7 +63,15 @@
                     </div>
                     <div class="activity-label">{{ a.label }}</div>
                     {% if a.detail %}<div class="activity-detail">{{ a.detail }}</div>{% endif %}
-                    {% if a.goat %}<div class="activity-goat"><a href="{% url 'goat_detail' a.goat.id %}">🐐 {{ a.goat.name }}</a></div>{% endif %}
+                    {% if a.goat %}
+                    <div class="activity-goat">
+                        {% if a.goat_is_herd %}
+                            🐐 {{ a.goat }}
+                        {% else %}
+                            <a href="{% url 'goat_detail' a.goat.id %}">🐐 {{ a.goat.name }}</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}

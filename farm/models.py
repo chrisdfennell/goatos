@@ -227,8 +227,8 @@ class MedicalRecord(models.Model):
         return f"{self.goat.name} - {self.record_type}"
 
 class FeedingLog(models.Model):
-    FEED_TYPES = [('Hay', 'Hay'), ('Grain', 'Grain'), ('Minerals', 'Minerals'), ('Treats', 'Treats'), ('Other', 'Other')]
-    goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='feeding_logs')
+    FEED_TYPES = [('Hay', 'Hay'), ('Grain', 'Grain'), ('Minerals', 'Minerals'), ('Water', 'Water'), ('Crackers/Cookies', 'Crackers/Cookies'), ('Veggies', 'Veggies'), ('Other', 'Other')]
+    goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='feeding_logs', null=True, blank=True)
     date = models.DateField(default=timezone.now)
     feed_type = models.CharField(max_length=20, choices=FEED_TYPES)
     amount = models.CharField(max_length=100, help_text="e.g. 1 Scoop, 2 Flakes")

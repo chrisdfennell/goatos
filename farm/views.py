@@ -1771,13 +1771,15 @@ def activity_feed(request):
 
     def add_activities(queryset, activity_type, icon, color, label_fn, detail_fn, goat_fn, date_fn):
         for obj in queryset:
+            goat_val = goat_fn(obj)
             activities.append({
                 'type': activity_type,
                 'icon': icon,
                 'color': color,
                 'label': label_fn(obj),
                 'detail': detail_fn(obj),
-                'goat': goat_fn(obj),
+                'goat': goat_val,
+                'goat_is_herd': isinstance(goat_val, str),
                 'date': date_fn(obj),
                 'obj': obj,
             })
@@ -1822,7 +1824,7 @@ def activity_feed(request):
             'feeding', '🌾', '#ff9800',
             lambda o: f'{o.feed_type} - {o.amount}',
             lambda o: o.notes[:100] if o.notes else '',
-            lambda o: o.goat, lambda o: o.date)
+            lambda o: o.goat if o.goat else 'All Goats', lambda o: o.date)
 
     if not type_filters or 'kidding' in type_filters:
         add_activities(
@@ -2059,9 +2061,37 @@ def quick_entry(request):
 
     if request.method == 'POST':
         entry_type = request.POST.get('entry_type')
+        entry_date = request.POST.get('date') or date.today()
+
+        if entry_type == 'bulk':
+            notes = request.POST.get('notes', '')
+            logged = []
+            bulk_items = [
+                ('hay_amount', 'Hay'),
+                ('grain_amount', 'Grain'),
+                ('water_amount', 'Water'),
+                ('crackers_amount', 'Crackers/Cookies'),
+                ('veggies_amount', 'Veggies'),
+            ]
+            for field, feed_type in bulk_items:
+                amount = request.POST.get(field, '').strip()
+                if amount:
+                    FeedingLog.objects.create(
+                        goat=None,
+                        date=entry_date,
+                        feed_type=feed_type,
+                        amount=amount,
+                        notes=notes,
+                    )
+                    logged.append(feed_type)
+            if logged:
+                messages.success(request, f'Herd feeding logged: {", ".join(logged)}.')
+            else:
+                messages.warning(request, 'No amounts entered — nothing was logged.')
+            return redirect('quick_entry')
+
         goat_id = request.POST.get('goat_id')
         goat = get_object_or_404(Goat, pk=goat_id)
-        entry_date = request.POST.get('date') or date.today()
 
         if entry_type == 'milk':
             MilkLog.objects.create(
