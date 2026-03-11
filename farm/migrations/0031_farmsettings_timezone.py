@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='farmsettings',
             name='timezone',
-            field=models.CharField(choices=[('US/Eastern', 'Eastern (ET)'), ('US/Central', 'Central (CT)'), ('US/Mountain', 'Mountain (MT)'), ('US/Pacific', 'Pacific (PT)'), ('US/Alaska', 'Alaska (AKT)'), ('US/Hawaii', 'Hawaii (HT)'), ('UTC', 'UTC')], default='US/Eastern', max_length=50),
+            field=models.CharField(choices=[('America/New_York', 'Eastern (ET)'), ('America/Chicago', 'Central (CT)'), ('America/Denver', 'Mountain (MT)'), ('America/Los_Angeles', 'Pacific (PT)'), ('America/Anchorage', 'Alaska (AKT)'), ('Pacific/Honolulu', 'Hawaii (HT)'), ('UTC', 'UTC')], default='America/New_York', max_length=50),
         ),
     ]

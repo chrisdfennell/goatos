@@ -175,12 +175,12 @@
                 <div class="mb-3">
                     <label class="form-label">Timezone</label>
                     <select class="form-control" name="timezone" title="Farm timezone">
-                        <option value="US/Eastern"{% if farm_settings.timezone == 'US/Eastern' %} selected{% endif %}>Eastern (ET)</option>
-                        <option value="US/Central"{% if farm_settings.timezone == 'US/Central' %} selected{% endif %}>Central (CT)</option>
-                        <option value="US/Mountain"{% if farm_settings.timezone == 'US/Mountain' %} selected{% endif %}>Mountain (MT)</option>
-                        <option value="US/Pacific"{% if farm_settings.timezone == 'US/Pacific' %} selected{% endif %}>Pacific (PT)</option>
-                        <option value="US/Alaska"{% if farm_settings.timezone == 'US/Alaska' %} selected{% endif %}>Alaska (AKT)</option>
-                        <option value="US/Hawaii"{% if farm_settings.timezone == 'US/Hawaii' %} selected{% endif %}>Hawaii (HT)</option>
+                        <option value="America/New_York"{% if farm_settings.timezone == 'America/New_York' %} selected{% endif %}>Eastern (ET)</option>
+                        <option value="America/Chicago"{% if farm_settings.timezone == 'America/Chicago' %} selected{% endif %}>Central (CT)</option>
+                        <option value="America/Denver"{% if farm_settings.timezone == 'America/Denver' %} selected{% endif %}>Mountain (MT)</option>
+                        <option value="America/Los_Angeles"{% if farm_settings.timezone == 'America/Los_Angeles' %} selected{% endif %}>Pacific (PT)</option>
+                        <option value="America/Anchorage"{% if farm_settings.timezone == 'America/Anchorage' %} selected{% endif %}>Alaska (AKT)</option>
+                        <option value="Pacific/Honolulu"{% if farm_settings.timezone == 'Pacific/Honolulu' %} selected{% endif %}>Hawaii (HT)</option>
                         <option value="UTC"{% if farm_settings.timezone == 'UTC' %} selected{% endif %}>UTC</option>
                     </select>
                 </div>

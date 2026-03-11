@@ -6,12 +6,12 @@ import json
 # --- SETTINGS MODEL ---
 class FarmSettings(models.Model):
     TIMEZONE_CHOICES = [
-        ('US/Eastern', 'Eastern (ET)'),
-        ('US/Central', 'Central (CT)'),
-        ('US/Mountain', 'Mountain (MT)'),
-        ('US/Pacific', 'Pacific (PT)'),
-        ('US/Alaska', 'Alaska (AKT)'),
-        ('US/Hawaii', 'Hawaii (HT)'),
+        ('America/New_York', 'Eastern (ET)'),
+        ('America/Chicago', 'Central (CT)'),
+        ('America/Denver', 'Mountain (MT)'),
+        ('America/Los_Angeles', 'Pacific (PT)'),
+        ('America/Anchorage', 'Alaska (AKT)'),
+        ('Pacific/Honolulu', 'Hawaii (HT)'),
         ('UTC', 'UTC'),
     ]
     name = models.CharField(max_length=200, default="My Homestead")
@@ -19,7 +19,7 @@ class FarmSettings(models.Model):
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
     google_maps_api_key = models.CharField(max_length=100, blank=True, default="", help_text="Your Google Maps API Key")
-    timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES, default='US/Eastern')
+    timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES, default='America/New_York')
 
     def __str__(self):
         return self.name
