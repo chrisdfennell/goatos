@@ -21,6 +21,16 @@
     .btn-sub:hover { background: #F57C00; }
     .empty-state { grid-column: 1 / -1; text-align: center; color: #888; margin-top: 50px; }
     
+    /* Add form */
+    .silo-add-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); margin-bottom: 20px; }
+    .silo-add-box h4 { margin-top: 0; color: #FF9800; }
+    .silo-add-box .add-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .silo-add-box .add-field { min-width: 80px; }
+    .silo-add-box .add-field.name-field { flex: 2; min-width: 150px; }
+    .silo-add-box .add-field:not(.name-field) { flex: 1; }
+    .silo-add-box label { font-size: 0.85em; color: #666; display: block; margin-bottom: 3px; }
+    .silo-add-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+
     /* Dark Mode Overrides */
     body.dark-mode .feed-card { background-color: #1e1e1e; border-color: #333; color: #e0e0e0; }
     body.dark-mode .feed-card.low-stock { border-color: #d32f2f; }
@@ -28,6 +38,9 @@
     body.dark-mode .feed-quantity { color: #FF9800; }
     body.dark-mode .feed-unit { color: #aaa; }
     body.dark-mode .qty-input { background-color: #2d2d2d; border-color: #444; color: #fff; }
+    body.dark-mode .silo-add-box { background: #1e1e1e; box-shadow: 0 2px 5px rgba(0,0,0,.2); }
+    body.dark-mode .silo-add-box label { color: #aaa; }
+    body.dark-mode .silo-add-box input { background: #2d2d2d; border-color: #444; color: #e0e0e0; }
 </style>
 
 <div class="container-custom">
@@ -39,25 +52,25 @@
     </div>
 
     <!-- Add New Feed Item Form -->
-    <div style="background:white; padding:20px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,.05); margin-bottom:20px;">
-        <h4 style="margin-top:0; color:#FF9800;">+ Add New Feed Item</h4>
-        <form method="POST" action="{% url 'add_feed_item' %}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+    <div class="silo-add-box">
+        <h4>+ Add New Feed Item</h4>
+        <form method="POST" action="{% url 'add_feed_item' %}" class="add-form">
             {% csrf_token %}
-            <div style="flex:2; min-width:150px;">
-                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Item Name</label>
-                <input type="text" name="name" placeholder="e.g. Alfalfa Hay" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            <div class="add-field name-field">
+                <label>Item Name</label>
+                <input type="text" name="name" placeholder="e.g. Alfalfa Hay" required>
             </div>
-            <div style="flex:1; min-width:80px;">
-                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Starting Qty</label>
-                <input type="number" step="0.01" name="quantity" value="0" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            <div class="add-field">
+                <label>Starting Qty</label>
+                <input type="number" step="0.01" name="quantity" value="0">
             </div>
-            <div style="flex:1; min-width:80px;">
-                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Unit</label>
-                <input type="text" name="unit" value="lbs" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            <div class="add-field">
+                <label>Unit</label>
+                <input type="text" name="unit" value="lbs">
             </div>
-            <div style="flex:1; min-width:80px;">
-                <label style="font-size:0.85em; color:#666; display:block; margin-bottom:3px;">Low Stock At</label>
-                <input type="number" step="0.01" name="low_stock_threshold" value="5" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;">
+            <div class="add-field">
+                <label>Low Stock At</label>
+                <input type="number" step="0.01" name="low_stock_threshold" value="5">
             </div>
             <button type="submit" class="btn-add" style="padding:8px 20px; height:38px;">Add Item</button>
         </form>
