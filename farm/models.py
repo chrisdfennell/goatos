@@ -5,11 +5,21 @@ import json
 
 # --- SETTINGS MODEL ---
 class FarmSettings(models.Model):
+    TIMEZONE_CHOICES = [
+        ('US/Eastern', 'Eastern (ET)'),
+        ('US/Central', 'Central (CT)'),
+        ('US/Mountain', 'Mountain (MT)'),
+        ('US/Pacific', 'Pacific (PT)'),
+        ('US/Alaska', 'Alaska (AKT)'),
+        ('US/Hawaii', 'Hawaii (HT)'),
+        ('UTC', 'UTC'),
+    ]
     name = models.CharField(max_length=200, default="My Homestead")
     owner = models.CharField(max_length=200, blank=True)
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
     google_maps_api_key = models.CharField(max_length=100, blank=True, default="", help_text="Your Google Maps API Key")
+    timezone = models.CharField(max_length=50, choices=TIMEZONE_CHOICES, default='US/Eastern')
 
     def __str__(self):
         return self.name
@@ -55,7 +65,7 @@ class Goat(models.Model):
     @property
     def display_age(self):
         if self.birthdate:
-            today = date.today()
+            today = timezone.localdate()
             total_days = (today - self.birthdate).days
             if total_days < 7:
                 return f"{total_days} Days"
@@ -76,7 +86,7 @@ class Goat(models.Model):
     @property
     def age_in_days(self):
         if self.birthdate:
-            return (date.today() - self.birthdate).days
+            return (timezone.localdate() - self.birthdate).days
         return self.age * 365  # Approximate from manual age field
 
 class GoatLog(models.Model):
@@ -99,13 +109,13 @@ class GrazingArea(models.Model):
     def days_resting(self):
         last = self.assignments.filter(end_date__isnull=False).order_by('-end_date').first()
         if last and last.end_date:
-            return (date.today() - last.end_date).days
+            return (timezone.localdate() - last.end_date).days
         return None
 
     @property
     def active_assignment(self):
         return self.assignments.filter(
-            models.Q(end_date__isnull=True) | models.Q(end_date__gt=date.today())
+            models.Q(end_date__isnull=True) | models.Q(end_date__gt=timezone.localdate())
         ).first()
 
     @property
@@ -128,7 +138,7 @@ class PastureAssignment(models.Model):
 
     @property
     def is_active(self):
-        return self.end_date is None or self.end_date > date.today()
+        return self.end_date is None or self.end_date > timezone.localdate()
 
 
 class MapMarker(models.Model):
@@ -180,7 +190,7 @@ class MedicalSchedule(models.Model):
 
     @property
     def is_due_soon(self):
-        return self.next_due <= date.today() + timedelta(days=14)
+        return self.next_due <= timezone.localdate() + timedelta(days=14)
 
 class DailyTask(models.Model):
     TIME_CHOICES = [('AM', 'Morning'), ('PM', 'Evening'), ('ANY', 'Anytime')]
@@ -341,7 +351,7 @@ class Medicine(models.Model):
     
     @property
     def is_expired(self):
-        return self.expiration_date and self.expiration_date < date.today()
+        return self.expiration_date and self.expiration_date < timezone.localdate()
         
     @property
     def dosage_instruction(self):

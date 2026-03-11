@@ -183,6 +183,9 @@ def update_settings(request):
         settings, _ = FarmSettings.objects.get_or_create(pk=1)
         settings.name = request.POST.get('name', settings.name)
         settings.google_maps_api_key = request.POST.get('google_maps_api_key', settings.google_maps_api_key)
+        tz = request.POST.get('timezone')
+        if tz:
+            settings.timezone = tz
         try:
             lat = request.POST.get('latitude')
             lng = request.POST.get('longitude')
@@ -190,6 +193,16 @@ def update_settings(request):
             if lng: settings.longitude = float(lng)
         except ValueError: pass
         settings.save()
+        # Reload timezone immediately
+        import os
+        os.environ['TZ'] = settings.timezone
+        from django.conf import settings as django_settings
+        django_settings.TIME_ZONE = settings.timezone
+        try:
+            import time
+            time.tzset()
+        except AttributeError:
+            pass
         messages.success(request, 'Settings updated.')
     return redirect('index')
 
@@ -365,7 +378,7 @@ def calendar_dashboard(request):
         })
         # Show predicted next heat
         next_heat = obs.next_heat_date
-        if next_heat >= date.today() - timedelta(days=7):
+        if next_heat >= timezone.localdate() - timedelta(days=7):
             events.append({
                 'title': f"🔮 Predicted Heat: {obs.goat.name}",
                 'start': next_heat.isoformat(),
@@ -1626,7 +1639,7 @@ def add_kidding_record(request):
         record = KiddingRecord.objects.create(
             dam=dam,
             breeding_log_id=breeding_log_id if breeding_log_id else None,
-            kidding_date=request.POST.get('kidding_date') or date.today(),
+            kidding_date=request.POST.get('kidding_date') or timezone.localdate(),
             num_kids_born=request.POST.get('num_kids_born', 1),
             num_alive=request.POST.get('num_alive', 1),
             num_stillborn=request.POST.get('num_stillborn', 0),
@@ -1654,7 +1667,7 @@ def delete_kidding_record(request, record_id):
 # =====================================================
 
 def kidding_season_dashboard(request):
-    today = date.today()
+    today = timezone.localdate()
     # Get all breeding logs with future or recent due dates
     pregnant_does = BreedingLog.objects.filter(
         due_date__isnull=False,
@@ -1697,7 +1710,7 @@ def add_health_score(request, goat_id):
     if request.method == 'POST':
         HealthScore.objects.create(
             goat=goat,
-            date=request.POST.get('date') or date.today(),
+            date=request.POST.get('date') or timezone.localdate(),
             famacha_score=request.POST.get('famacha_score') or None,
             body_condition_score=request.POST.get('body_condition_score') or None,
             notes=request.POST.get('notes', ''),
@@ -1743,7 +1756,7 @@ def add_heat_observation(request, goat_id):
     if request.method == 'POST':
         HeatObservation.objects.create(
             goat=goat,
-            date_observed=request.POST.get('date_observed') or date.today(),
+            date_observed=request.POST.get('date_observed') or timezone.localdate(),
             signs=request.POST.get('signs', ''),
             notes=request.POST.get('notes', ''),
         )
@@ -2016,16 +2029,16 @@ def barn_dashboard(request):
             pen = get_object_or_404(Pen, pk=request.POST.get('pen_id'))
             goat = get_object_or_404(Goat, pk=request.POST.get('goat_id'))
             # End any existing active assignment for this goat
-            PenAssignment.objects.filter(goat=goat, date_out__isnull=True).update(date_out=date.today())
+            PenAssignment.objects.filter(goat=goat, date_out__isnull=True).update(date_out=timezone.localdate())
             PenAssignment.objects.create(
                 pen=pen, goat=goat,
-                date_in=request.POST.get('date_in') or date.today(),
+                date_in=request.POST.get('date_in') or timezone.localdate(),
                 notes=request.POST.get('notes', ''),
             )
             messages.success(request, f'{goat.name} assigned to {pen.name}.')
         elif action == 'remove':
             assignment = get_object_or_404(PenAssignment, pk=request.POST.get('assignment_id'))
-            assignment.date_out = date.today()
+            assignment.date_out = timezone.localdate()
             assignment.save()
             messages.success(request, f'{assignment.goat.name} removed from {assignment.pen.name}.')
         return redirect('barn_dashboard')
@@ -2064,7 +2077,7 @@ def quick_entry(request):
 
     if request.method == 'POST':
         entry_type = request.POST.get('entry_type')
-        entry_date = request.POST.get('date') or date.today()
+        entry_date = request.POST.get('date') or timezone.localdate()
 
         if entry_type == 'bulk':
             notes = request.POST.get('notes', '')
@@ -2147,7 +2160,7 @@ def quick_entry(request):
     context.update({
         'goats': goats,
         'does': does,
-        'today': date.today().isoformat(),
+        'today': timezone.localdate().isoformat(),
     })
     return render(request, 'farm/quick_entry.html', context)
 
@@ -2233,7 +2246,7 @@ def pedigree_api(request, goat_id):
 
 def alerts_dashboard(request):
     """Consolidated alerts page with all farm notifications."""
-    today = date.today()
+    today = timezone.localdate()
 
     # Kidding alerts - does due within 21 days or overdue
     kidding_alerts = []

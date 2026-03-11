@@ -172,6 +172,19 @@
                     <small class="text-muted" style="font-size: 0.8em;">Leave empty to use system default.</small>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Timezone</label>
+                    <select class="form-control" name="timezone" title="Farm timezone">
+                        <option value="US/Eastern"{% if farm_settings.timezone == 'US/Eastern' %} selected{% endif %}>Eastern (ET)</option>
+                        <option value="US/Central"{% if farm_settings.timezone == 'US/Central' %} selected{% endif %}>Central (CT)</option>
+                        <option value="US/Mountain"{% if farm_settings.timezone == 'US/Mountain' %} selected{% endif %}>Mountain (MT)</option>
+                        <option value="US/Pacific"{% if farm_settings.timezone == 'US/Pacific' %} selected{% endif %}>Pacific (PT)</option>
+                        <option value="US/Alaska"{% if farm_settings.timezone == 'US/Alaska' %} selected{% endif %}>Alaska (AKT)</option>
+                        <option value="US/Hawaii"{% if farm_settings.timezone == 'US/Hawaii' %} selected{% endif %}>Hawaii (HT)</option>
+                        <option value="UTC"{% if farm_settings.timezone == 'UTC' %} selected{% endif %}>UTC</option>
+                    </select>
+                </div>
+
                 <button type="button" class="pick-map-btn" id="pickMapBtn" title="Pick location on map">📍 Click on Map to Set Location</button>
                 <button type="button" class="pick-map-btn" id="gpsBtn" style="background:#607D8B; margin-top:5px;" title="Use GPS location">📡 Use My GPS</button>
 

@@ -1,6 +1,35 @@
 from django.shortcuts import redirect
 from django.conf import settings
 from django.http import JsonResponse
+import zoneinfo
+import os
+
+
+class TimezoneMiddleware:
+    """Set the process timezone from FarmSettings so date.today() and
+    timezone.localdate() use the farm's configured timezone."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self._tz_loaded = False
+
+    def __call__(self, request):
+        if not self._tz_loaded:
+            try:
+                from farm.models import FarmSettings
+                fs = FarmSettings.objects.first()
+                if fs and fs.timezone:
+                    os.environ['TZ'] = fs.timezone
+                    settings.TIME_ZONE = fs.timezone
+                    try:
+                        import time
+                        time.tzset()
+                    except AttributeError:
+                        pass  # Windows doesn't have tzset
+            except Exception:
+                pass
+            self._tz_loaded = True
+        return self.get_response(request)
 
 
 class AjaxFormMiddleware:
