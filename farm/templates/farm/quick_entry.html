@@ -39,6 +39,17 @@
     body.dark-mode .qe-goat-btn.selected { border-color: #4caf50; background: #1b3a1b; }
     body.dark-mode .qe-ampm label { border-color: #444; color: #ccc; }
     body.dark-mode .qe-ampm label:has(input:checked) { border-color: #4caf50; background: #1b3a1b; }
+
+    /* Bulk feed sections */
+    .qe-bulk-hint { color: #888; font-size: 0.85em; margin: 0 0 16px; }
+    .qe-bulk-section { margin-bottom: 12px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; }
+    .qe-bulk-section h4 { margin: 0 0 8px; }
+    .qe-bulk-section .hay-title { color: #ff9800; }
+    .qe-bulk-section .grain-title { color: #8d6e63; }
+    .qe-bulk-section .water-title { color: #2196f3; }
+    .qe-bulk-section .treats-title { color: #9c27b0; }
+    body.dark-mode .qe-bulk-section { border-color: #444; }
+    body.dark-mode .qe-bulk-hint { color: #999; }
 </style>
 {% endblock %}
 
@@ -48,15 +59,64 @@
 
     <!-- Tabs -->
     <div class="qe-tabs">
-        <div class="qe-tab active" data-tab="milk"><span class="tab-icon">🥛</span>Milk</div>
+        <div class="qe-tab active" data-tab="bulk"><span class="tab-icon">🐐</span>Herd Feed</div>
+        <div class="qe-tab" data-tab="milk"><span class="tab-icon">🥛</span>Milk</div>
         <div class="qe-tab" data-tab="weight"><span class="tab-icon">⚖️</span>Weight</div>
         <div class="qe-tab" data-tab="feeding"><span class="tab-icon">🌾</span>Feed</div>
         <div class="qe-tab" data-tab="health"><span class="tab-icon">🩺</span>Health</div>
         <div class="qe-tab" data-tab="medical"><span class="tab-icon">💊</span>Medical</div>
     </div>
 
+    <!-- BULK / HERD FEED FORM -->
+    <form class="qe-form" id="form-bulk" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="entry_type" value="bulk">
+        <p class="qe-bulk-hint">Log feed, water, and treats for the whole herd at once. Leave any field blank to skip it.</p>
+        <div class="qe-field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-bulk-section">
+            <h4><span class="hay-title">🌾 Hay</span></h4>
+            <div class="qe-field">
+                <label>Amount</label>
+                <input type="text" name="hay_amount" placeholder="e.g. 3 Flakes, 2 lbs">
+            </div>
+        </div>
+        <div class="qe-bulk-section">
+            <h4><span class="grain-title">🫘 Grain / Feed</span></h4>
+            <div class="qe-field">
+                <label>Amount</label>
+                <input type="text" name="grain_amount" placeholder="e.g. 1 Scoop, 2 cups">
+            </div>
+        </div>
+        <div class="qe-bulk-section">
+            <h4><span class="water-title">💧 Water</span></h4>
+            <div class="qe-field">
+                <label>Amount</label>
+                <input type="text" name="water_amount" placeholder="e.g. Fresh bucket, 2 gallons">
+            </div>
+        </div>
+        <div class="qe-bulk-section">
+            <h4><span class="treats-title">🍪 Treats</span></h4>
+            <div class="qe-field">
+                <label>Crackers / Cookies</label>
+                <input type="text" name="crackers_amount" placeholder="e.g. 5 crackers, handful">
+            </div>
+            <div class="qe-field">
+                <label>Veggies</label>
+                <input type="text" name="veggies_amount" placeholder="e.g. 2 carrots, lettuce">
+            </div>
+        </div>
+        <div class="qe-field">
+            <label>Notes (optional)</label>
+            <textarea name="notes" placeholder="Any notes..."></textarea>
+        </div>
+        <button type="submit" class="qe-submit">Log Herd Feeding</button>
+    </form>
+
     <!-- MILK FORM -->
-    <form class="qe-form" id="form-milk" method="POST">
+    <form class="qe-form" id="form-milk" method="POST" hidden>
         {% csrf_token %}
         <input type="hidden" name="entry_type" value="milk">
         <div class="qe-field">
@@ -144,7 +204,9 @@
                 <option value="Hay">Hay</option>
                 <option value="Grain">Grain</option>
                 <option value="Minerals">Minerals</option>
-                <option value="Treats">Treats</option>
+                <option value="Water">Water</option>
+                <option value="Crackers/Cookies">Crackers/Cookies</option>
+                <option value="Veggies">Veggies</option>
                 <option value="Other">Other</option>
             </select>
         </div>
@@ -253,7 +315,7 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // Tab switching
     document.querySelectorAll('.qe-tab').forEach(function(tab) {
         tab.addEventListener('click', function() {
@@ -286,6 +348,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-});
+})();
 </script>
 {% endblock %}

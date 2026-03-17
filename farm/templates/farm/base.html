@@ -26,8 +26,29 @@
         .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:sticky;top:10px;z-index:900;background:#fff;padding:15px 20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.08);transition:box-shadow .3s,background-color .3s}.system-status{color:#666;font-size:.9em;margin-top:5px;display:block}.dashboard-title{font-size:1.8em;margin:0;color:#2c3e50;display:flex;align-items:center;gap:10px}.header-actions{display:flex;gap:15px;align-items:center}.nav-item{position:relative;padding-bottom:5px;margin-bottom:-5px}.nav-link{text-decoration:none;color:#555;font-weight:600;font-size:1rem;padding:8px 12px;border-radius:6px;transition:background .2s,color .2s;display:flex;align-items:center;gap:6px;background:0 0;border:none;cursor:pointer}.nav-link:hover{background-color:#f0f2f5;color:#2c3e50}.dropdown-menu-custom{display:none;position:absolute;top:100%;right:0;background:#fff;min-width:250px;max-height:80vh;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,.1);border-radius:8px;border:1px solid #eee;z-index:1000;padding:8px 0;margin-top:0}.nav-item:hover .dropdown-menu-custom{display:block}.dropdown-item-custom{display:flex;align-items:center;padding:12px 20px;color:#333;text-decoration:none;gap:10px;transition:background .1s;white-space:nowrap}.dropdown-item-custom:hover{background-color:#f8f9fa}.dropdown-group-label{padding:8px 20px 4px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;pointer-events:none}.btn-new-goat{background-color:#2c3e50;color:#fff!important;padding:8px 16px;border-radius:6px}.btn-new-goat:hover{background-color:#1a252f}.theme-toggle-btn{background:0 0;border:none;cursor:pointer;font-size:1.2rem;padding:8px;border-radius:50%;transition:background .2s;margin-right:5px}.theme-toggle-btn:hover{background-color:rgba(0,0,0,.05)}.hamburger{display:none;font-size:24px;background:0 0;border:none;cursor:pointer}@media(max-width:768px){.header-actions{display:none}.hamburger{display:block}}
         /* MODALS & UTILS */
         #settings-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}.modal-content-custom{background:#fff;padding:30px;border-radius:12px;width:400px;max-width:90%;box-shadow:0 5px 15px rgba(0,0,0,.3)}.modal-title{margin-top:0;color:#2c3e50}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.btn-cancel{background:#ccc;color:#333;border:none;padding:10px 15px;border-radius:4px;cursor:pointer}.btn-save{background:#4caf50;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;font-weight:700}.pick-map-btn{display:block;width:100%;padding:10px;margin-top:10px;background:#2196f3;color:#fff;border:none;border-radius:4px;cursor:pointer}#scrollTopBtn{display:none;position:fixed;bottom:30px;right:30px;z-index:999;font-size:20px;border:none;outline:none;background-color:#2c3e50;color:#fff;cursor:pointer;padding:15px;border-radius:50%;box-shadow:0 4px 10px rgba(0,0,0,.3);transition:background-color .3s,transform .3s}#scrollTopBtn:hover{background-color:#1a252f;transform:translateY(-3px)}#toast-container{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:10px}.toast-custom{background-color:#323232;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;animation:fadeIn .3s,fadeOut .3s 2.7s forwards;min-width:200px;justify-content:center}.toast-custom.success{background-color:#2e7d32}.toast-custom.error{background-color:#c62828}.toast-custom.info{background-color:#0288d1}@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+        /* STATUS BADGES */
+        .status-badge{padding:4px 8px;border-radius:4px;font-weight:700;font-size:.85em;text-transform:uppercase;display:inline-block;letter-spacing:.3px}.status-badge.Healthy{background:#e8f5e9;color:#2e7d32}.status-badge.Sick{background:#ffebee;color:#c62828}.status-badge.Vet{background:#fff3e0;color:#ef6c00}.status-badge.Deceased{background:#eee;color:#666}
+        body.dark-mode .status-badge.Healthy{background:#1b5e20;color:#a5d6a7}body.dark-mode .status-badge.Sick{background:#4a1414;color:#ef9a9a}body.dark-mode .status-badge.Vet{background:#3e2a10;color:#ffcc80}body.dark-mode .status-badge.Deceased{background:#333;color:#999}
+        /* GENDER ICONS */
+        .gender-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.8em;font-weight:700;line-height:1;vertical-align:middle;margin-right:4px}.gender-icon.female{background:#fce4ec;color:#e91e63;border:1.5px solid #f48fb1}.gender-icon.male{background:#e3f2fd;color:#1976d2;border:1.5px solid #90caf9}
+        body.dark-mode .gender-icon.female{background:#4a1428;color:#f48fb1;border-color:#e91e63}body.dark-mode .gender-icon.male{background:#0d2744;color:#90caf9;border-color:#1976d2}
         /* MOBILE MENU */
         .mobile-menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1100}.mobile-menu{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:1200;transition:right .3s ease;padding:20px;overflow-y:auto;box-shadow:-5px 0 15px rgba(0,0,0,.1)}.mobile-menu.open{right:0}.mobile-menu-overlay.open{display:block}.mobile-menu a{display:block;padding:12px 15px;color:#333;text-decoration:none;font-size:1.05em;border-bottom:1px solid #eee}.mobile-menu a:hover{background-color:#f0f2f5}.mobile-group-label{padding:12px 15px 4px;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;border-bottom:none}
+        /* ACTIVE NAV */
+        .nav-link.active,.dropdown-item-custom.active{background:#e3f2fd;color:#1565c0;border-radius:6px}
+        body.dark-mode .nav-link.active,body.dark-mode .dropdown-item-custom.active{background:#0d2744;color:#90caf9}
+        .mobile-menu a.active{background:#e3f2fd;color:#1565c0;font-weight:700;border-left:3px solid #1565c0}
+        body.dark-mode .mobile-menu a.active{background:#0d2744;color:#90caf9;border-left-color:#90caf9}
+        /* LOADING OVERLAY */
+        #ajax-loader{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.4);z-index:9999;align-items:center;justify-content:center}
+        #ajax-loader.active{display:flex}
+        .loader-spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#2196f3;border-radius:50%;animation:spin .6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        body.dark-mode #ajax-loader{background:rgba(0,0,0,.4)}
+        body.dark-mode .loader-spinner{border-color:#444;border-top-color:#90caf9}
+        /* MOBILE RESPONSIVE */
+        @media(max-width:768px){.container-custom{padding:10px}.header{padding:10px 14px;border-radius:8px;margin-bottom:12px}.dashboard-title{font-size:1.3em}.system-status{font-size:.75em}#toast-container{left:10px;right:10px;transform:none;bottom:15px}.toast-custom{min-width:auto;font-size:.9em;padding:10px 16px}}
+        @media(max-width:480px){.container-custom{padding:8px}.header{padding:8px 10px;top:5px}.dashboard-title{font-size:1.1em;gap:6px}}
         /* DARK MODE */
         body.dark-mode{background-color:#121212;color:#e0e0e0}body.dark-mode .header,body.dark-mode .card,body.dark-mode .goat-card,body.dark-mode .search-container,body.dark-mode .checklist-card,body.dark-mode .dropdown-menu-custom,body.dark-mode .modal-content-custom,body.dark-mode #map-container,body.dark-mode #new-area-form{background-color:#1e1e1e;color:#e0e0e0;box-shadow:0 4px 15px rgba(0,0,0,.4);border-color:#333}body.dark-mode .dashboard-title,body.dark-mode .card-name,body.dark-mode .modal-title,body.dark-mode .checklist-section-title{color:#ecf0f1}body.dark-mode .nav-link,body.dark-mode .dropdown-item-custom{color:#b0b0b0}body.dark-mode .nav-link:hover,body.dark-mode .dropdown-item-custom:hover,body.dark-mode .view-toggle-btn:hover{background-color:#333;color:#fff}body.dark-mode .search-input,body.dark-mode .filter-select,body.dark-mode .form-group input, body.dark-mode .form-control, body.dark-mode .form-select{background-color:#2d2d2d;border-color:#444;color:#fff}body.dark-mode .card-details, body.dark-mode .text-muted{color:#aaa !important}body.dark-mode .view-toggle-btn{background-color:#2d2d2d;border-color:#444;color:#aaa}body.dark-mode .view-toggle-btn.active{background-color:#1565c0;color:#fff;border-color:#1565c0}body.dark-mode .checklist-item{border-bottom-color:#333}body.dark-mode .checklist-section-title{border-bottom-color:#333}body.dark-mode .checklist-card#card-alerts{background-color:#1e1e1e}body.dark-mode .vet-item{border-bottom-color:#333}body.dark-mode .vet-btn{background-color:#333;color:#e0e0e0}body.dark-mode .vet-btn:hover{background-color:#444}body.dark-mode .vet-name{color:#e0e0e0}body.dark-mode .theme-toggle-btn:hover{background-color:rgba(255,255,255,.1)}body.dark-mode .mobile-menu{background:#1e1e1e}body.dark-mode .mobile-menu a{color:#e0e0e0;border-bottom-color:#333}body.dark-mode .mobile-menu a:hover{background-color:#333}body.dark-mode .dropdown-group-label,body.dark-mode .mobile-group-label{color:#666}
         
@@ -115,6 +136,9 @@
         {% block content %}{% endblock %}
     </div>
 
+    <!-- AJAX LOADING OVERLAY -->
+    <div id="ajax-loader"><div class="loader-spinner"></div></div>
+
     <!-- GLOBAL TOAST CONTAINER -->
     <div id="toast-container"></div>
 
@@ -146,6 +170,19 @@
                     <label class="form-label">Google Maps API Key</label>
                     <input type="text" class="form-control" name="google_maps_api_key" value="{{ farm_settings.google_maps_api_key }}" placeholder="AIza..." style="font-family: monospace;" title="Google Maps API key">
                     <small class="text-muted" style="font-size: 0.8em;">Leave empty to use system default.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Timezone</label>
+                    <select class="form-control" name="timezone" title="Farm timezone">
+                        <option value="America/New_York"{% if farm_settings.timezone == 'America/New_York' %} selected{% endif %}>Eastern (ET)</option>
+                        <option value="America/Chicago"{% if farm_settings.timezone == 'America/Chicago' %} selected{% endif %}>Central (CT)</option>
+                        <option value="America/Denver"{% if farm_settings.timezone == 'America/Denver' %} selected{% endif %}>Mountain (MT)</option>
+                        <option value="America/Los_Angeles"{% if farm_settings.timezone == 'America/Los_Angeles' %} selected{% endif %}>Pacific (PT)</option>
+                        <option value="America/Anchorage"{% if farm_settings.timezone == 'America/Anchorage' %} selected{% endif %}>Alaska (AKT)</option>
+                        <option value="Pacific/Honolulu"{% if farm_settings.timezone == 'Pacific/Honolulu' %} selected{% endif %}>Hawaii (HT)</option>
+                        <option value="UTC"{% if farm_settings.timezone == 'UTC' %} selected{% endif %}>UTC</option>
+                    </select>
                 </div>
 
                 <button type="button" class="pick-map-btn" id="pickMapBtn" title="Pick location on map">📍 Click on Map to Set Location</button>
@@ -270,6 +307,17 @@
                     if (!confirm(this.dataset.confirm)) e.preventDefault();
                 });
             });
+
+            // --- ACTIVE NAV HIGHLIGHTING ---
+            var path = window.location.pathname;
+            document.querySelectorAll('.dropdown-item-custom, .mobile-menu a, .nav-link').forEach(function(link) {
+                var href = link.getAttribute('href');
+                if (href && href !== '/' && path.startsWith(href)) {
+                    link.classList.add('active');
+                } else if (href === '/' && path === '/') {
+                    link.classList.add('active');
+                }
+            });
         });
 
         // --- CSRF HELPER ---
@@ -357,7 +405,153 @@
                 console.log('SW registration failed:', err);
             });
         }
+
+        // --- AJAX FORM SUBMISSION ---
+        // Skip forms that navigate away or need full reload
+        const AJAX_SKIP = ['[action*="delete_goat"]', '[action*="pin"]', '[action*="restore_database"]'];
+
+        function shouldSkipAjax(form) {
+            return AJAX_SKIP.some(sel => form.matches(sel) || form.closest(sel));
+        }
+
+        function isDeleteForm(form) {
+            const action = form.getAttribute('action') || '';
+            return action.includes('delete');
+        }
+
+        document.addEventListener('submit', async function(e) {
+            const form = e.target;
+            if (form.method.toLowerCase() !== 'post' || shouldSkipAjax(form)) return;
+
+            // For delete forms, still confirm first
+            if (isDeleteForm(form) && !form.dataset.confirmed) return;
+
+            e.preventDefault();
+            const action = form.getAttribute('action') || window.location.href;
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.textContent; submitBtn.textContent = '...'; }
+
+            try {
+                const formData = new FormData(form);
+                const resp = await fetch(action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData,
+                    redirect: 'manual'
+                });
+
+                // If middleware converted redirect to JSON (200), parse it
+                // If we got an opaque redirect (type=opaqueredirect), treat as success
+                const isRedirect = resp.type === 'opaqueredirect' || resp.status === 0;
+                let success = false;
+
+                if (isRedirect) {
+                    success = true;
+                } else if (resp.ok) {
+                    const contentType = resp.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await resp.json();
+                        success = data.success;
+                    } else {
+                        // Got HTML back - middleware may not have caught it, treat as success
+                        success = true;
+                    }
+                } else {
+                    throw new Error('Server error: ' + resp.status);
+                }
+
+                if (success) {
+                    if (isDeleteForm(form)) {
+                        const entry = form.closest('.log-entry, tr, .card, .timeline-item');
+                        if (entry) {
+                            entry.style.transition = 'opacity 0.3s, transform 0.3s';
+                            entry.style.opacity = '0';
+                            entry.style.transform = 'translateX(30px)';
+                            setTimeout(() => entry.remove(), 300);
+                        }
+                        showToast('Deleted successfully.');
+                    } else {
+                        showToast('Saved!');
+                        form.reset();
+                        await softReload();
+                    }
+                }
+            } catch (err) {
+                showToast('Something went wrong. Please try again.', 'error');
+                console.error('AJAX form error:', err);
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText || 'Submit'; }
+            }
+        });
+
+        // Override native confirm-based delete forms to work with AJAX
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[type="submit"]');
+            if (!btn) return;
+            const form = btn.closest('form');
+            if (!form || !isDeleteForm(form) || shouldSkipAjax(form)) return;
+            if (form.dataset.confirmed) return;
+            const confirmMsg = form.getAttribute('onsubmit');
+            if (confirmMsg) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Extract message from onsubmit="return confirm('...')"
+                const match = confirmMsg.match(/confirm\(['"](.*?)['"]\)/);
+                const msg = match ? match[1] : 'Are you sure?';
+                if (confirm(msg)) {
+                    form.removeAttribute('onsubmit');
+                    form.dataset.confirmed = 'true';
+                    form.requestSubmit(btn);
+                }
+            }
+        });
+
+        // Soft-reload: fetch current page and swap the full document seamlessly
+        async function softReload() {
+            try {
+                const loader = document.getElementById('ajax-loader');
+                if (loader) loader.classList.add('active');
+                const scrollY = window.scrollY;
+
+                // Destroy any existing Chart.js instances to prevent memory leaks
+                if (typeof Chart !== 'undefined') {
+                    Object.values(Chart.instances || {}).forEach(c => c.destroy());
+                }
+                const resp = await fetch(window.location.href);
+                const html = await resp.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Replace main content
+                const newContent = doc.querySelector('.container-custom');
+                const oldContent = document.querySelector('.container-custom');
+                if (newContent && oldContent) {
+                    oldContent.innerHTML = newContent.innerHTML;
+                }
+
+                // Replace and re-execute extra_js scripts
+                const oldExtraJs = document.getElementById('extra-js-block');
+                const newExtraJs = doc.getElementById('extra-js-block');
+                if (oldExtraJs && newExtraJs) {
+                    oldExtraJs.innerHTML = '';
+                    newExtraJs.querySelectorAll('script').forEach(srcScript => {
+                        const s = document.createElement('script');
+                        if (srcScript.src) { s.src = srcScript.src; }
+                        else { s.textContent = srcScript.textContent; }
+                        oldExtraJs.appendChild(s);
+                    });
+                }
+
+                window.scrollTo(0, scrollY);
+            } catch (err) {
+                // Fallback: full reload
+                window.location.reload();
+            } finally {
+                const loader = document.getElementById('ajax-loader');
+                if (loader) loader.classList.remove('active');
+            }
+        }
     </script>
-    {% block extra_js %}{% endblock %}
+    <div id="extra-js-block">{% block extra_js %}{% endblock %}</div>
 </body>
 </html>

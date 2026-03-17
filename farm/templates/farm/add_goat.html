@@ -6,6 +6,8 @@
     body.dark-mode .add-goat-card { background: #1e1e1e; }
     .form-label { font-weight: 600; color: #2c3e50; }
     body.dark-mode .form-label { color: #e0e0e0; }
+    .external-callout { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; color: #5d3a00; }
+    body.dark-mode .external-callout { background: #3e2a10; border-left-color: #ff9800; color: #ffd699; }
 </style>
 {% endblock %}
 
@@ -22,6 +24,12 @@
                 {% if field.name == 'registration_number' %}
                 <hr style="margin: 20px 0;">
                 <h5 style="color:#2c3e50; margin-bottom:15px;">Registration &amp; External Info</h5>
+                {% endif %}
+                {% if field.name == 'is_external' %}
+                <div class="external-callout">
+                    <strong>What does "External" mean?</strong><br>
+                    Check this box if you do <em>not</em> own this goat. External goats are only used for pedigree tracking &mdash; for example, a sire or dam from another breeder. They will <strong>not</strong> appear in your herd, dashboards, or head counts.
+                </div>
                 {% endif %}
                 <div class="mb-3">
                     {% if field.field.widget.input_type == 'checkbox' %}

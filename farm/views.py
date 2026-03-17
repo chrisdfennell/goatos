@@ -183,6 +183,9 @@ def update_settings(request):
         settings, _ = FarmSettings.objects.get_or_create(pk=1)
         settings.name = request.POST.get('name', settings.name)
         settings.google_maps_api_key = request.POST.get('google_maps_api_key', settings.google_maps_api_key)
+        tz = request.POST.get('timezone')
+        if tz:
+            settings.timezone = tz
         try:
             lat = request.POST.get('latitude')
             lng = request.POST.get('longitude')
@@ -190,6 +193,16 @@ def update_settings(request):
             if lng: settings.longitude = float(lng)
         except ValueError: pass
         settings.save()
+        # Reload timezone immediately
+        import os
+        os.environ['TZ'] = settings.timezone
+        from django.conf import settings as django_settings
+        django_settings.TIME_ZONE = settings.timezone
+        try:
+            import time
+            time.tzset()
+        except AttributeError:
+            pass
         messages.success(request, 'Settings updated.')
     return redirect('index')
 
@@ -227,7 +240,7 @@ def breeding_dashboard(request):
     all_breeding_logs = BreedingLog.objects.all().order_by('due_date')
     active_pregnancies = [log for log in all_breeding_logs if log.due_date and log.due_date >= today]
     kidding_records = KiddingRecord.objects.select_related('dam', 'breeding_log').order_by('-kidding_date')[:30]
-    does = Goat.objects.filter(gender__in=['Doe', 'Doeling']).order_by('name')
+    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'], is_external=False).order_by('name')
     breeding_logs_for_form = BreedingLog.objects.filter(due_date__isnull=False).select_related('goat').order_by('-due_date')[:20]
     context = get_common_context()
     context.update({
@@ -365,7 +378,7 @@ def calendar_dashboard(request):
         })
         # Show predicted next heat
         next_heat = obs.next_heat_date
-        if next_heat >= date.today() - timedelta(days=7):
+        if next_heat >= timezone.localdate() - timedelta(days=7):
             events.append({
                 'title': f"🔮 Predicted Heat: {obs.goat.name}",
                 'start': next_heat.isoformat(),
@@ -657,7 +670,10 @@ def goat_detail(request, goat_id):
 
     logs = goat.logs.all().order_by('-date')
     medical_records = goat.medical_records.all().order_by('-date')
-    feeding_logs = goat.feeding_logs.all().order_by('-date')
+    # Include both this goat's feeding logs AND herd-level (goat=null) entries
+    feeding_logs = FeedingLog.objects.filter(
+        Q(goat=goat) | Q(goat__isnull=True)
+    ).order_by('-date')
     breeding_logs = goat.breeding_logs.all().order_by('-breeding_date')
     milk_logs = goat.milk_logs.all().order_by('-date')
     
@@ -684,7 +700,7 @@ def goat_detail(request, goat_id):
     offspring = Goat.objects.filter(Q(dam=goat) | Q(sire=goat)).distinct()
 
     # Health Scores (FAMACHA & BCS)
-    health_scores = goat.health_scores.all()[:20]
+    health_scores = goat.health_scores.all().order_by('-date')
     health_chart_data = json.dumps({
         'dates': [s.date.strftime('%b %d') for s in reversed(list(health_scores))],
         'famacha': [s.famacha_score for s in reversed(list(health_scores))],
@@ -692,13 +708,30 @@ def goat_detail(request, goat_id):
     })
 
     # Heat Observations
-    heat_observations = goat.heat_observations.all()[:10]
+    heat_observations = goat.heat_observations.all().order_by('-date_observed')
 
     # Documents
     documents = goat.documents.all()
 
     # Current Pen Assignment
     current_pen = PenAssignment.objects.filter(goat=goat, date_out__isnull=True).select_related('pen').first()
+
+    # Last activity date (most recent entry across all log types)
+    activity_dates = []
+    if medical_records.exists():
+        activity_dates.append(medical_records.first().date)
+    if feeding_logs.exists():
+        activity_dates.append(feeding_logs.first().date)
+    if milk_logs.exists():
+        activity_dates.append(milk_logs.first().date)
+    if weight_logs.exists():
+        activity_dates.append(weight_logs.order_by('-date').first().date)
+    if logs.exists():
+        activity_dates.append(logs.first().date)
+    # Normalize any datetime objects to date for safe comparison
+    from datetime import datetime as dt
+    activity_dates = [d.date() if isinstance(d, dt) else d for d in activity_dates]
+    last_activity = max(activity_dates) if activity_dates else None
 
     context = get_common_context()
     context.update({
@@ -716,6 +749,7 @@ def goat_detail(request, goat_id):
         'heat_observations': heat_observations,
         'documents': documents,
         'current_pen': current_pen,
+        'last_activity': last_activity,
     })
     return render(request, 'farm/goat_detail.html', context)
 
@@ -1605,7 +1639,7 @@ def add_kidding_record(request):
         record = KiddingRecord.objects.create(
             dam=dam,
             breeding_log_id=breeding_log_id if breeding_log_id else None,
-            kidding_date=request.POST.get('kidding_date') or date.today(),
+            kidding_date=request.POST.get('kidding_date') or timezone.localdate(),
             num_kids_born=request.POST.get('num_kids_born', 1),
             num_alive=request.POST.get('num_alive', 1),
             num_stillborn=request.POST.get('num_stillborn', 0),
@@ -1633,7 +1667,7 @@ def delete_kidding_record(request, record_id):
 # =====================================================
 
 def kidding_season_dashboard(request):
-    today = date.today()
+    today = timezone.localdate()
     # Get all breeding logs with future or recent due dates
     pregnant_does = BreedingLog.objects.filter(
         due_date__isnull=False,
@@ -1654,7 +1688,7 @@ def kidding_season_dashboard(request):
             log.urgency = 'later'
 
     recent_kiddings = KiddingRecord.objects.select_related('dam', 'breeding_log').order_by('-kidding_date')[:20]
-    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'])
+    does = Goat.objects.filter(gender__in=['Doe', 'Doeling'], is_external=False)
     breeding_logs = BreedingLog.objects.filter(due_date__gte=today - timedelta(days=30)).select_related('goat')
 
     context = get_common_context()
@@ -1676,7 +1710,7 @@ def add_health_score(request, goat_id):
     if request.method == 'POST':
         HealthScore.objects.create(
             goat=goat,
-            date=request.POST.get('date') or date.today(),
+            date=request.POST.get('date') or timezone.localdate(),
             famacha_score=request.POST.get('famacha_score') or None,
             body_condition_score=request.POST.get('body_condition_score') or None,
             notes=request.POST.get('notes', ''),
@@ -1697,7 +1731,7 @@ def delete_health_score(request, score_id):
 
 def health_scores_dashboard(request):
     """Herd-wide FAMACHA & BCS overview"""
-    goats = Goat.objects.filter(status='Healthy').order_by('name')
+    goats = Goat.objects.filter(status='Healthy', is_external=False).order_by('name')
     scores_data = []
     for goat in goats:
         latest = goat.health_scores.first()
@@ -1722,7 +1756,7 @@ def add_heat_observation(request, goat_id):
     if request.method == 'POST':
         HeatObservation.objects.create(
             goat=goat,
-            date_observed=request.POST.get('date_observed') or date.today(),
+            date_observed=request.POST.get('date_observed') or timezone.localdate(),
             signs=request.POST.get('signs', ''),
             notes=request.POST.get('notes', ''),
         )
@@ -1753,13 +1787,15 @@ def activity_feed(request):
 
     def add_activities(queryset, activity_type, icon, color, label_fn, detail_fn, goat_fn, date_fn):
         for obj in queryset:
+            goat_val = goat_fn(obj)
             activities.append({
                 'type': activity_type,
                 'icon': icon,
                 'color': color,
                 'label': label_fn(obj),
                 'detail': detail_fn(obj),
-                'goat': goat_fn(obj),
+                'goat': goat_val,
+                'goat_is_herd': isinstance(goat_val, str),
                 'date': date_fn(obj),
                 'obj': obj,
             })
@@ -1804,7 +1840,7 @@ def activity_feed(request):
             'feeding', '🌾', '#ff9800',
             lambda o: f'{o.feed_type} - {o.amount}',
             lambda o: o.notes[:100] if o.notes else '',
-            lambda o: o.goat, lambda o: o.date)
+            lambda o: o.goat if o.goat else 'All Goats', lambda o: o.date)
 
     if not type_filters or 'kidding' in type_filters:
         add_activities(
@@ -1993,22 +2029,22 @@ def barn_dashboard(request):
             pen = get_object_or_404(Pen, pk=request.POST.get('pen_id'))
             goat = get_object_or_404(Goat, pk=request.POST.get('goat_id'))
             # End any existing active assignment for this goat
-            PenAssignment.objects.filter(goat=goat, date_out__isnull=True).update(date_out=date.today())
+            PenAssignment.objects.filter(goat=goat, date_out__isnull=True).update(date_out=timezone.localdate())
             PenAssignment.objects.create(
                 pen=pen, goat=goat,
-                date_in=request.POST.get('date_in') or date.today(),
+                date_in=request.POST.get('date_in') or timezone.localdate(),
                 notes=request.POST.get('notes', ''),
             )
             messages.success(request, f'{goat.name} assigned to {pen.name}.')
         elif action == 'remove':
             assignment = get_object_or_404(PenAssignment, pk=request.POST.get('assignment_id'))
-            assignment.date_out = date.today()
+            assignment.date_out = timezone.localdate()
             assignment.save()
             messages.success(request, f'{assignment.goat.name} removed from {assignment.pen.name}.')
         return redirect('barn_dashboard')
 
     pens = Pen.objects.all().order_by('name')
-    goats = Goat.objects.filter(status__in=['Healthy', 'Sick']).order_by('name')
+    goats = Goat.objects.filter(status__in=['Healthy', 'Sick'], is_external=False).order_by('name')
     # Get goats currently not assigned to any pen
     assigned_goat_ids = PenAssignment.objects.filter(date_out__isnull=True).values_list('goat_id', flat=True)
     unassigned_goats = goats.exclude(id__in=assigned_goat_ids)
@@ -2041,9 +2077,37 @@ def quick_entry(request):
 
     if request.method == 'POST':
         entry_type = request.POST.get('entry_type')
+        entry_date = request.POST.get('date') or timezone.localdate()
+
+        if entry_type == 'bulk':
+            notes = request.POST.get('notes', '')
+            logged = []
+            bulk_items = [
+                ('hay_amount', 'Hay'),
+                ('grain_amount', 'Grain'),
+                ('water_amount', 'Water'),
+                ('crackers_amount', 'Crackers/Cookies'),
+                ('veggies_amount', 'Veggies'),
+            ]
+            for field, feed_type in bulk_items:
+                amount = request.POST.get(field, '').strip()
+                if amount:
+                    FeedingLog.objects.create(
+                        goat=None,
+                        date=entry_date,
+                        feed_type=feed_type,
+                        amount=amount,
+                        notes=notes,
+                    )
+                    logged.append(feed_type)
+            if logged:
+                messages.success(request, f'Herd feeding logged: {", ".join(logged)}.')
+            else:
+                messages.warning(request, 'No amounts entered — nothing was logged.')
+            return redirect('quick_entry')
+
         goat_id = request.POST.get('goat_id')
         goat = get_object_or_404(Goat, pk=goat_id)
-        entry_date = request.POST.get('date') or date.today()
 
         if entry_type == 'milk':
             MilkLog.objects.create(
@@ -2096,7 +2160,7 @@ def quick_entry(request):
     context.update({
         'goats': goats,
         'does': does,
-        'today': date.today().isoformat(),
+        'today': timezone.localdate().isoformat(),
     })
     return render(request, 'farm/quick_entry.html', context)
 
@@ -2182,7 +2246,7 @@ def pedigree_api(request, goat_id):
 
 def alerts_dashboard(request):
     """Consolidated alerts page with all farm notifications."""
-    today = date.today()
+    today = timezone.localdate()
 
     # Kidding alerts - does due within 21 days or overdue
     kidding_alerts = []

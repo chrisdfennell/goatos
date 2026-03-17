@@ -122,6 +122,89 @@ body.dark-mode .guide-content .calculator-input[type="date"]::-webkit-calendar-p
 
 body.dark-mode .guide-content .symptom-check { accent-color: #10b981; }
 
+/* ========== Mobile Responsive ========== */
+@media (max-width: 768px) {
+  /* Reduce section padding */
+  .guide-content section.p-8,
+  .guide-content .p-8 { padding: 1rem !important; }
+  .guide-content section.p-6,
+  .guide-content .p-6 { padding: 1rem !important; }
+
+  /* Scale down headings */
+  .guide-content h1 { font-size: 1.75rem !important; }
+  .guide-content h2 { font-size: 1.35rem !important; }
+
+  /* Reduce container padding */
+  .guide-content .container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+  .guide-content main.container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+
+  /* Stack all md:grid-cols-2 grids to single column */
+  .guide-content .grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+  /* Fix breed comparison table sticky column on mobile */
+  .guide-content table .sticky { position: static !important; }
+
+  /* Reduce rounded corners on cards */
+  .guide-content .rounded-2xl { border-radius: 0.75rem !important; }
+
+  /* Reduce card hover effect on touch devices */
+  .card-hover:hover { transform: none; }
+
+  /* Tighten spacing */
+  .guide-content .space-y-8 > * + * { margin-top: 1rem !important; }
+  .guide-content .mb-12 { margin-bottom: 1.5rem !important; }
+  .guide-content .mb-16 { margin-bottom: 1.5rem !important; }
+  .guide-content .py-20 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+
+  /* Index page cards: 1 column on mobile */
+  .guide-content .sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
+  .guide-content .lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+
+  /* Flex items in section headers - stack vertically */
+  .guide-content .flex.items-start.gap-4 { flex-direction: column; gap: 0.5rem !important; }
+  .guide-content .flex.items-start.gap-4 .flex-shrink-0 { margin-bottom: 0.25rem; }
+
+  /* Table cells - reduce padding */
+  .guide-content table td,
+  .guide-content table th { padding: 0.5rem !important; font-size: 0.8rem !important; }
+
+  /* Checklist items - better touch targets */
+  .guide-content .checklist-item label { padding: 0.5rem 0; gap: 0.75rem; }
+  .guide-content .checklist-item input[type="checkbox"] { width: 1.25rem; height: 1.25rem; min-width: 1.25rem; }
+
+  /* Symptom checker checkboxes - better touch targets */
+  .guide-content .symptom-check { width: 1.25rem; height: 1.25rem; min-width: 1.25rem; }
+
+  /* Alert/tip boxes */
+  .guide-content .border-l-4 { padding: 0.75rem !important; }
+
+  /* Breadcrumb nav */
+  .guide-content nav.flex { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .guide-content h1 { font-size: 1.5rem !important; }
+  .guide-content h2 { font-size: 1.2rem !important; }
+
+  /* Even tighter padding */
+  .guide-content section.p-8,
+  .guide-content .p-8,
+  .guide-content section.p-6,
+  .guide-content .p-6 { padding: 0.75rem !important; }
+
+  .guide-content .container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+  .guide-content main.container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+
+  /* Table: let it scroll horizontally */
+  .guide-content .overflow-x-auto { margin-left: -0.75rem; margin-right: -0.75rem; padding: 0 0.75rem; }
+
+  /* Reduce gap in flex items */
+  .guide-content .gap-3 { gap: 0.5rem !important; }
+
+  /* Index cards - less padding */
+  .guide-content .card-hover { padding: 1rem !important; }
+}
+
 @media print {
   .no-print { display: none !important; }
   .printable-card {

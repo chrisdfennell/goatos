@@ -1,4 +1,5 @@
 {% extends 'farm/base.html' %}
+{% load farm_filters %}
 
 {% block extra_css %}
 <style>
@@ -34,7 +35,7 @@
 
     /* Kids list */
     .ped-kids { margin-top: 15px; }
-    .ped-kids h4 { font-size: 0.9em; color: #666; margin-bottom: 8px; }
+    .ped-kids-heading { font-size: 0.9em; color: #666; margin-bottom: 8px; }
     .ped-kids-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .ped-kid-chip { padding: 6px 12px; background: #f5f5f5; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: background 0.2s; text-decoration: none; color: #333; }
     .ped-kid-chip:hover { background: #e0e0e0; }
@@ -56,6 +57,23 @@
     .pedigree-col.gen-1 { }
     .pedigree-col.gen-2 { }
 
+    /* Herd Lineage table */
+    .lineage-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-top: 20px; }
+    .lineage-card h3 { margin-top: 0; color: #2c3e50; }
+    .lineage-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    .lineage-table th { text-align: left; padding: 10px; border-bottom: 2px solid #eee; }
+    .lineage-table th.center { text-align: center; }
+    .lineage-table td { padding: 10px; }
+    .lineage-table tr { border-bottom: 1px solid #f0f0f0; }
+    .lineage-table .goat-link { color: #2c3e50; font-weight: 600; text-decoration: none; }
+    .lineage-table .goat-link:hover { text-decoration: underline; }
+    .lineage-table .dam-link { color: #e91e63; text-decoration: none; }
+    .lineage-table .dam-link:hover { text-decoration: underline; }
+    .lineage-table .sire-link { color: #2196f3; text-decoration: none; }
+    .lineage-table .sire-link:hover { text-decoration: underline; }
+    .lineage-table .unknown { color: #999; }
+    .lineage-table .external-badge { font-size: 0.75em; color: #999; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
+
     /* Dark mode */
     body.dark-mode .ped-node { background: #1e1e1e; border-color: #444; }
     body.dark-mode .ped-node.doe { border-color: #e91e63; }
@@ -66,6 +84,18 @@
     body.dark-mode .ped-kid-chip:hover { background: #333; }
     body.dark-mode .ped-controls select { background: #2d2d2d; border-color: #444; color: #e0e0e0; }
     body.dark-mode .ped-line, body.dark-mode .ped-branch::before { background: #555; }
+
+    body.dark-mode .lineage-card { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+    body.dark-mode .lineage-card h3 { color: #e0e0e0; }
+    body.dark-mode .lineage-table th { border-bottom-color: #444; color: #aaa; }
+    body.dark-mode .lineage-table tr { border-bottom-color: #333; }
+    body.dark-mode .lineage-table td { color: #ccc; }
+    body.dark-mode .lineage-table .goat-link { color: #7eb8da; }
+    body.dark-mode .lineage-table .unknown { color: #666; }
+    body.dark-mode .lineage-table .external-badge { background: #2d2d2d; color: #888; }
+    body.dark-mode .ped-empty { color: #888; }
+    body.dark-mode .ped-empty h3 { color: #ccc; }
+    body.dark-mode .ped-kids-heading { color: #aaa; }
 </style>
 {% endblock %}
 
@@ -104,37 +134,36 @@
 </div>
 
 <!-- Simple herd relationships table -->
-<div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-top:20px;">
-    <h3 style="margin-top:0; color:#2c3e50;">Herd Lineage</h3>
+<div class="lineage-card">
+    <h3>Herd Lineage</h3>
     <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:0.9em;">
+        <table class="lineage-table">
             <thead>
-                <tr style="border-bottom:2px solid #eee;">
-                    <th style="text-align:left; padding:10px;">Goat</th>
-                    <th style="text-align:left; padding:10px;">Gender</th>
-                    <th style="text-align:left; padding:10px;">Dam</th>
-                    <th style="text-align:left; padding:10px;">Sire</th>
-                    <th style="text-align:center; padding:10px;">Offspring</th>
+                <tr>
+                    <th>Goat</th>
+                    <th>Gender</th>
+                    <th>Dam</th>
+                    <th>Sire</th>
+                    <th class="center">Offspring</th>
                 </tr>
             </thead>
             <tbody>
                 {% for goat in all_goats %}
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                    <td style="padding:10px;">
-                        <a href="?goat={{ goat.id }}" style="color:#2c3e50; font-weight:600; text-decoration:none;">{{ goat.name }}</a>
-                        {% if goat.is_external %}<span style="font-size:0.75em; color:#999; background:#f5f5f5; padding:2px 6px; border-radius:4px;">External</span>{% endif %}
+                <tr>
+                    <td>
+                        <a href="?goat={{ goat.id }}" class="goat-link">{{ goat.name }}</a>
+                        {% if goat.is_external %}<span class="external-badge">External</span>{% endif %}
                     </td>
-                    <td style="padding:10px;">
-                        <span class="ped-gender-icon">{% if goat.gender == 'Doe' or goat.gender == 'Doeling' %}♀{% else %}♂{% endif %}</span>
-                        {{ goat.gender }}
+                    <td>
+                        {{ goat.gender|gender_icon }} {{ goat.get_gender_display }}
                     </td>
-                    <td style="padding:10px;">
-                        {% if goat.dam %}<a href="?goat={{ goat.dam.id }}" style="color:#e91e63; text-decoration:none;">{{ goat.dam.name }}</a>{% else %}<span style="color:#ccc;">Unknown</span>{% endif %}
+                    <td>
+                        {% if goat.dam %}<a href="?goat={{ goat.dam.id }}" class="dam-link">{{ goat.dam.name }}</a>{% else %}<span class="unknown">Unknown</span>{% endif %}
                     </td>
-                    <td style="padding:10px;">
-                        {% if goat.sire %}<a href="?goat={{ goat.sire.id }}" style="color:#2196f3; text-decoration:none;">{{ goat.sire.name }}</a>{% else %}<span style="color:#ccc;">Unknown</span>{% endif %}
+                    <td>
+                        {% if goat.sire %}<a href="?goat={{ goat.sire.id }}" class="sire-link">{{ goat.sire.name }}</a>{% else %}<span class="unknown">Unknown</span>{% endif %}
                     </td>
-                    <td style="padding:10px; text-align:center;">
+                    <td style="text-align:center;">
                         {{ goat.kids_dam.count|add:goat.kids_sire.count }}
                     </td>
                 </tr>
@@ -193,14 +222,15 @@ function renderPedigreeChart(data) {
     // Render kids section
     if (data.kids && data.kids.length > 0) {
         var kidsSection = document.getElementById('kids-section');
-        kidsSection.innerHTML = '<h4 style="color:#666; margin-bottom:10px;">Offspring (' + data.kids.length + ')</h4>';
+        kidsSection.innerHTML = '<h4 class="ped-kids-heading">Offspring (' + data.kids.length + ')</h4>';
         var kidsList = document.createElement('div');
         kidsList.className = 'ped-kids-list';
         data.kids.forEach(function(kid) {
             var chip = document.createElement('a');
             chip.href = '?goat=' + kid.id;
-            chip.className = 'ped-kid-chip ' + (kid.gender === 'Doe' || kid.gender === 'Doeling' ? 'doe-chip' : 'buck-chip');
-            chip.textContent = kid.name + ' (' + kid.gender + ')';
+            var isFemale = kid.gender === 'Doe' || kid.gender === 'Doeling';
+            chip.className = 'ped-kid-chip ' + (isFemale ? 'doe-chip' : 'buck-chip');
+            chip.innerHTML = '<span class="gender-icon ' + (isFemale ? 'female' : 'male') + '">' + (isFemale ? '♀' : '♂') + '</span> ' + kid.name;
             kidsList.appendChild(chip);
         });
         kidsSection.appendChild(kidsList);
@@ -235,11 +265,11 @@ function makeNode(data) {
     if (data.image) {
         html += '<img src="' + data.image + '" class="ped-node-img" alt="' + data.name + '">';
     }
-    var icon = genderClass === 'doe' ? '♀' : '♂';
+    var iconHtml = '<span class="gender-icon ' + (genderClass === 'doe' ? 'female' : 'male') + '">' + (genderClass === 'doe' ? '♀' : '♂') + '</span>';
     if (data.is_external) {
-        html += '<div class="ped-node-name">' + icon + ' ' + data.name + '</div>';
+        html += '<div class="ped-node-name">' + iconHtml + ' ' + data.name + '</div>';
     } else {
-        html += '<div class="ped-node-name"><a href="?goat=' + data.id + '">' + icon + ' ' + data.name + '</a></div>';
+        html += '<div class="ped-node-name"><a href="?goat=' + data.id + '">' + iconHtml + ' ' + data.name + '</a></div>';
     }
     html += '<div class="ped-node-info">' + data.breed + '</div>';
     if (data.registration) {

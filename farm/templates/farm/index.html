@@ -1,4 +1,5 @@
 {% extends 'farm/base.html' %}
+{% load farm_filters %}
 
 {% block extra_css %}
 <style>
@@ -12,10 +13,15 @@
     
     /* Mobile Adjustments for Search Bar */
     @media (max-width: 768px) {
-        .search-container { gap: 8px; }
-        .search-input { min-width: 100%; order: 1; } /* Full width on mobile, moves to top if wrapped */
-        .filter-select { flex: 1; order: 2; } /* Selects share row below input */
-        .view-toggle-btn { order: 2; }
+        .search-container { gap: 8px; padding: 10px; }
+        .search-input { min-width: 100%; order: 1; }
+        .filter-select { flex: 1; min-width: 45%; order: 2; }
+        .view-toggle-btn { order: 3; width: 38px; height: 38px; }
+    }
+    @media (max-width: 480px) {
+        .search-container { gap: 6px; padding: 8px; }
+        .filter-select { min-width: 100%; }
+        .view-toggle-btn { width: 36px; height: 36px; font-size: 1em; }
     }
 
     .goat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
@@ -30,7 +36,8 @@
     .goat-grid.list-view .btn-view { display: none; }
     .goat-grid.list-view .card-actions { border-top: none; padding-top: 0; margin-left: 20px; }
 
-    .goat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); overflow: hidden; transition: transform .2s, box-shadow .2s, background-color .3s; display: flex; flex-direction: column; }
+    @keyframes cardEntrance { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .goat-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); overflow: hidden; transition: transform .2s, box-shadow .2s, background-color .3s; display: flex; flex-direction: column; animation: cardEntrance .4s ease-out both; }
     .goat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,.1); }
     .card-header { background: #4caf50; height: 80px; position: relative; }
     .goat-card[data-status=Sick] .card-header { background: #e53935; }
@@ -41,11 +48,6 @@
     .card-name { font-size: 1.4em; margin: 10px 0 15px; color: #333; font-weight: 700; }
     .card-name a { text-decoration: none; color: inherit; }
     .badge { background: #ff5252; color: #fff; padding: 3px 6px; border-radius: 4px; font-size: .4em; vertical-align: middle; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; position: relative; top: -3px; margin-left: 5px; }
-    .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: .85em; text-transform: uppercase; display: inline-block; }
-    .status-badge.Healthy { background: #e8f5e9; color: #2e7d32; }
-    .status-badge.Sick { background: #ffebee; color: #c62828; }
-    .status-badge.Vet { background: #fff3e0; color: #ef6c00; }
-    .status-badge.Deceased { background: #eee; color: #666; }
     .card-details { color: #666; margin-bottom: 25px; font-size: .95em; flex: 1; }
     .detail-row { margin: 5px 0; }
     .btn-view { display: inline-block; background-color: #f0f2f5; color: #333; padding: 8px 25px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: background .2s, color .2s; border: 1px solid #e1e4e8; margin-bottom: 10px; }
@@ -77,6 +79,26 @@
     .btn-end-rotation { background: #ff5722; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: .8em; }
     .marker-form { display: none; margin-top: 15px; background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; }
     .condition-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75em; font-weight: 700; color: #fff; }
+    /* InfoWindow Popup Styling */
+    .gm-style .gm-style-iw-c { border-radius: 12px !important; padding: 0 !important; box-shadow: 0 4px 20px rgba(0,0,0,.25) !important; }
+    .gm-style .gm-style-iw-d { overflow: auto !important; padding: 0 !important; }
+    .gm-style .gm-style-iw-tc::after { display: none !important; }
+    .gm-style button.gm-ui-hover-effect { top: 4px !important; right: 4px !important; width: 28px !important; height: 28px !important; background: rgba(0,0,0,.06) !important; border-radius: 50% !important; }
+    .iw-content { padding: 16px 18px; font-family: 'Segoe UI', sans-serif; color: #333; min-width: 200px; max-width: 280px; }
+    .iw-content .iw-title { font-size: 1.15em; font-weight: 700; color: #2c3e50; margin-bottom: 8px; border-bottom: 2px solid #4caf50; padding-bottom: 6px; }
+    .iw-content .iw-row { font-size: .88em; padding: 3px 0; color: #555; }
+    .iw-content .iw-row strong { color: #333; }
+    .iw-content .iw-actions { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 6px; }
+    .iw-content .iw-btn { border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85em; font-weight: 600; transition: opacity .2s; }
+    .iw-content .iw-btn:hover { opacity: .85; }
+    .iw-content .iw-btn-save { background: #2196f3; color: #fff; flex: 1; }
+    .iw-content .iw-btn-delete { background: #d32f2f; color: #fff; }
+    body.dark-mode .iw-content { background: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-title { color: #ecf0f1; border-bottom-color: #4caf50; }
+    body.dark-mode .iw-content .iw-row { color: #bbb; }
+    body.dark-mode .iw-content .iw-row strong { color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-actions { border-top-color: #444; }
+    body.dark-mode .gm-style .gm-style-iw-c { background: #1e1e1e !important; }
     body.dark-mode .rotation-panel { background-color: #1e1e1e; color: #e0e0e0; }
     body.dark-mode .rotation-panel h3 { color: #e0e0e0; }
     body.dark-mode .assignment-table th { color: #aaa; border-bottom-color: #333; }
@@ -84,6 +106,19 @@
     body.dark-mode .marker-form { background-color: #1a237e; border-color: #283593; }
     
     .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 50px; align-items: start; }
+    @media (max-width: 900px) {
+        .dashboard-grid { grid-template-columns: 1fr; margin-top: 25px; gap: 15px; }
+        #map-container { min-height: 350px; }
+        #map { min-height: 280px; }
+        .rotation-panel { order: 2; }
+    }
+    @media (max-width: 600px) {
+        .goat-grid { grid-template-columns: 1fr; gap: 15px; }
+        .dashboard-grid { margin-top: 15px; gap: 12px; }
+        #map-container { min-height: 300px; padding: 12px; }
+        #map { min-height: 250px; }
+        .form-row { flex-direction: column; }
+    }
     .sidebar-stack { display: flex; flex-direction: column; gap: 20px; }
     .checklist-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,.05); width: 100%; box-sizing: border-box; align-self: stretch; transition: all .3s ease; }
     .checklist-card .card-header-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -167,7 +202,7 @@
                 </div>
                 <div class="card-details">
                     <div class="detail-row"><strong>Breed:</strong> {{ goat.breed }}</div>
-                    {% if goat.gender %}<div class="detail-row"><strong>Sex:</strong> {{ goat.gender }}</div>{% endif %}
+                    {% if goat.gender %}<div class="detail-row"><strong>Sex:</strong> {{ goat.gender|gender_icon }} {{ goat.get_gender_display }}</div>{% endif %}
                     <div class="detail-row"><strong>Age:</strong> {{ goat.display_age }}</div>
                     <div class="detail-row">
                         <strong>Status:</strong> 
@@ -179,8 +214,10 @@
 
                 <!-- QUICK ACTIONS -->
                 <div class="card-actions">
+                    {% if goat.gender != 'Buck' and goat.gender != 'Wether' and goat.gender != 'Buckling' %}
                     <button class="action-btn milk" data-milk-id="{{ goat.id }}"
                         title="Quick Milk Log">💧</button>
+                    {% endif %}
                     {% if goat.status == 'Sick' %}
                     <form method="POST" action="{% url 'toggle_sick' goat.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="action-btn healthy" title="Mark Healthy">😊</button></form>
                     {% else %}
@@ -191,11 +228,16 @@
         </div>
         {% empty %}
         <div class="empty-herd">
-            <h2>No goats found.</h2>
+            <div style="font-size:4em; margin-bottom:15px;">🐐</div>
+            <h2>Your herd is empty!</h2>
+            <p style="color:#999; margin:10px 0 20px;">Add your first goat to get started with GoatOS.</p>
+            <a href="{% url 'add_goat' %}" style="display:inline-block; background:#2c3e50; color:#fff; padding:12px 24px; border-radius:8px; font-weight:600; text-decoration:none;">+ Add Your First Goat</a>
         </div>
         {% endfor %}
         <div id="no-results" class="empty-herd" style="display: none;">
+            <div style="font-size:3em; margin-bottom:10px;">🔍</div>
             <h3>No goats match your search.</h3>
+            <p style="color:#999;">Try a different search term or filter.</p>
         </div>
     </div>
 
@@ -555,6 +597,11 @@
     {{ grazing_areas|json_script:"grazing-data" }}
     {{ map_markers|json_script:"marker-data" }}
     <script>
+        // Stagger card entrance animations
+        document.querySelectorAll('.goat-card').forEach(function(card, i) {
+            card.style.animationDelay = (i * 0.05) + 's';
+        });
+
         // GLOBALS
         let map;
         let mapPickMode = false;
@@ -570,7 +617,7 @@
         };
 
         // --- ON LOAD: RESTORE PREFERENCES ---
-        document.addEventListener('DOMContentLoaded', () => {
+        (function() {
             const savedView = localStorage.getItem('goatOS_view') || 'grid';
             toggleView(savedView);
             const savedSort = localStorage.getItem('goatOS_sort') || 'name';
@@ -611,7 +658,7 @@
                     if (!confirm(this.dataset.confirm)) e.preventDefault();
                 });
             });
-        });
+        })();
 
         // --- WEATHER FUNCTION ---
         async function fetchWeather() {
@@ -1009,8 +1056,14 @@
 
                     // Build InfoWindow content
                     const idx = areaPolygons.length - 1;
-                    const infoContent = `<div style="max-width:250px;"><strong style="font-size:1.1em;">${area.name}</strong>${areaSize}${perimeterInfo}${stockingInfo}${condBadge}${restInfo}${goatInfo}` +
-                        `<br><div style="margin-top:8px;"><button data-action="save" data-idx="${idx}" style="background:#2196f3;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;margin-right:4px;">Save Edits</button><button data-action="delete" data-idx="${idx}" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Delete</button></div>` +
+                    const infoContent = `<div class="iw-content"><div class="iw-title">${area.name}</div>` +
+                        `<div class="iw-row">${areaSize.replace('<br>', '')}</div>` +
+                        `<div class="iw-row">${perimeterInfo.replace('<br>', '')}</div>` +
+                        `<div class="iw-row">${stockingInfo.replace('<br>', '')}</div>` +
+                        (condBadge ? `<div class="iw-row">${condBadge.replace('<br>', '')}</div>` : '') +
+                        (restInfo ? `<div class="iw-row">${restInfo.replace('<br>', '')}</div>` : '') +
+                        (goatInfo ? `<div class="iw-row">${goatInfo.replace('<br>', '')}</div>` : '') +
+                        `<div class="iw-actions"><button data-action="save" data-idx="${idx}" class="iw-btn iw-btn-save">Save Edits</button><button data-action="delete" data-idx="${idx}" class="iw-btn iw-btn-delete">Delete</button></div>` +
                         `</div>`;
 
                     polygon.addListener("click", (e) => {
@@ -1070,7 +1123,7 @@
                 const deleteUrl = `/marker/${m.id}/delete/`;
                 marker.addListener('click', () => {
                     new google.maps.InfoWindow({
-                        content: `<strong>${m.name}</strong><br>${m.marker_type}${m.notes ? '<br><em>' + m.notes + '</em>' : ''}<br><form method="POST" action="${deleteUrl}" style="margin-top:6px;"><input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}"><button type="submit" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Remove</button></form>`
+                        content: `<div class="iw-content"><div class="iw-title">${m.name}</div><div class="iw-row">${m.marker_type}</div>${m.notes ? '<div class="iw-row" style="font-style:italic;">' + m.notes + '</div>' : ''}<div class="iw-actions"><form method="POST" action="${deleteUrl}"><input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}"><button type="submit" class="iw-btn iw-btn-delete">Remove</button></form></div></div>`
                     }).open(map, marker);
                 });
             });

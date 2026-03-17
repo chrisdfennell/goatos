@@ -1,4 +1,5 @@
 {% extends "farm/base.html" %}
+{% load farm_filters %}
 
 {% block header_subtitle %}
 <span class="system-status">External Goats &mdash; Pedigree Reference</span>
@@ -71,7 +72,7 @@
                 <span class="ext-badge">EXT</span>
             </td>
             <td data-label="Breed">{{ goat.breed|default:"—" }}</td>
-            <td data-label="Gender">{{ goat.get_gender_display|default:"—" }}</td>
+            <td data-label="Gender">{% if goat.gender %}{{ goat.gender|gender_icon }} {{ goat.get_gender_display }}{% else %}—{% endif %}</td>
             <td data-label="Registration #" style="font-family:monospace; font-size:.9em;">{{ goat.registration_number|default:"—" }}</td>
             <td data-label="Owner">{{ goat.external_owner|default:"—" }}</td>
             <td data-label="Used As Parent">

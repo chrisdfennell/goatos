@@ -1,4 +1,5 @@
 {% extends 'farm/base.html' %}
+{% load farm_filters %}
 
 {% block content %}
 <style>
@@ -23,12 +24,19 @@
     .stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
     .stat-value { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
     
-    .section-header { border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .section-header { border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; -webkit-user-select: none; user-select: none; transition: opacity .2s; }
+    .section-header:hover { opacity: .8; }
     .section-title { font-size: 1.4em; color: #2c3e50; margin: 0; }
+    .section-toggle { font-size: .75em; color: #999; transition: transform .3s; margin-left: 8px; }
+    .section-body { transition: max-height .3s ease, opacity .2s ease; overflow: hidden; }
+    .section-body.collapsed { max-height: 0 !important; opacity: 0; margin: 0; padding: 0; }
+    .section-header.collapsed .section-toggle { transform: rotate(-90deg); }
     
     /* Timelines & Forms */
     .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px solid #e0e0e0; }
-    .log-entry { position: relative; margin-bottom: 20px; padding-left: 20px; }
+    .log-entry { position: relative; margin-bottom: 20px; padding-left: 20px; animation: slideIn .3s ease-out both; }
+    .log-entry:nth-child(1) { animation-delay: 0s; } .log-entry:nth-child(2) { animation-delay: .05s; } .log-entry:nth-child(3) { animation-delay: .1s; } .log-entry:nth-child(4) { animation-delay: .15s; } .log-entry:nth-child(5) { animation-delay: .2s; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .log-entry::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: #ccc; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ccc; }
     .log-date { font-size: 0.85em; color: #888; margin-bottom: 5px; display: block; }
     .log-content { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ccc; }
@@ -170,6 +178,33 @@
     body.dark-mode .offspring-card { background-color: #2d2d2d; border-color: #444; }
     body.dark-mode .offspring-name { color: #e0e0e0; }
     body.dark-mode .offspring-meta { color: #aaa; }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .profile-header { padding: 20px 15px; }
+        .goat-name { font-size: 1.8em; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .profile-body { padding: 20px 15px; }
+        .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+        .offspring-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    }
+    @media (max-width: 480px) {
+        .goat-name { font-size: 1.5em; }
+        .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat-box { padding: 12px 8px; }
+        .stat-box .stat-value { font-size: 1.3em; }
+        .profile-body { padding: 15px 10px; }
+        .section-title { font-size: 1.1em; }
+    }
+
+    /* Herd badge */
+    .herd-badge { display: inline-block; background: #ff9800; color: #fff; font-size: 0.7em; padding: 1px 6px; border-radius: 4px; font-weight: bold; vertical-align: middle; margin-left: 4px; }
+
+    /* Show More button */
+    .btn-show-more { display: block; width: 100%; padding: 10px; margin-top: 10px; background: none; border: 1.5px dashed #ccc; border-radius: 8px; color: #888; font-weight: 600; cursor: pointer; font-size: 0.9em; transition: all 0.2s; }
+    .btn-show-more:hover { border-color: #4caf50; color: #4caf50; }
+    body.dark-mode .btn-show-more { border-color: #555; color: #999; }
+    body.dark-mode .btn-show-more:hover { border-color: #4caf50; color: #69f0ae; }
 </style>
 
 <div class="container-custom">
@@ -213,6 +248,7 @@
             </form>
             <div style="opacity: 0.9; margin-top: 5px;">ID: #{{ goat.id }}</div>
             {% if goat.registration_number %}<div style="opacity: 0.9; margin-top: 3px; font-size: .9em;">Reg: {{ goat.registration_number }}</div>{% endif %}
+            {% if goat.microchip %}<div style="opacity: 0.9; margin-top: 3px; font-size: .9em;">Microchip: {{ goat.microchip }}</div>{% endif %}
             {% if goat.is_external %}<span style="display:inline-block; background:#ff9800; color:#fff; padding:3px 10px; border-radius:12px; font-size:.75em; font-weight:700; margin-top:6px;">EXTERNAL</span>{% endif %}
             {% if goat.external_owner %}<div style="opacity: 0.8; margin-top: 3px; font-size: .85em;">Owner: {{ goat.external_owner }}</div>{% endif %}
         </div>
@@ -220,9 +256,13 @@
         <div class="profile-body">
             <div class="stats-grid">
                 <div class="stat-box"><div class="stat-label">Breed</div><div class="stat-value">{{ goat.breed }}</div></div>
-                {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.get_gender_display }}</div></div>{% endif %}
+                {% if goat.gender %}<div class="stat-box"><div class="stat-label">Sex</div><div class="stat-value">{{ goat.gender|gender_icon }} {{ goat.get_gender_display }}</div></div>{% endif %}
                 <div class="stat-box"><div class="stat-label">Age</div><div class="stat-value">{{ goat.display_age }}{% if goat.birthdate %}<div style="font-size: 0.6em; font-weight: normal; color: #666; margin-top: 5px;">Born: {{ goat.birthdate|date:"M j, Y" }}</div>{% endif %}</div></div>
             </div>
+
+            {% if last_activity %}
+            <div style="text-align:center; font-size:.85em; color:#999; margin-bottom:15px;">Last activity: <strong style="color:#555;">{{ last_activity|date:"M j, Y" }}</strong></div>
+            {% endif %}
 
             <h3>Bio</h3>
             <p style="line-height: 1.6; color: #555;" class="text-muted">{{ goat.bio|default:"No bio." }}</p>
@@ -311,7 +351,7 @@
                         <div class="offspring-meta">
                             {{ kid.breed }}
                             {% if kid.birthdate %} &bull; {{ kid.display_age }}{% endif %}
-                            {% if kid.gender %} &bull; {{ kid.get_gender_display }}{% endif %}
+                            {% if kid.gender %} &bull; {{ kid.gender|gender_icon }} {{ kid.get_gender_display }}{% endif %}
                         </div>
                     </a>
                 </div>
@@ -337,9 +377,9 @@
             </form>
 
             {% if weight_logs %}
-            <div class="timeline" style="margin-bottom: 40px;">
-                {% for log in weight_logs|slice:":5" %}
-                <div class="log-entry" style="margin-bottom: 10px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
+                {% for log in weight_logs %}
+                <div class="log-entry paginated-item" style="margin-bottom: 10px;{% if forloop.counter > 10 %} display:none;{% endif %}">
                     <span class="log-date">{{ log.date|date:"M j, Y" }}
                         <form method="POST" action="{% url 'delete_weight_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this weight record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -349,6 +389,9 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% if weight_logs|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -357,35 +400,39 @@
             <form action="{% url 'add_feeding_record' goat.id %}" method="post" class="feed-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Treats">Treats</option><option value="Other">Other</option></select>
+                    <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Water">Water</option><option value="Crackers/Cookies">Crackers/Cookies</option><option value="Veggies">Veggies</option><option value="Other">Other</option></select>
                     <input type="text" name="amount" placeholder="Amount (e.g. 1 Flake)" required title="Feed amount">
                 </div>
                 <textarea name="notes" rows="1" placeholder="Details..." title="Feeding notes"></textarea>
                 <button type="submit" class="btn-submit btn-feed">Record Feed</button>
             </form>
             {% if feeding_logs %}
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for log in feeding_logs %}
-                <div class="log-entry feeding">
-                    <span class="log-date">{{ log.date|date:"F j, Y" }}
+                <div class="log-entry feeding paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
+                    <span class="log-date">{{ log.date|date:"F j, Y" }}{% if not log.goat %} <span class="herd-badge">Herd</span>{% endif %}
                         <form method="POST" action="{% url 'delete_feeding_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this feeding record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
                     <div class="log-content"><strong>{{ log.feed_type }}</strong> - {{ log.amount }}<br><span style="color:#666;">{{ log.notes }}</span></div>
                 </div>
                 {% endfor %}
+                {% if feeding_logs|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
             {% endif %}
 
             <!-- 2. MILK TRACKER SECTION -->
+            {% if goat.gender != 'Buck' and goat.gender != 'Wether' and goat.gender != 'Buckling' %}
             <div class="section-header"><h3 class="section-title">🥛 Milk Production</h3></div>
             
             <div style="height: 300px; width: 100%; margin-bottom: 20px; position: relative;">
                 <canvas id="milkChart"></canvas>
             </div>
 
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for log in milk_logs %}
-                <div class="log-entry milk">
+                <div class="log-entry milk paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">{{ log.date|date:"M j, Y" }} - {{ log.time }}
                         <form method="POST" action="{% url 'delete_milk_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this milk log?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -397,23 +444,28 @@
                 {% empty %}
                     <p id="no-milk-msg" style="color: #999; font-style: italic; margin-left: 20px;">No recent milk records.</p>
                 {% endfor %}
+                {% if milk_logs|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
+            {% endif %}
 
             <!-- 3. BREEDING SECTION -->
+            {% if goat.gender != 'Wether' %}
             <div class="section-header"><h3 class="section-title">🧬 Breeding Tracker</h3></div>
             <form action="{% url 'add_breeding_record' goat.id %}" method="post" class="breed-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="text" name="mate_name" placeholder="Buck Name" required title="Mate name">
+                    <input type="text" name="mate_name" placeholder="{% if goat.gender == 'Buck' or goat.gender == 'Buckling' %}Doe Name{% else %}Buck Name{% endif %}" required title="Mate name">
                     <input type="date" name="breeding_date" required title="Breeding Date">
                 </div>
                 <textarea name="notes" rows="1" placeholder="Notes..." title="Breeding notes"></textarea>
                 <button type="submit" class="btn-submit btn-breed">Record Breeding</button>
             </form>
             {% if breeding_logs %}
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for log in breeding_logs %}
-                <div class="log-entry breeding">
+                <div class="log-entry breeding paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">Bred: {{ log.breeding_date|date:"F j, Y" }}
                         <form method="POST" action="{% url 'delete_breeding_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this breeding record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -424,7 +476,11 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% if breeding_logs|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
+            {% endif %}
             {% endif %}
 
             <!-- 4. MEDICAL SECTION & DOSAGE CALCULATOR -->
@@ -435,7 +491,7 @@
             <form action="{% url 'add_medical_record' goat.id %}" method="post" class="med-form">
                 {% csrf_token %}
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <select name="record_type" title="Record type"><option value="Vaccine">Vaccination</option><option value="Deworm">Deworming</option><option value="Hoof">Hoof Trim</option><option value="Checkup">Checkup</option><option value="Illness">Illness/Injury</option></select>
+                    <select name="record_type" title="Record type"><option value="Vaccine">Vaccination</option><option value="Deworm">Deworming</option><option value="Hoof">Hoof Trim</option><option value="Checkup">Checkup</option><option value="Illness">Illness/Injury</option><option value="Procedure">Procedure</option><option value="Vitamins">Vitamins</option></select>
                     <input type="date" name="date" required title="Medical date">
                 </div>
                 <textarea name="notes" rows="2" placeholder="Details..." title="Medical notes"></textarea>
@@ -444,9 +500,9 @@
                 <button type="submit" class="btn-submit btn-medical">Record Medical</button>
             </form>
             {% if medical_records %}
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for record in medical_records %}
-                <div class="log-entry medical">
+                <div class="log-entry medical paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">{{ record.date|date:"F j, Y" }}
                         <span style="float: right; font-weight: bold; color: #e91e63;">{{ record.get_record_type_display }}
                             <form method="POST" action="{% url 'delete_medical_record' record.id %}" style="display:inline;" onsubmit="return confirm('Delete this medical record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;margin-left:5px;" title="Delete">🗑️</button></form>
@@ -455,6 +511,9 @@
                     <div class="log-content">{{ record.notes|linebreaks }}{% if record.next_due_date %}<div style="margin-top: 10px; font-size: 0.9em; font-weight: bold; color: #e91e63;">⏰ Next Due: {{ record.next_due_date|date:"F j, Y" }}</div>{% endif %}</div>
                 </div>
                 {% endfor %}
+                {% if medical_records|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -487,9 +546,9 @@
                 <button type="submit" class="btn-submit" style="background:#ff5722;">Record Score</button>
             </form>
             {% if health_scores %}
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for hs in health_scores %}
-                <div class="log-entry medical">
+                <div class="log-entry medical paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">{{ hs.date|date:"F j, Y" }}
                         <form method="POST" action="{% url 'delete_health_score' hs.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this health score?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -501,6 +560,9 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% if health_scores|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -523,9 +585,9 @@
                 <button type="submit" class="btn-submit btn-breed">Record Heat</button>
             </form>
             {% if heat_observations %}
-            <div class="timeline" style="margin-bottom: 40px;">
+            <div class="timeline paginated-list" data-limit="10" style="margin-bottom: 40px;">
                 {% for ho in heat_observations %}
-                <div class="log-entry breeding">
+                <div class="log-entry breeding paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">{{ ho.date_observed|date:"F j, Y" }}
                         <form method="POST" action="{% url 'delete_heat_observation' ho.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this observation?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -536,6 +598,9 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% if heat_observations|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
             {% endif %}
             {% endif %}
@@ -587,9 +652,9 @@
             <!-- 5. LOG SECTION -->
             <div class="section-header"><h3 class="section-title">📋 Daily Logs</h3></div>
             <form method="post" class="log-form">{% csrf_token %}<textarea name="note" rows="3" placeholder="Record a daily note..." title="Daily log note"></textarea><button type="submit" class="btn-submit">Add Log Entry</button></form>
-            <div class="timeline">
+            <div class="timeline paginated-list" data-limit="10">
                 {% for log in logs %}
-                <div class="log-entry">
+                <div class="log-entry paginated-item"{% if forloop.counter > 10 %} style="display:none;"{% endif %}>
                     <span class="log-date">{{ log.date|date:"F j, Y, g:i a" }}
                         <form method="POST" action="{% url 'delete_goat_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this log entry?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
@@ -598,6 +663,9 @@
                 {% empty %}
                 <p style="color: #999; font-style: italic; margin-left: 20px;">No daily logs.</p>
                 {% endfor %}
+                {% if logs|length > 10 %}
+                <button type="button" class="btn-show-more" onclick="showMore(this)">Show More</button>
+                {% endif %}
             </div>
 
             <!-- 6. MANAGEMENT SECTION -->
@@ -696,7 +764,7 @@
         resultBox.style.display = 'block';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         // WEIGHT CHART
         const dataElement = document.getElementById('weight-data');
         if (dataElement) {
@@ -787,8 +855,8 @@
                     '<div class="empty-chart-msg">No milk records found.</div>';
             }
         }
-    });
-    
+    })();
+
     window.onclick = function(event) {
         const modal = document.getElementById('dosageModal');
         if (event.target == modal) {
@@ -837,5 +905,66 @@
         if (e.key === 'ArrowLeft') navLightbox(-1);
         if (e.key === 'ArrowRight') navLightbox(1);
     });
+
+    // --- COLLAPSIBLE SECTIONS ---
+    (function() {
+        var headers = document.querySelectorAll('.section-header');
+        var saved = {};
+        try { saved = JSON.parse(localStorage.getItem('goatOS_collapsed') || '{}'); } catch(e) {}
+
+        headers.forEach(function(header, i) {
+            var toggle = document.createElement('span');
+            toggle.className = 'section-toggle';
+            toggle.textContent = '\u25BC';
+            header.querySelector('.section-title').appendChild(toggle);
+
+            var body = document.createElement('div');
+            body.className = 'section-body';
+            var sibling = header.nextElementSibling;
+            var collected = [];
+            while (sibling && !sibling.classList.contains('section-header')) {
+                collected.push(sibling);
+                sibling = sibling.nextElementSibling;
+            }
+            if (collected.length > 0) {
+                header.parentNode.insertBefore(body, collected[0]);
+                collected.forEach(function(el) { body.appendChild(el); });
+            }
+
+            var key = 'sec-' + i;
+            if (saved[key]) {
+                body.classList.add('collapsed');
+                header.classList.add('collapsed');
+            }
+
+            header.addEventListener('click', function(e) {
+                if (e.target.closest('a, button, select, input')) return;
+                body.classList.toggle('collapsed');
+                header.classList.toggle('collapsed');
+                try {
+                    var s = JSON.parse(localStorage.getItem('goatOS_collapsed') || '{}');
+                    if (body.classList.contains('collapsed')) s[key] = true;
+                    else delete s[key];
+                    localStorage.setItem('goatOS_collapsed', JSON.stringify(s));
+                } catch(e) {}
+            });
+        });
+    })();
+
+    // Show More pagination for log sections
+    function showMore(btn) {
+        var list = btn.closest('.paginated-list');
+        var hidden = list.querySelectorAll('.paginated-item[style*="display:none"], .paginated-item[style*="display: none"]');
+        var count = 0;
+        hidden.forEach(function(item) {
+            if (count < 10) {
+                item.style.display = '';
+                count++;
+            }
+        });
+        // Hide button if no more hidden items
+        var remaining = list.querySelectorAll('.paginated-item[style*="display:none"], .paginated-item[style*="display: none"]');
+        if (remaining.length === 0) btn.style.display = 'none';
+    }
 </script>
 {% endblock %}

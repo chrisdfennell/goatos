@@ -73,6 +73,31 @@
     .panel-btn-blue { background: #2196f3; }
     .panel-btn-blue:hover { background: #1e88e5; }
 
+    /* InfoWindow Popup Styling */
+    .gm-style .gm-style-iw-c { border-radius: 12px !important; padding: 0 !important; box-shadow: 0 4px 20px rgba(0,0,0,.25) !important; }
+    .gm-style .gm-style-iw-d { overflow: auto !important; padding: 0 !important; }
+    .gm-style .gm-style-iw-tc::after { display: none !important; }
+    .gm-style button.gm-ui-hover-effect { top: 4px !important; right: 4px !important; width: 28px !important; height: 28px !important; background: rgba(0,0,0,.06) !important; border-radius: 50% !important; }
+    .iw-content { padding: 16px 18px; font-family: 'Segoe UI', sans-serif; color: #333; min-width: 220px; max-width: 300px; }
+    .iw-content .iw-title { font-size: 1.15em; font-weight: 700; color: #2c3e50; margin-bottom: 8px; border-bottom: 2px solid #4caf50; padding-bottom: 6px; }
+    .iw-content .iw-row { font-size: .88em; padding: 3px 0; color: #555; }
+    .iw-content .iw-row strong { color: #333; }
+    .iw-content .iw-actions { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 6px; align-items: center; }
+    .iw-content .iw-btn { border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85em; font-weight: 600; transition: opacity .2s; }
+    .iw-content .iw-btn:hover { opacity: .85; }
+    .iw-content .iw-btn-save { background: #2196f3; color: #fff; flex: 1; }
+    .iw-content .iw-btn-delete { background: #d32f2f; color: #fff; }
+    .iw-content .iw-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .iw-content .iw-edit-row input[type="text"] { flex: 1; padding: 6px 8px; font-size: .88em; border: 1.5px solid #ddd; border-radius: 6px; }
+    .iw-content .iw-edit-row input[type="color"] { width: 36px; height: 32px; padding: 0; border: 1.5px solid #ddd; border-radius: 6px; cursor: pointer; }
+    body.dark-mode .iw-content { background: #1e1e1e; color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-title { color: #ecf0f1; border-bottom-color: #4caf50; }
+    body.dark-mode .iw-content .iw-row { color: #bbb; }
+    body.dark-mode .iw-content .iw-row strong { color: #e0e0e0; }
+    body.dark-mode .iw-content .iw-actions { border-top-color: #444; }
+    body.dark-mode .iw-content .iw-edit-row input[type="text"] { background: #2d2d2d; border-color: #555; color: #e0e0e0; }
+    body.dark-mode .gm-style .gm-style-iw-c { background: #1e1e1e !important; }
+
     /* ===== ASSIGNMENT TABLE ===== */
     .assignment-table { width: 100%; border-collapse: collapse; }
     .assignment-table th { text-align: left; color: #666; font-size: .8em; padding: 6px; border-bottom: 2px solid #eee; }
@@ -130,12 +155,19 @@
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-        .side-panel { width: 100%; max-height: 50vh; border-left: none; border-top: 1px solid #eee; border-radius: 0; }
+        .side-panel { width: 100%; max-height: 40vh; border-left: none; border-top: 1px solid #eee; border-radius: 0; overflow-y: auto; }
         .map-content { flex-direction: column; }
-        #fullMap { height: 50vh; border-radius: 0; }
-        .panel-toggle { display: none; }
-        .map-toolbar { gap: 4px; padding: 8px 10px; }
+        #fullMap { height: 55vh; border-radius: 0; }
+        .panel-toggle { bottom: auto; top: 10px; right: 10px; left: auto; transform: none; z-index: 10; }
+        .map-toolbar { gap: 4px; padding: 8px 10px; flex-wrap: wrap; }
         .toolbar-btn { padding: 5px 8px; font-size: .75em; }
+        .panel-form-group label { font-size: .8em; }
+        .panel-form-group input, .panel-form-group select { padding: 6px; font-size: .85em; }
+    }
+    @media (max-width: 480px) {
+        #fullMap { height: 50vh; }
+        .side-panel { max-height: 45vh; }
+        .toolbar-btn { padding: 4px 6px; font-size: .7em; }
     }
 </style>
 {% endblock %}
@@ -347,7 +379,7 @@
     const MARKER_ICONS = { 'Barn': '🛖', 'Shelter': '⛺', 'Water': '💧', 'Feeder': '🌾', 'Gate': '🚪', 'Other': '📍' };
 
     // ===== ON LOAD =====
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         // Panel toggle
         var panelToggle = document.getElementById('panelToggle');
         var sidePanel = document.getElementById('sidePanel');
@@ -395,7 +427,7 @@
 
         // Build rotation timeline
         buildRotationTimeline();
-    });
+    })();
 
     // ===== MARKER MODE =====
     function toggleMarkerMode() {
@@ -764,20 +796,25 @@
 
                 // Feature 6: Name/Color edit fields in InfoWindow
                 var idx = areaPolygons.length - 1;
-                var editFields = '<div style="margin-top:8px; border-top:1px solid #eee; padding-top:8px;">' +
-                    '<div style="display:flex;gap:4px;align-items:flex-end;margin-bottom:4px;">' +
-                    '<input type="text" value="' + area.name.replace(/"/g, '&quot;') + '" id="editName-' + area.id + '" style="flex:1;padding:4px;font-size:.85em;border:1px solid #ddd;border-radius:3px;" title="Edit name">' +
-                    '<input type="color" value="' + area.color + '" id="editColor-' + area.id + '" style="width:40px;height:28px;padding:0;border:1px solid #ddd;border-radius:3px;" title="Edit color">' +
+                var editFields = '<div class="iw-actions" style="flex-direction:column;align-items:stretch;">' +
+                    '<div class="iw-edit-row">' +
+                    '<input type="text" value="' + area.name.replace(/"/g, '&quot;') + '" id="editName-' + area.id + '" title="Edit name">' +
+                    '<input type="color" value="' + area.color + '" id="editColor-' + area.id + '" title="Edit color">' +
                     '</div>' +
-                    '<div style="display:flex;gap:4px;">' +
-                    '<button data-action="save" data-idx="' + idx + '" data-areaid="' + area.id + '" style="background:#2196f3;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;flex:1;">Save</button>' +
-                    '<button data-action="delete" data-idx="' + idx + '" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Delete</button>' +
+                    '<div style="display:flex;gap:6px;">' +
+                    '<button data-action="save" data-idx="' + idx + '" data-areaid="' + area.id + '" class="iw-btn iw-btn-save">Save</button>' +
+                    '<button data-action="delete" data-idx="' + idx + '" class="iw-btn iw-btn-delete">Delete</button>' +
                     '</div></div>';
 
                 // Build InfoWindow
-                var infoContent = '<div style="max-width:280px;" id="infoContent-' + area.id + '">' +
-                    '<strong style="font-size:1.1em;">' + area.name + '</strong>' +
-                    areaSize + perimeterInfo + stockingInfo + condBadge + restInfo + goatInfo +
+                var infoContent = '<div class="iw-content" id="infoContent-' + area.id + '">' +
+                    '<div class="iw-title">' + area.name + '</div>' +
+                    '<div class="iw-row">' + areaSize.replace('<br>', '') + '</div>' +
+                    '<div class="iw-row">' + perimeterInfo.replace('<br>', '') + '</div>' +
+                    '<div class="iw-row">' + stockingInfo.replace('<br>', '') + '</div>' +
+                    (condBadge ? '<div class="iw-row">' + condBadge.replace('<br>', '') + '</div>' : '') +
+                    (restInfo ? '<div class="iw-row">' + restInfo.replace('<br>', '') + '</div>' : '') +
+                    (goatInfo ? '<div class="iw-row">' + goatInfo.replace('<br>', '') + '</div>' : '') +
                     sparklineHtml + editFields + '</div>';
 
                 polygon.addListener("click", function(e) {
@@ -857,11 +894,12 @@
             var deleteUrl = '/marker/' + m.id + '/delete/';
             markerObj.addListener('click', function() {
                 new google.maps.InfoWindow({
-                    content: '<strong>' + m.name + '</strong><br>' + m.marker_type +
-                        (m.notes ? '<br><em>' + m.notes + '</em>' : '') +
-                        '<br><form method="POST" action="' + deleteUrl + '" style="margin-top:6px;">' +
+                    content: '<div class="iw-content"><div class="iw-title">' + m.name + '</div>' +
+                        '<div class="iw-row">' + m.marker_type + '</div>' +
+                        (m.notes ? '<div class="iw-row" style="font-style:italic;">' + m.notes + '</div>' : '') +
+                        '<div class="iw-actions"><form method="POST" action="' + deleteUrl + '">' +
                         '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrftoken + '">' +
-                        '<button type="submit" style="background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.8em;">Remove</button></form>'
+                        '<button type="submit" class="iw-btn iw-btn-delete">Remove</button></form></div></div>'
                 }).open(map, markerObj);
             });
         });

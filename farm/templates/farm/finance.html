@@ -169,6 +169,6 @@
         }
     }
     // Run once on load to set initial state correctly
-    document.addEventListener('DOMContentLoaded', updateFormColor);
+    (function() { updateFormColor(); })();
 </script>
 {% endblock %}

@@ -103,7 +103,7 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const isDark = document.body.classList.contains('dark-mode');
     const textColor = isDark ? '#e0e0e0' : '#333';
 
@@ -134,6 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+})();
 </script>
 {% endblock %}

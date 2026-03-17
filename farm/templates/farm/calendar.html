@@ -157,7 +157,7 @@
 <script>
     let currentModalDate = '';
 
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
         var calendarEl = document.getElementById('calendar');
         
         // Safe JSON Parsing Logic
@@ -293,7 +293,7 @@
             }
         });
         calendar.render();
-    });
+    })();
 
     // --- CHORE LOGIC ---
     function openChoreModal(dateStr) {
