@@ -76,6 +76,17 @@
             <label>Date</label>
             <input type="date" name="date" value="{{ today }}">
         </div>
+        <div class="qe-field">
+            <label>Time of Day</label>
+            <div class="qe-ampm">
+                <label><input type="radio" name="time_of_day" value="Morning" checked><span>☀️ Morning</span></label>
+                <label><input type="radio" name="time_of_day" value="Evening"><span>🌙 Evening</span></label>
+            </div>
+        </div>
+        <div class="qe-field">
+            <label>Feeding Time (optional)</label>
+            <input type="time" name="feeding_time" id="bulk-feeding-time">
+        </div>
         <div class="qe-bulk-section">
             <h4><span class="hay-title">🌾 Hay</span></h4>
             <div class="qe-field">
@@ -197,6 +208,17 @@
         <div class="qe-field">
             <label>Date</label>
             <input type="date" name="date" value="{{ today }}">
+        </div>
+        <div class="qe-field">
+            <label>Time of Day</label>
+            <div class="qe-ampm">
+                <label><input type="radio" name="time_of_day" value="Morning" checked><span>☀️ Morning</span></label>
+                <label><input type="radio" name="time_of_day" value="Evening"><span>🌙 Evening</span></label>
+            </div>
+        </div>
+        <div class="qe-field">
+            <label>Feeding Time (optional)</label>
+            <input type="time" name="feeding_time">
         </div>
         <div class="qe-field">
             <label>Feed Type</label>

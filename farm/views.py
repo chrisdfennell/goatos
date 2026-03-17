@@ -2081,6 +2081,15 @@ def quick_entry(request):
 
         if entry_type == 'bulk':
             notes = request.POST.get('notes', '')
+            time_of_day = request.POST.get('time_of_day', '')
+            feeding_time_str = request.POST.get('feeding_time', '').strip()
+            feeding_time = None
+            if feeding_time_str:
+                try:
+                    from datetime import datetime as dt
+                    feeding_time = dt.strptime(feeding_time_str, '%H:%M').time()
+                except ValueError:
+                    pass
             logged = []
             bulk_items = [
                 ('hay_amount', 'Hay'),
@@ -2097,6 +2106,8 @@ def quick_entry(request):
                         date=entry_date,
                         feed_type=feed_type,
                         amount=amount,
+                        time_of_day=time_of_day,
+                        feeding_time=feeding_time,
                         notes=notes,
                     )
                     logged.append(feed_type)
@@ -2127,11 +2138,21 @@ def quick_entry(request):
             )
             messages.success(request, f'Weight logged for {goat.name}.')
         elif entry_type == 'feeding':
+            feeding_time_str = request.POST.get('feeding_time', '').strip()
+            feeding_time = None
+            if feeding_time_str:
+                try:
+                    from datetime import datetime as dt
+                    feeding_time = dt.strptime(feeding_time_str, '%H:%M').time()
+                except ValueError:
+                    pass
             FeedingLog.objects.create(
                 goat=goat,
                 date=entry_date,
                 feed_type=request.POST.get('feed_type', 'Hay'),
                 amount=request.POST.get('amount', ''),
+                time_of_day=request.POST.get('time_of_day', ''),
+                feeding_time=feeding_time,
                 notes=request.POST.get('notes', ''),
             )
             messages.success(request, f'Feeding logged for {goat.name}.')

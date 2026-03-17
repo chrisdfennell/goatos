@@ -238,10 +238,13 @@ class MedicalRecord(models.Model):
 
 class FeedingLog(models.Model):
     FEED_TYPES = [('Hay', 'Hay'), ('Grain', 'Grain'), ('Minerals', 'Minerals'), ('Water', 'Water'), ('Crackers/Cookies', 'Crackers/Cookies'), ('Veggies', 'Veggies'), ('Other', 'Other')]
+    TIME_OF_DAY_CHOICES = [('Morning', 'Morning'), ('Evening', 'Evening')]
     goat = models.ForeignKey(Goat, on_delete=models.CASCADE, related_name='feeding_logs', null=True, blank=True)
     date = models.DateField(default=timezone.now)
     feed_type = models.CharField(max_length=20, choices=FEED_TYPES)
     amount = models.CharField(max_length=100, help_text="e.g. 1 Scoop, 2 Flakes")
+    time_of_day = models.CharField(max_length=10, choices=TIME_OF_DAY_CHOICES, blank=True, default='')
+    feeding_time = models.TimeField(null=True, blank=True, help_text="Actual time of feeding")
     notes = models.TextField(blank=True)
 
 class BreedingLog(models.Model):
