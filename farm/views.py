@@ -737,6 +737,7 @@ def goat_detail(request, goat_id):
     context.update({
         'goat': goat, 'logs': logs, 'medical_records': medical_records,
         'feeding_logs': feeding_logs, 'breeding_logs': breeding_logs,
+        'today': timezone.localdate().isoformat(),
         'milk_logs': milk_logs, 'weight_logs': weight_logs.order_by('-date'),
         'weight_chart_data': json.dumps(weight_chart_data),
         'milk_chart_data': json.dumps(milk_chart_data),
@@ -791,11 +792,21 @@ def add_medical_record(request, goat_id):
 def add_feeding_record(request, goat_id):
     goat = get_object_or_404(Goat, pk=goat_id)
     if request.method == 'POST':
+        feeding_time_str = request.POST.get('feeding_time', '').strip()
+        feeding_time = None
+        if feeding_time_str:
+            try:
+                from datetime import datetime as dt
+                feeding_time = dt.strptime(feeding_time_str, '%H:%M').time()
+            except ValueError:
+                pass
         FeedingLog.objects.create(
             goat=goat,
             date=request.POST.get('date') or timezone.now().date(),
             feed_type=request.POST.get('feed_type'),
             amount=request.POST.get('amount'),
+            time_of_day=request.POST.get('time_of_day', ''),
+            feeding_time=feeding_time,
             notes=request.POST.get('notes')
         )
         messages.success(request, 'Feeding record added.')
@@ -1835,10 +1846,18 @@ def activity_feed(request):
             lambda o: o.goat, lambda o: o.date)
 
     if not type_filters or 'feeding' in type_filters:
+        def feeding_label(o):
+            label = f'{o.feed_type} - {o.amount}'
+            if o.time_of_day:
+                label += f' ({o.time_of_day}'
+                if o.feeding_time:
+                    label += f' @ {o.feeding_time.strftime("%I:%M %p").lstrip("0")}'
+                label += ')'
+            return label
         add_activities(
             FeedingLog.objects.select_related('goat').order_by('-date')[:limit],
             'feeding', '🌾', '#ff9800',
-            lambda o: f'{o.feed_type} - {o.amount}',
+            feeding_label,
             lambda o: o.notes[:100] if o.notes else '',
             lambda o: o.goat if o.goat else 'All Goats', lambda o: o.date)
 

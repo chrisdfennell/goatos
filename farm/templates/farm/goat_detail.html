@@ -403,6 +403,11 @@
                     <select name="feed_type" title="Feed type"><option value="Hay">Hay</option><option value="Grain">Grain</option><option value="Minerals">Minerals</option><option value="Water">Water</option><option value="Crackers/Cookies">Crackers/Cookies</option><option value="Veggies">Veggies</option><option value="Other">Other</option></select>
                     <input type="text" name="amount" placeholder="Amount (e.g. 1 Flake)" required title="Feed amount">
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <input type="date" name="date" value="{{ today }}" title="Date">
+                    <select name="time_of_day" title="Time of day"><option value="">-- Time --</option><option value="Morning">☀️ Morning</option><option value="Evening">🌙 Evening</option></select>
+                    <input type="time" name="feeding_time" title="Feeding time" placeholder="Time">
+                </div>
                 <textarea name="notes" rows="1" placeholder="Details..." title="Feeding notes"></textarea>
                 <button type="submit" class="btn-submit btn-feed">Record Feed</button>
             </form>
@@ -413,7 +418,7 @@
                     <span class="log-date">{{ log.date|date:"F j, Y" }}{% if not log.goat %} <span class="herd-badge">Herd</span>{% endif %}
                         <form method="POST" action="{% url 'delete_feeding_log' log.id %}" style="display:inline;float:right;" onsubmit="return confirm('Delete this feeding record?');">{% csrf_token %}<button type="submit" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9em;" title="Delete">🗑️</button></form>
                     </span>
-                    <div class="log-content"><strong>{{ log.feed_type }}</strong> - {{ log.amount }}<br><span style="color:#666;">{{ log.notes }}</span></div>
+                    <div class="log-content"><strong>{{ log.feed_type }}</strong> - {{ log.amount }}{% if log.time_of_day %} <span style="color:#888; font-size:0.85em;">{% if log.time_of_day == 'Morning' %}☀️{% else %}🌙{% endif %} {{ log.time_of_day }}{% if log.feeding_time %} @ {{ log.feeding_time|time:"g:i A" }}{% endif %}</span>{% endif %}<br><span style="color:#666;">{{ log.notes }}</span></div>
                 </div>
                 {% endfor %}
                 {% if feeding_logs|length > 10 %}
